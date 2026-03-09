@@ -1,0 +1,756 @@
+{
+  "pediatrics": [
+    {
+      "name": "ゆいこどもクリニック",
+      "area": "弘明寺町144-1 水谷ビル2F（徒歩3分）",
+      "phone": "045-730-4152",
+      "url": "http://www.yui-kids.com/",
+      "rating": 4.60,
+      "reviewCount": 12,
+      "reviewSource": "Caloo",
+      "note": "小児科専門医・アレルギー専門医。予防接種・乳幼児健診対応。月水金 9:00-17:30 / 火木土 9:00-12:00。木日祝休診"
+    },
+    {
+      "name": "池田医院",
+      "area": "弘明寺町159（徒歩5分）",
+      "phone": "045-731-0203",
+      "url": "https://fdoc.jp/clinic/detail/index/id/24731/",
+      "rating": 3.44,
+      "reviewCount": 1,
+      "reviewSource": "Caloo",
+      "note": "内科・小児科。弘明寺商店街内。月火水金 9:00-11:30,15:00-16:30 / 土 9:00-11:30。木日祝休診"
+    },
+    {
+      "name": "弘明クリニック",
+      "area": "通町4-84-1 メルベイユ弘明寺2F（徒歩6分）",
+      "phone": "045-721-3611",
+      "url": "https://doctorsfile.jp/h/20511/",
+      "rating": 3.30,
+      "reviewCount": 3,
+      "reviewSource": "Caloo",
+      "note": "内科・小児科。待ち時間少なめ。月火木金 9:00-11:30,15:00-18:30 / 土 9:00-11:30。水日祝休診"
+    },
+    {
+      "name": "大岡医院",
+      "area": "大岡2-13-15（徒歩10分）",
+      "phone": "045-741-0552",
+      "url": "https://www.ooka-iin.jp/",
+      "rating": 3.67,
+      "reviewCount": 2,
+      "reviewSource": "Caloo",
+      "note": "内科・小児科・皮膚科。1959年開業。予防接種・乳幼児健診対応。親子同時受診可。月火水金 9:00-12:30,15:30-18:30 / 土 9:00-12:30。木日祝休診"
+    },
+    {
+      "name": "横浜弘明寺呼吸器内科・内科クリニック",
+      "area": "六ツ川1-81 FHCビル2F（徒歩10分）",
+      "phone": "045-306-8026",
+      "url": "https://www.kamimutsukawa.com/",
+      "rating": 3.19,
+      "reviewCount": 8,
+      "reviewSource": "Caloo",
+      "note": "小児科・アレルギー科あり。土日祝も診療（急な体調不良に便利）。午前 9:00-11:30 / 午後 15:30-18:00（土日祝 14:00-16:30）"
+    },
+    {
+      "name": "みやじ小児科クリニック",
+      "area": "六ツ川3-86-6（徒歩15-20分 / バス推奨）",
+      "phone": "045-716-1011",
+      "url": "https://miyaji-clinic.jp/",
+      "rating": 4.43,
+      "reviewCount": 11,
+      "reviewSource": "Caloo",
+      "note": "小児科専門。複数専門医在籍。30年以上の実績。予防接種・健診・育児相談対応。Web予約可。月-土 9:00-18:00（土17:00まで）。日祝休診"
+    }
+  ],
+  "ent": [
+    {
+      "name": "いでい耳鼻咽喉科医院",
+      "area": "弘明寺町134 GMビル1F（徒歩3-5分）",
+      "phone": "045-715-4133",
+      "url": "https://www.idei-jibika.com/",
+      "rating": 3.44,
+      "reviewCount": 20,
+      "reviewSource": "Caloo",
+      "note": "耳鼻咽喉科専門医。キッズスペースあり。中耳炎・アレルギー・舌下免疫療法対応。月火水金 9:00-12:00,14:30-18:30 / 土 9:00-16:00。木日祝休診"
+    },
+    {
+      "name": "湯山耳鼻咽喉科クリニック",
+      "area": "井土ケ谷下町213 第二江洋ビル4F（京急1駅・井土ヶ谷駅 徒歩2分）",
+      "phone": "045-742-3314",
+      "url": "https://fdoc.jp/clinic/detail/index/id/24755/",
+      "rating": 4.13,
+      "reviewCount": 5,
+      "reviewSource": "Caloo",
+      "note": "子供の口コミが最も好評。新生児から対応実績あり。先生が優しいと評判。月-金 9:00-12:30,15:00-18:00 / 土 9:00-12:30。日祝休診"
+    },
+    {
+      "name": "北郷耳鼻咽喉科クリニック",
+      "area": "通町1-2（蒔田駅 徒歩3分 / 徒歩15-20分）",
+      "phone": "045-715-1133",
+      "url": "https://www.kitago-clinic.com/",
+      "rating": 3.56,
+      "reviewCount": 4,
+      "reviewSource": "Caloo",
+      "note": "耳鼻咽喉科専門医。丁寧な診療が評判。ネット予約可。月火木金 9:50-13:00,15:00-18:30 / 土 9:50-14:00。水日祝休診"
+    },
+    {
+      "name": "西山耳鼻咽喉科医院",
+      "area": "中里1-11-19（徒歩15-20分）",
+      "phone": "045-715-5282",
+      "url": "https://www.nishiyaent.com/",
+      "rating": 3.55,
+      "reviewCount": 11,
+      "reviewSource": "Caloo",
+      "note": "滲出性中耳炎の専門治療に強み。日帰り手術対応。駐車場10台。月水金 9:00-12:30,15:00-18:00 / 火 午前のみ / 土 9:00-13:00。木日祝休診"
+    },
+    {
+      "name": "六ッ川耳鼻咽喉科クリニック",
+      "area": "六ッ川3-79-15 金子ビル2F（バスまたは車で10-15分）",
+      "phone": "045-730-6272",
+      "url": "https://doctorsfile.jp/h/20520/",
+      "rating": 3.53,
+      "reviewCount": 5,
+      "reviewSource": "Caloo",
+      "note": "気さくで優しい先生と評判。月火水金 9:30-12:30,14:30-18:00 / 土 9:30-12:30。木日祝休診"
+    }
+  ],
+  "dermatology": [
+    {
+      "name": "いちやま皮膚科",
+      "area": "港南区上大岡西1-10-5 SKビル2F（上大岡駅 徒歩1分）",
+      "phone": "045-349-8585",
+      "url": "https://ichiyama-hifuka.com/",
+      "note": "月火木金 9:00-12:30,15:30-18:30 / 土 9:00-13:00。水日祝休診"
+    },
+    {
+      "name": "大岡医院（皮膚科）",
+      "area": "大岡2-13-15（徒歩10分）",
+      "phone": "045-741-0552",
+      "url": "https://www.ooka-iin.jp/",
+      "rating": 3.67,
+      "reviewCount": 2,
+      "reviewSource": "Caloo",
+      "note": "水曜診療あり。小児科も併設で子供に安心。女性医師在籍。月火水金 9:00-12:30,15:30-18:30 / 土 9:00-12:30。木日祝休診"
+    },
+    {
+      "name": "井土ヶ谷駅前やまが皮膚科",
+      "area": "井土ヶ谷中町158 アクロスキューブ3F（京急1駅・井土ヶ谷駅 徒歩30秒）",
+      "phone": "045-731-1123",
+      "url": "https://idogaya-hifuka.com/",
+      "note": "水曜・日曜午前も診療。小児対応。平日19:00まで。LINE/WEB予約可。月-金 9:00-12:00,15:00-19:00 / 土 9:00-12:00,15:00-18:00 / 日 9:00-12:00。祝休診"
+    },
+    {
+      "name": "蒔田さとう皮フ科",
+      "area": "花之木町3-48-1 ビエラ蒔田2F（蒔田駅 徒歩3分）",
+      "phone": "045-315-2887",
+      "url": "https://ms-hifuka.com/",
+      "note": "水曜午前のみ診療。小児皮膚科を正式標榜。女性院長・皮膚科専門医・アレルギー専門医。月火木 9:30-12:30,14:30-17:00 / 水金 9:30-12:30。第3,5土・日祝休診"
+    }
+  ],
+  "emergency": [
+    {
+      "name": "#7119（かながわ救急相談センター）",
+      "area": "全国",
+      "phone": "#7119",
+      "note": "24時間年中無休。救急車を呼ぶべきか・受診先の相談。固定電話: 045-232-7119"
+    },
+    {
+      "name": "#8000（かながわ小児救急ダイヤル）",
+      "area": "全国",
+      "phone": "#8000",
+      "note": "毎日 18:00-翌8:00。子供の急な体調変化の助言（診断ではなく助言）。IP電話: 050-3490-3742"
+    },
+    {
+      "name": "南区休日急患診療所",
+      "area": "宿町4-76-1（蒔田駅 徒歩5分 / 弘明寺から約10分）",
+      "phone": "045-711-7000",
+      "url": "https://www.minamiku-yokohama-med.org/holiday.html",
+      "note": "内科・小児科。日曜・祝日・年末年始 10:00-16:00（受付9:30-15:30）。予約不可・直接来院。駐車場あり"
+    },
+    {
+      "name": "横浜市夜間急病センター",
+      "area": "中区桜木町1-1（桜木町駅 徒歩2分 / 弘明寺からブルーライン約10分）",
+      "phone": "045-212-3535",
+      "url": "https://www.yokohama-emc.jp/yakan.html",
+      "note": "内科・小児科・眼科・耳鼻科。年中無休 20:00-24:00（受付19:30〜）。事前に電話してから来院"
+    },
+    {
+      "name": "済生会横浜市南部病院（小児救急拠点）",
+      "area": "港南区港南台3-2-10（港南台駅 徒歩3分 / 弘明寺から約20-25分）",
+      "phone": "045-832-1111",
+      "url": "https://www.nanbu.saiseikai.or.jp/depts/pediatrics/",
+      "note": "24時間365日対応（二次救急）。深夜0:00-9:00も小児受入れ。必ず事前に電話確認"
+    },
+    {
+      "name": "171（災害用伝言ダイヤル）",
+      "area": "全国",
+      "phone": "171",
+      "note": "災害時に安否情報を録音・再生できるサービス。「171」→ 録音は「1」、再生は「2」→ 相手の電話番号を入力。毎月1日・15日に体験利用可"
+    }
+  ],
+  "nurseries": [
+    {
+      "name": "プチ・ナーサリー弘明寺",
+      "type": "認可",
+      "area": "南区弘明寺町148-5（地下鉄弘明寺駅 徒歩3分）",
+      "walkMinutes": 3,
+      "phone": "045-712-5800",
+      "url": "http://kodomonomori.co.jp/ma/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "弘明寺商店街すぐ。京急駅からも徒歩5分",
+      "lat": 35.42010,
+      "lng": 139.60920
+    },
+    {
+      "name": "ぴーまん保育園弘明寺",
+      "type": "企業主導型",
+      "area": "南区中島町4-86 矢野ビル1F（地下鉄弘明寺駅 徒歩1分）",
+      "walkMinutes": 3,
+      "phone": "0120-071-639",
+      "url": "https://www.pman-hoiku.com/",
+      "ageRange": "0〜2歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "企業主導型。地域枠あり。小規模で手厚い保育",
+      "lat": 35.42130,
+      "lng": 139.60810
+    },
+    {
+      "name": "パナマリア保育園弘明寺園",
+      "type": "小規模",
+      "area": "南区通町4-98（地下鉄弘明寺駅 徒歩2-3分）",
+      "walkMinutes": 4,
+      "phone": "045-315-3447",
+      "url": "https://gumyouji.panamaria-gro.jp/",
+      "ageRange": "0〜2歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "小規模A型。家庭的な雰囲気。3歳から転園が必要",
+      "lat": 35.42180,
+      "lng": 139.60750
+    },
+    {
+      "name": "横浜南プリスクール",
+      "type": "企業主導型",
+      "area": "南区通町2-39-14（地下鉄弘明寺駅 徒歩6分）",
+      "walkMinutes": 6,
+      "phone": "045-334-7147",
+      "url": "https://mocmo.ed.jp/preschool/",
+      "ageRange": "生後6ヶ月〜5歳",
+      "capacity": "49名",
+      "hours": "7:30〜20:30",
+      "note": "企業主導型。延長保育が20:30まで。地域枠あり",
+      "lat": 35.42320,
+      "lng": 139.60650
+    },
+    {
+      "name": "キッズパートナー弘明寺",
+      "type": "認可",
+      "area": "南区中里1-21-1（京急弘明寺駅 徒歩5分）",
+      "walkMinutes": 7,
+      "phone": "045-715-3661",
+      "url": "https://www.care-partner.com/nurseries/gumyouji/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "平成30年4月開設。中里エリア",
+      "lat": 35.41850,
+      "lng": 139.61200
+    },
+    {
+      "name": "睦町保育園",
+      "type": "認可",
+      "area": "南区睦町1-30（京急弘明寺駅 徒歩8分）",
+      "walkMinutes": 10,
+      "phone": "045-710-6230",
+      "url": "https://mutumicho-hoikuen.com/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "睦町エリア",
+      "lat": 35.41700,
+      "lng": 139.61380
+    },
+    {
+      "name": "アイン弘明寺保育園",
+      "type": "認可",
+      "area": "南区大岡2-16-5（徒歩10分）",
+      "walkMinutes": 10,
+      "phone": "045-716-4152",
+      "url": "https://www.ein-group.com/facility/gumyoji/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "22名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "モンテッソーリ教育。少人数制",
+      "lat": 35.42400,
+      "lng": 139.61100
+    },
+    {
+      "name": "大岡おひさま保育園",
+      "type": "認可",
+      "area": "南区大岡3-9-16（徒歩12分）",
+      "walkMinutes": 12,
+      "phone": "045-715-0130",
+      "url": "https://oookaohisama.com/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "大岡エリア",
+      "lat": 35.42550,
+      "lng": 139.61050
+    },
+    {
+      "name": "よこはま風の遊育園",
+      "type": "認可",
+      "area": "南区六ツ川2-68-18（徒歩12分）",
+      "walkMinutes": 12,
+      "phone": "045-715-5226",
+      "url": "https://yuiku.jp/yokohamamutsukawa/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "75名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "六ツ川エリア。こども園に移行予定との情報あり",
+      "lat": 35.41580,
+      "lng": 139.60450
+    },
+    {
+      "name": "横浜市三春台保育園",
+      "type": "認可",
+      "area": "南区三春台107（徒歩12分）",
+      "walkMinutes": 12,
+      "phone": "045-231-5067",
+      "url": "https://miharudai2022.wixsite.com/miharudai",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "2022年に横浜市から移管。三春台エリア",
+      "lat": 35.42450,
+      "lng": 139.60380
+    },
+    {
+      "name": "蒔田ひまわり保育園",
+      "type": "認可",
+      "area": "南区花之木町2-26 馬淵建設ビル1F（蒔田駅 徒歩5分）",
+      "walkMinutes": 13,
+      "phone": "045-711-1936",
+      "url": "https://www.darwin-a.co.jp/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "蒔田駅そば。花之木町エリア",
+      "lat": 35.42750,
+      "lng": 139.60350
+    },
+    {
+      "name": "木の花保育園",
+      "type": "小規模",
+      "area": "南区花之木町1-9-12 ロイヤルハイツ1F（蒔田駅 徒歩8分）",
+      "walkMinutes": 13,
+      "phone": "045-873-7621",
+      "url": "https://konohana-hoikuenn.com/",
+      "ageRange": "1〜2歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "小規模保育。1〜2歳児対象。3歳から転園が必要",
+      "lat": 35.42780,
+      "lng": 139.60300
+    },
+    {
+      "name": "小学館アカデミーまいた保育園",
+      "type": "認可",
+      "area": "南区宮元町1-15-1 エクセルマンション1F（蒔田駅 徒歩7分）",
+      "walkMinutes": 14,
+      "phone": "045-711-6901",
+      "url": "https://hoiku.shopro.co.jp/hoiku/shisetsu/maita/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "小学館グループ運営。蒔田駅エリア",
+      "lat": 35.42680,
+      "lng": 139.60550
+    },
+    {
+      "name": "NLキッズランド",
+      "type": "企業主導型",
+      "area": "南区共進町3-63 NLレジデンス2F（蒔田駅 徒歩3分）",
+      "walkMinutes": 14,
+      "phone": "045-341-3704",
+      "url": "https://nl-kidsland.com/",
+      "ageRange": "0〜5歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "企業主導型。蒔田駅そば。地域枠あり",
+      "lat": 35.42720,
+      "lng": 139.60480
+    },
+    {
+      "name": "ひびき井土ヶ谷保育園",
+      "type": "認可",
+      "area": "南区井土ケ谷上町26-24（井土ヶ谷駅 徒歩5分）",
+      "walkMinutes": 14,
+      "phone": "045-713-3737",
+      "url": "https://www.sodachinomori.com/facilities/index.php?p=idogaya",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "平成25年開設。井土ヶ谷エリア",
+      "lat": 35.42900,
+      "lng": 139.60750
+    },
+    {
+      "name": "横浜市井土ケ谷保育園",
+      "type": "認可",
+      "area": "南区井土ケ谷下町13-17（井土ヶ谷駅 徒歩5分）",
+      "walkMinutes": 14,
+      "phone": "045-715-0198",
+      "url": "",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "90名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "公立保育園。育児支援センター園",
+      "lat": 35.42830,
+      "lng": 139.60880
+    },
+    {
+      "name": "京急キッズランド井土ケ谷駅保育園",
+      "type": "認可",
+      "area": "南区井土ケ谷中町161（井土ヶ谷駅 徒歩2分）",
+      "walkMinutes": 14,
+      "phone": "045-730-6206",
+      "url": "https://www.keikyu-kids.com/nursery/idogaya.html",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "京急グループ運営。駅至近",
+      "lat": 35.42860,
+      "lng": 139.60820
+    },
+    {
+      "name": "ララランド井土ケ谷",
+      "type": "認可",
+      "area": "南区井土ケ谷上町13-18（井土ヶ谷駅 徒歩5分）",
+      "walkMinutes": 15,
+      "phone": "045-334-7446",
+      "url": "https://la-la-land.co.jp/school/school-idogaya/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "67名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "令和2年4月開所。井土ヶ谷エリア",
+      "lat": 35.42880,
+      "lng": 139.60700
+    },
+    {
+      "name": "六ツ川みどり保育園",
+      "type": "認可",
+      "area": "南区六ツ川3-77-7（徒歩15-20分）",
+      "walkMinutes": 18,
+      "phone": "045-713-2161",
+      "url": "https://www.mutsukawa-midori.com/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "90名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "六ツ川エリア。園庭広め",
+      "lat": 35.41300,
+      "lng": 139.60100
+    },
+    {
+      "name": "大岡はるかぜ保育園",
+      "type": "認可",
+      "area": "南区大岡5-40-2（徒歩15-20分）",
+      "walkMinutes": 18,
+      "phone": "045-334-8715",
+      "url": "https://www.harukaze.co.jp/oooka/",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "令和元年8月開所。大岡エリア奥",
+      "lat": 35.42650,
+      "lng": 139.61400
+    },
+    {
+      "name": "南愛児園",
+      "type": "認可",
+      "area": "南区南太田2-7-21（南太田駅 徒歩5分）",
+      "walkMinutes": 15,
+      "phone": "045-731-1401",
+      "url": "",
+      "ageRange": "生後57日〜5歳",
+      "capacity": "60名",
+      "hours": "7:00〜18:00（延長〜20:00）",
+      "note": "南太田エリア",
+      "lat": 35.43050,
+      "lng": 139.60400
+    },
+    {
+      "name": "キッズパートナー井土ヶ谷",
+      "type": "小規模",
+      "area": "南区南太田4-3-8 KMG横浜1F（井土ヶ谷駅 徒歩2分）",
+      "walkMinutes": 15,
+      "phone": "045-716-5651",
+      "url": "https://www.care-partner.com/nurseries/idogaya/",
+      "ageRange": "0〜2歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "小規模保育。0〜2歳児対象。井土ヶ谷駅すぐ",
+      "lat": 35.42950,
+      "lng": 139.60650
+    },
+    {
+      "name": "竹の子共同保育園",
+      "type": "小規模",
+      "area": "南区井土ヶ谷中町127-1 ルネ横浜1F（井土ヶ谷駅 徒歩7分）",
+      "walkMinutes": 15,
+      "phone": "045-741-1619",
+      "url": "https://takenoko-kyoudou.com/",
+      "ageRange": "0〜2歳",
+      "capacity": "19名以下",
+      "hours": "7:30〜18:30（延長〜19:30）",
+      "note": "小規模保育。0〜2歳児対象",
+      "lat": 35.42800,
+      "lng": 139.60900
+    }
+  ],
+  "taxiLabor": [
+    {
+      "name": "日本交通（陣痛タクシー）",
+      "phone": "050-3116-4794",
+      "method": "tel",
+      "area": "戸塚区・泉区・旭区・中区・西区・南区・神奈川区・保土ヶ谷区",
+      "wards": ["戸塚区","泉区","旭区","中区","西区","南区","神奈川区","保土ケ谷区"],
+      "note": "24時間365日。通常料金。全ドライバーが助産師監修の講習済。シート汚損クリーニング無料。事前登録要。到着まで約20分以内",
+      "url": "https://www.nihon-kotsu-taxi.jp/jintsu-yokohama/"
+    },
+    {
+      "name": "三和交通（陣痛119番）",
+      "phone": "045-471-0119",
+      "method": "tel",
+      "area": "横浜市全域・東京多摩・埼玉",
+      "wards": ["鶴見区","神奈川区","西区","中区","南区","港南区","保土ケ谷区","旭区","磯子区","金沢区","港北区","緑区","青葉区","都筑区","戸塚区","栄区","泉区","瀬谷区"],
+      "note": "24時間対応。通常料金。登録した電話番号から連絡すること。約15分で到着。事前登録要（Web）",
+      "url": "https://www.sanwakoutsu.co.jp/service/labor/"
+    },
+    {
+      "name": "平和交通（マタニティタクシー）",
+      "phone": "045-663-8181",
+      "method": "tel",
+      "area": "鶴見区・神奈川区・港北区・中区・西区・南区・磯子区・保土ヶ谷区・戸塚区・旭区・川崎区・幸区",
+      "wards": ["鶴見区","神奈川区","港北区","中区","西区","南区","磯子区","保土ケ谷区","戸塚区","旭区"],
+      "note": "24時間対応。事前登録不要でも利用可。通常料金（迎車500円）。時間指定の場合は予約料400円。稼働状況により配車不可の場合あり",
+      "url": "https://www.heiwa-koutsu.co.jp/private/maternity/"
+    },
+    {
+      "name": "KMタクシー（マタニティ・マイタクシー）",
+      "phone": "0570-07-5931",
+      "method": "app",
+      "appName": "kmタクシーアプリ",
+      "area": "中区・南区・西区・神奈川区・保土ケ谷区・港南区・戸塚区・磯子区（一部地域）",
+      "wards": ["中区","南区","西区","神奈川区","保土ケ谷区","港南区","戸塚区","磯子区"],
+      "note": "24時間365日。アプリで配車（陣痛時専用ダイヤルもあり）。事前に病院と乗車地を登録で道案内不要。登録料無料。全車バスタオル常備",
+      "url": "https://info.km-group.co.jp/km-yokohama/taxi/maternity"
+    }
+  ],
+  "governmentLinks": [
+    {
+      "name": "パマトコ（横浜市子育て応援サイト）",
+      "category": "子育て全般",
+      "url": "https://pamatoco.city.yokohama.lg.jp/ctz/",
+      "note": "横浜市公式の子育て応援アプリ・サイト。施設検索・相談窓口・イベント情報・手続き案内を集約"
+    },
+    {
+      "name": "横浜市 子育て・教育",
+      "category": "子育て全般",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/",
+      "note": "横浜市の子育て・教育に関する総合ハブページ。保育・健康・福祉・教育など"
+    },
+    {
+      "name": "保育所等の利用手続き",
+      "category": "子育て全般",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/riyou/hoikuriyou/",
+      "note": "保育所等を利用したいときの手続き案内。オンライン申請・施設検索・利用調整基準など"
+    },
+    {
+      "name": "南区 こども家庭支援課",
+      "category": "南区",
+      "url": "https://www.city.yokohama.lg.jp/minami/madoguchi-shisetsu/kuyakusho/gyomuannai/kodomokatei.html",
+      "note": "こども家庭係・保育担当・こども支援担当の業務内容と連絡先"
+    },
+    {
+      "name": "はぐはぐの樹（南区子育て支援拠点）",
+      "category": "南区",
+      "url": "https://www.haghagnoki.jp/",
+      "note": "弘明寺町158 カルムI 2F。親子の居場所・相談・情報提供。NPO法人さくらザウルス運営"
+    },
+    {
+      "name": "乳幼児健康診査",
+      "category": "健診・予防接種",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/shido/kenshin/kenshin.html",
+      "note": "4か月児・1歳6か月児・3歳児健診の案内。日程・持ち物・会場など"
+    },
+    {
+      "name": "こどもの予防接種",
+      "category": "健診・予防接種",
+      "url": "https://www.city.yokohama.lg.jp/kenko-iryo-fukushi/kenko-iryo/yobosesshu/yobosesshu/child/child.html",
+      "note": "各ワクチンの対象年齢・接種スケジュール・協力医療機関一覧"
+    },
+    {
+      "name": "児童手当",
+      "category": "手当・助成",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/teate/teate/jite-gaiyou.html",
+      "note": "高校生年代までの児童を養育する保護者に月額10,000〜30,000円支給"
+    },
+    {
+      "name": "小児医療費助成",
+      "category": "手当・助成",
+      "url": "https://www.city.yokohama.lg.jp/kenko-iryo-fukushi/kenko-iryo/iryohijosei/shoni/child.html",
+      "note": "0歳〜中学3年生の保険診療自己負担分を助成。所得制限なし"
+    }
+  ],
+  "careSupport": [
+    {
+      "name": "オリーブ病児保育室",
+      "category": "病児保育",
+      "area": "南区六ツ川3-86-6 2F（みやじ小児科クリニック併設）",
+      "phone": "045-716-1017",
+      "url": "https://olive-childcare.jp/",
+      "cost": "2,000円/日",
+      "registration": "要事前登録",
+      "note": "WEB予約システムで予約。減免対象世帯は無料。小学3年生まで"
+    },
+    {
+      "name": "病児保育室ベアルーム",
+      "category": "病児保育",
+      "area": "港南区上大岡西1-15-1 カミオ405-1（上大岡こどもクリニック併設）",
+      "phone": "045-842-0420",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/hoikuseido/byogo/byouzi-hoiku.html",
+      "cost": "2,000円/日",
+      "registration": "要事前登録",
+      "note": "上大岡駅直結。小学3年生まで対象。減免対象世帯は無料"
+    },
+    {
+      "name": "横浜市病児保育事業（施設一覧・予約）",
+      "category": "病児保育",
+      "area": "横浜市全域",
+      "phone": "",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/hoikuseido/byogo/byouzi-hoiku.html",
+      "cost": "2,000円/日（全施設共通）",
+      "registration": "要事前登録",
+      "note": "市内全施設の一覧と制度案内。WEB予約システムあり"
+    },
+    {
+      "name": "みやした助産院",
+      "category": "母乳外来",
+      "area": "南区三春台126（弘明寺から徒歩15分）",
+      "phone": "045-231-1788",
+      "url": "https://miyashita.gr.jp/",
+      "cost": "要問い合わせ",
+      "registration": "要予約",
+      "note": "月〜土 9:00-17:00。電話・オンライン（Coubic）・LINEで予約可"
+    },
+    {
+      "name": "横浜市訪問型母子ケア（母乳相談）",
+      "category": "母乳外来",
+      "area": "自宅に助産師が訪問",
+      "phone": "045-671-2455",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/ninshin/bonyuusoudan.html",
+      "cost": "1,500円/回（最大3回）",
+      "registration": "要申請",
+      "note": "産後1年以内。電子申請→審査（約7日）→助産師会が訪問日調整。非課税世帯は無料"
+    },
+    {
+      "name": "キッズライン",
+      "category": "シッター",
+      "area": "横浜市南区対応",
+      "phone": "",
+      "url": "https://kidsline.me/",
+      "cost": "時給1,000円〜＋手数料22%",
+      "registration": "要登録（無料）",
+      "note": "最大手シッターマッチングサービス。即日対応可能なシッターも。クレジットカード払い"
+    },
+    {
+      "name": "ポピンズシッター",
+      "category": "シッター",
+      "area": "横浜市対応",
+      "phone": "",
+      "url": "https://smartsitter.jp/",
+      "cost": "時給2,200円〜＋交通費",
+      "registration": "要登録（無料）",
+      "note": "保育大手ポピンズグループ運営。保育士・幼稚園教諭資格者多数"
+    },
+    {
+      "name": "横浜市一時保育事業（WEB予約）",
+      "category": "一時預かり",
+      "area": "市内認可保育所",
+      "phone": "045-671-3564",
+      "url": "https://ichiji-yoyaku.city.yokohama.lg.jp/",
+      "cost": "0-2歳: 300円/h、3-5歳: 160円/h",
+      "registration": "要面談",
+      "note": "月120時間まで。給食・おやつ代500円/日別途。WEB予約で面談申込→施設来所→予約"
+    },
+    {
+      "name": "ママズスマイル ビエラ蒔田店",
+      "category": "一時預かり",
+      "area": "南区宮元町2-28-1 ビエラ蒔田（蒔田駅すぐ）",
+      "phone": "",
+      "url": "https://mamas-smile.com/branches/maita",
+      "cost": "要確認（サイト参照）",
+      "registration": "登録不要",
+      "note": "当日予約OK。一時預かり専門の託児所。買い物・通院時に便利"
+    },
+    {
+      "name": "横浜市産後母子ケア事業",
+      "category": "産後ケア",
+      "area": "市内委託施設",
+      "phone": "",
+      "url": "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/ninshin/sangoboshikea.html",
+      "cost": "デイケア2,000円/日、宿泊6,000円/泊",
+      "registration": "要申請",
+      "note": "産後4か月未満対象。区役所こども家庭支援課で申込。非課税・生保世帯は無料"
+    },
+    {
+      "name": "横浜子育てサポートシステム（ファミサポ）",
+      "category": "ファミサポ",
+      "area": "横浜市全域（南区窓口: はぐはぐの樹）",
+      "phone": "045-720-3655",
+      "url": "https://famisapo.city.yokohama.lg.jp/",
+      "cost": "平日500円/h、土日祝600円/h",
+      "registration": "要登録（説明会参加）",
+      "note": "生後57日〜小6。地域の提供会員が預かり・送迎。兄弟2人目から半額。ひとり親世帯は月最大24,000円助成あり"
+    }
+  ],
+  "taxiGeneral": [
+    {
+      "name": "タクシーアプリ GO",
+      "phone": "",
+      "method": "app",
+      "appName": "GO タクシーが呼べるアプリ",
+      "area": "横浜市全域",
+      "url": "https://go.mo-t.com/",
+      "note": "最大手配車アプリ。複数のタクシー会社から最寄りの車を自動配車。クーポンあり。AI予約で時間指定も可能"
+    },
+    {
+      "name": "日本交通（通常配車）",
+      "phone": "045-860-3345",
+      "method": "tel",
+      "area": "横浜市南西部エリア",
+      "url": "https://www.nihon-kotsu-taxi.jp/",
+      "note": "通常のタクシー配車。24時間対応"
+    },
+    {
+      "name": "三和交通（通常配車）",
+      "phone": "045-471-2151",
+      "method": "tel",
+      "area": "横浜市全域",
+      "url": "https://www.sanwakoutsu.co.jp/",
+      "note": "通常のタクシー配車。24時間対応"
+    },
+    {
+      "name": "平和交通（通常配車）",
+      "phone": "045-663-8181",
+      "method": "tel",
+      "area": "横浜市内中心部・川崎",
+      "url": "https://www.heiwa-koutsu.co.jp/",
+      "note": "通常のタクシー配車。迎車料金500円"
+    }
+  ]
+}

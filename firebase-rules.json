@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "menus": { ".read": true, ".write": true },
+    "menuList": { ".read": true, ".write": true },
+    "stock": { ".read": true, ".write": true },
+    "memo": { ".read": true, ".write": true },
+    "$other": { ".read": false, ".write": false }
+  }
+}

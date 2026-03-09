@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f8f9fa">
+  <title>みえるんタイマー</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body data-theme="light">
+
+  <!-- ヘッダー -->
+  <header id="top-bar">
+    <div class="header-left">
+      <button id="btn-theme" class="icon-btn" aria-label="テーマ切替" title="テーマ切替" data-i18n-aria="theme-toggle" data-i18n-title="theme-toggle">
+        <span class="theme-icon">&#127769;</span>
+      </button>
+      <button id="btn-text-mode" class="icon-btn text-mode-btn" aria-label="テキストモード切替" title="テキストモード切替">
+        <span class="text-mode-icon">あ</span>
+      </button>
+    </div>
+    <h1 class="app-title" data-i18n="app-title">みえるんタイマー</h1>
+    <div class="header-right">
+      <button id="btn-rewards-toggle" class="icon-btn" aria-label="ごほうび" title="ごほうび" data-i18n-aria="rewards-toggle" data-i18n-title="rewards-toggle">
+        <span class="rewards-icon">&#11088;</span>
+        <span id="points-badge" class="points-badge">0</span>
+      </button>
+      <button id="btn-ticket-toggle" class="icon-btn" aria-label="チケット" title="チケット" data-i18n-aria="ticket-toggle" data-i18n-title="ticket-toggle">
+        <span class="ticket-icon">&#127915;</span>
+        <span id="ticket-badge" class="points-badge">0</span>
+      </button>
+      <button id="btn-fullscreen" class="icon-btn" aria-label="しゅうちゅうモード" title="しゅうちゅうモード" data-i18n-aria="focus-mode" data-i18n-title="focus-mode">
+        <svg class="fullscreen-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9,3 L5,3 Q3,3 3,5 L3,9"/><line x1="4" y1="4" x2="10" y2="10"/>
+          <path d="M15,3 L19,3 Q21,3 21,5 L21,9"/><line x1="20" y1="4" x2="14" y2="10"/>
+          <path d="M9,21 L5,21 Q3,21 3,19 L3,15"/><line x1="4" y1="20" x2="10" y2="14"/>
+          <path d="M15,21 L19,21 Q21,21 21,19 L21,15"/><line x1="20" y1="20" x2="14" y2="14"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- モード切替タブ -->
+  <nav id="mode-switcher">
+    <button class="mode-tab active" data-mode="circle" data-i18n="mode-circle">まる</button>
+    <button class="mode-tab" data-mode="hourglass" data-i18n="mode-hourglass">すなどけい</button>
+    <button class="mode-tab" data-mode="wakuwaku" data-i18n="mode-wakuwaku">わくわく</button>
+  </nav>
+
+  <!-- タイマー表示エリア -->
+  <main id="timer-area">
+    <!-- 円形モード -->
+    <div id="circle-container" class="timer-vis active">
+      <div id="circle-pie" class="circle-pie">
+        <div id="circle-time-display" class="time-display">
+          <span id="time-text">00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- すなどけいモード -->
+    <div id="hourglass-container" class="timer-vis">
+      <canvas id="hourglass-canvas"></canvas>
+      <div id="hourglass-time-display" class="time-display">
+        <span id="hg-time-text">00:00</span>
+      </div>
+    </div>
+
+    <!-- わくわくモード -->
+    <div id="wakuwaku-container" class="timer-vis">
+      <!-- サブモード選択パネル -->
+      <div id="wakuwaku-select" class="wakuwaku-select">
+        <div class="wakuwaku-title" data-i18n="wakuwaku-title">どのモードであそぶ？</div>
+        <div class="wakuwaku-cards">
+          <button class="wakuwaku-card" data-submode="feeding">
+            <span class="wakuwaku-card-icon">🍚</span>
+            <span class="wakuwaku-card-label" data-i18n="submode-feeding">もぐもぐ</span>
+          </button>
+          <button class="wakuwaku-card" data-submode="battle">
+            <span class="wakuwaku-card-icon">⚔️</span>
+            <span class="wakuwaku-card-label" data-i18n="submode-battle">たたかい</span>
+          </button>
+          <button class="wakuwaku-card" data-submode="adventure">
+            <span class="wakuwaku-card-icon">🗺️</span>
+            <span class="wakuwaku-card-label" data-i18n="submode-adventure">ぼうけん</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 動物選択パネル（もぐもぐモード用） -->
+      <div id="wakuwaku-animal-select" class="wakuwaku-select" hidden>
+        <div class="wakuwaku-title" data-i18n="animal-title">どのどうぶつにする？</div>
+        <div class="wakuwaku-cards animal-cards">
+          <button class="wakuwaku-card animal-card" data-animal="hamster">
+            <span class="wakuwaku-card-icon">🐹</span>
+            <span class="wakuwaku-card-label" data-i18n="animal-hamster">ハムスター</span>
+          </button>
+          <button class="wakuwaku-card animal-card" data-animal="rabbit">
+            <span class="wakuwaku-card-icon">🐰</span>
+            <span class="wakuwaku-card-label" data-i18n="animal-rabbit">うさぎ</span>
+          </button>
+          <button class="wakuwaku-card animal-card" data-animal="dog">
+            <span class="wakuwaku-card-icon">🐶</span>
+            <span class="wakuwaku-card-label" data-i18n="animal-dog">いぬ</span>
+          </button>
+          <button class="wakuwaku-card animal-card" data-animal="cat">
+            <span class="wakuwaku-card-icon">🐱</span>
+            <span class="wakuwaku-card-label" data-i18n="animal-cat">ねこ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- サブモード切替バー -->
+      <div id="submode-switcher" class="submode-switcher" hidden>
+        <button class="submode-badge" data-submode="feeding">🍚 <span data-i18n="submode-feeding">もぐもぐ</span></button>
+        <button class="submode-badge" data-submode="battle">⚔️ <span data-i18n="submode-battle">たたかい</span></button>
+        <button class="submode-badge" data-submode="adventure">🗺️ <span data-i18n="submode-adventure">ぼうけん</span></button>
+      </div>
+
+      <!-- もぐもぐモード -->
+      <div id="feeding-timer" class="wakuwaku-timer" hidden>
+        <canvas id="feeding-canvas"></canvas>
+        <div class="time-display wakuwaku-time">
+          <span id="feeding-time-text">00:00</span>
+        </div>
+      </div>
+
+      <!-- たたかいモード -->
+      <div id="battle-timer" class="wakuwaku-timer" hidden>
+        <canvas id="battle-canvas"></canvas>
+        <div class="time-display wakuwaku-time">
+          <span id="battle-time-text">00:00</span>
+        </div>
+      </div>
+
+      <!-- ぼうけんモード -->
+      <div id="adventure-timer" class="wakuwaku-timer" hidden>
+        <canvas id="adventure-canvas"></canvas>
+        <div class="time-display wakuwaku-time">
+          <span id="adventure-time-text">00:00</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- プリセットボタン -->
+  <section id="presets">
+    <div class="presets-label" data-i18n="presets-label">なんぷん？</div>
+    <div class="presets-grid">
+      <button class="preset-btn" data-seconds="0">0</button>
+      <button class="preset-btn" data-seconds="60">1</button>
+      <button class="preset-btn" data-seconds="120">2</button>
+      <button class="preset-btn" data-seconds="180">3</button>
+      <button class="preset-btn" data-seconds="300">5</button>
+      <button class="preset-btn" data-seconds="600">10</button>
+      <button class="preset-btn" data-seconds="900">15</button>
+      <button class="preset-btn" data-seconds="1200">20</button>
+      <button class="preset-btn" data-seconds="1500">25</button>
+      <button class="preset-btn" data-seconds="1800">30</button>
+      <button class="preset-btn" data-seconds="2700">45</button>
+      <button class="preset-btn" data-seconds="3600">60</button>
+    </div>
+  </section>
+
+  <!-- カスタム時間入力 -->
+  <section id="custom-input">
+    <label for="custom-minutes" data-i18n="custom-label">じかん:</label>
+    <input type="number" id="custom-minutes" min="0" max="60" value="0" inputmode="none">
+    <span class="input-label" data-i18n="unit-min">ふん</span>
+    <input type="number" id="custom-seconds" min="0" max="59" value="0" inputmode="none">
+    <span class="input-label" data-i18n="unit-sec">びょう</span>
+    <button id="btn-set-custom" class="preset-btn custom-set-btn" data-i18n="btn-set">セット</button>
+  </section>
+
+  <!-- テンキー（ポップアップ） -->
+  <div id="numpad-backdrop"></div>
+  <div id="numpad">
+    <div class="numpad-label" id="numpad-label">びょう</div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" data-value="1">1</button>
+      <button class="numpad-btn" data-value="2">2</button>
+      <button class="numpad-btn" data-value="3">3</button>
+      <button class="numpad-btn" data-value="4">4</button>
+      <button class="numpad-btn" data-value="5">5</button>
+      <button class="numpad-btn" data-value="6">6</button>
+      <button class="numpad-btn" data-value="7">7</button>
+      <button class="numpad-btn" data-value="8">8</button>
+      <button class="numpad-btn" data-value="9">9</button>
+      <button class="numpad-btn numpad-action" data-action="clear">C</button>
+      <button class="numpad-btn" data-value="0">0</button>
+      <button class="numpad-btn numpad-action" data-action="backspace">&#9003;</button>
+    </div>
+  </div>
+
+  <!-- 操作ボタン -->
+  <section id="controls">
+    <button id="btn-start" class="ctrl-btn primary" disabled data-i18n="btn-start">スタート</button>
+    <button id="btn-pause" class="ctrl-btn warning" hidden data-i18n="btn-pause">とめる</button>
+    <button id="btn-resume" class="ctrl-btn primary" hidden data-i18n="btn-resume">つづける</button>
+    <button id="btn-back-to-select" class="ctrl-btn secondary" hidden data-i18n="btn-back">じかんをえらぶ</button>
+    <button id="btn-reset" class="ctrl-btn danger" disabled data-i18n="btn-reset">リセット</button>
+  </section>
+
+  <!-- タイマー完了時のごほうび確認オーバーレイ -->
+  <div id="completion-overlay" class="overlay" hidden>
+    <div class="overlay-content">
+      <div class="completion-message" data-i18n="completion-msg">じかんになったよ！</div>
+      <div class="completion-question" data-i18n="completion-question">がんばれたかな？</div>
+      <div class="completion-buttons">
+        <button id="btn-reward-yes" class="ctrl-btn success"><span data-i18n="btn-reward-yes">がんばった！</span><span class="btn-hint" data-i18n="hint-reward">+1 ポイント</span></button>
+        <button id="btn-reward-skip" class="ctrl-btn secondary small"><span data-i18n="btn-skip">スキップ</span><span class="btn-hint" data-i18n="hint-skip">ポイントはもらわない</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ごほうびパネル -->
+  <div id="rewards-panel-backdrop" class="panel-backdrop" hidden></div>
+  <div id="rewards-panel" class="side-panel" hidden>
+    <div class="panel-header">
+      <h2 class="panel-title" data-i18n="panel-title">ごほうびポイント</h2>
+      <button id="btn-close-rewards" class="icon-btn" aria-label="閉じる">&times;</button>
+    </div>
+    <div class="panel-body">
+      <!-- 現在のポイント -->
+      <div class="reward-current">
+        <div class="reward-stars" id="reward-stars"></div>
+        <div class="reward-count">
+          <span id="reward-current-points">0</span> / <span id="reward-goal-points">10</span> <span data-i18n="unit-point">ポイント</span>
+        </div>
+        <div class="reward-progress-bar">
+          <div id="reward-progress-fill" class="reward-progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- ごほうび内容 -->
+      <div class="reward-goal-section">
+        <label for="reward-goal-text" class="reward-label" data-i18n="reward-label">ごほうびの　ないよう:</label>
+        <input type="text" id="reward-goal-text" class="reward-input" placeholder="（れい）アイスをたべる" data-i18n-placeholder="reward-placeholder">
+      </div>
+
+      <!-- 目標ポイント設定 -->
+      <div class="reward-goal-section">
+        <label for="reward-goal-count" class="reward-label" data-i18n="goal-label">もくひょう　ポイント:</label>
+        <input type="number" id="reward-goal-count" class="reward-input small" min="1" max="100" value="10" inputmode="numeric">
+      </div>
+
+      <!-- チケット -->
+      <div class="reward-tickets-section">
+        <h3 class="reward-subtitle ticket-subtitle">
+          <span data-i18n="ticket-title">チケット</span>
+          <span id="ticket-unused-badge" class="ticket-unused-badge" hidden></span>
+        </h3>
+        <div id="reward-tickets" class="reward-tickets"></div>
+      </div>
+
+      <!-- 履歴 -->
+      <div class="reward-history-section">
+        <h3 class="reward-subtitle" data-i18n="history-title">きろく</h3>
+        <div id="reward-history" class="reward-history"></div>
+      </div>
+
+      <!-- リセット -->
+      <button id="btn-reward-reset" class="reward-reset-link" data-i18n="btn-reset-points">ポイントをリセット</button>
+    </div>
+  </div>
+
+  <!-- ごほうび達成オーバーレイ -->
+  <div id="goal-achieved-overlay" class="overlay" hidden>
+    <div class="overlay-content celebration">
+      <div class="celebration-emoji">&#127881;&#127881;&#127881;</div>
+      <div class="celebration-message" data-i18n="celebration-msg">おめでとう！</div>
+      <div class="celebration-goal" id="celebration-goal-text"></div>
+      <div class="celebration-sub" data-i18n="celebration-sub">ごほうびの　じかんだよ！</div>
+      <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
+      <button id="btn-celebration-close" class="ctrl-btn primary" data-i18n="btn-celebrate">やったー！</button>
+    </div>
+  </div>
+
+  <!-- チケット発行オーバーレイ -->
+  <div id="ticket-overlay" class="overlay" hidden>
+    <div class="ticket-card">
+      <div class="ticket-stub">
+        <span class="ticket-stub-emoji">&#127915;</span>
+      </div>
+      <div class="ticket-main">
+        <div class="ticket-header" data-i18n="ticket-get">ごほうびチケット ゲット！</div>
+        <div class="ticket-text" id="ticket-overlay-text"></div>
+        <div class="ticket-date" id="ticket-overlay-date"></div>
+      </div>
+      <div class="ticket-next-hint" data-i18n="ticket-next-hint">つぎのごほうびをきめよう！</div>
+      <div class="ticket-footer" data-i18n="ticket-tap-close">タップしてとじる</div>
+    </div>
+  </div>
+
+  <!-- 集中モード解除ボタン -->
+  <button id="btn-exit-focus" class="exit-focus-btn" hidden>
+    <svg class="shrink-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4,10 L8,10 Q10,10 10,8 L10,4"/><line x1="3" y1="3" x2="10" y2="10"/>
+      <path d="M20,10 L16,10 Q14,10 14,8 L14,4"/><line x1="21" y1="3" x2="14" y2="10"/>
+      <path d="M4,14 L8,14 Q10,14 10,16 L10,20"/><line x1="3" y1="21" x2="10" y2="14"/>
+      <path d="M20,14 L16,14 Q14,14 14,16 L14,20"/><line x1="21" y1="21" x2="14" y2="14"/>
+    </svg>
+    <span data-i18n="btn-back-focus">もどる</span>
+  </button>
+
+  <script src="i18n.js" defer></script>
+  <script src="audio.js" defer></script>
+  <script src="timer-circle.js" defer></script>
+  <script src="timer-hourglass.js" defer></script>
+  <script src="timer-feeding.js" defer></script>
+  <script src="timer-battle.js" defer></script>
+  <script src="timer-adventure.js" defer></script>
+  <script src="wakuwaku-manager.js" defer></script>
+  <script src="rewards.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

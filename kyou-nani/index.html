@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>今日なに？ - 献立カレンダー</title>
+    <link rel="stylesheet" href="./style.css?v=2" />
+  </head>
+  <body>
+    <header class="site-header">
+      <h1 class="visually-hidden">今日のごはん、なーに？</h1>
+    </header>
+    <div class="sync-status" id="syncStatus"></div>
+
+    <main class="container tab-content" id="tabCalendar">
+      <!-- 月ナビ -->
+      <div class="month-nav">
+        <button id="prevMonth" class="month-nav-btn" type="button">◀</button>
+        <h2 id="monthLabel" class="month-label"></h2>
+        <button id="nextMonth" class="month-nav-btn" type="button">▶</button>
+        <button id="todayBtn" class="today-btn" type="button">今月</button>
+        <button id="printBtn" class="print-btn" type="button">🖨️ 印刷</button>
+      </div>
+
+      <!-- カレンダー -->
+      <div class="calendar">
+        <div class="calendar-weekdays">
+          <span class="weekday weekday--sun">日</span>
+          <span class="weekday">月</span>
+          <span class="weekday">火</span>
+          <span class="weekday">水</span>
+          <span class="weekday">木</span>
+          <span class="weekday">金</span>
+          <span class="weekday weekday--sat">土</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+
+      <!-- 統計 -->
+
+      <!-- 在庫ピックアップ -->
+      <div class="pinned-stock" id="pinnedStock" hidden>
+        <h3 class="pinned-stock-title">🥬 今ある食材</h3>
+        <div class="pinned-stock-chips" id="pinnedStockChips"></div>
+      </div>
+
+      <!-- 献立メモ -->
+      <div class="calendar-memo" id="calendarMemoSection">
+        <button class="calendar-memo-toggle" id="calendarMemoToggle" type="button">
+          📝 献立メモ <span class="toggle-arrow" id="memoToggleArrow">▼</span>
+        </button>
+        <textarea id="calendarMemo" class="calendar-memo-text"
+          placeholder="作りたいメニューや買い物メモなど自由に..." rows="6"></textarea>
+      </div>
+    </main>
+
+    <!-- メニューリストタブ -->
+    <main class="container tab-content" id="tabMenuList" hidden>
+      <div class="menulist-header">
+        <input type="text" id="menulistSearch" class="menulist-search" placeholder="メニュー検索..." />
+        <button id="addMenuBtn" class="menulist-add-btn" type="button">＋ 追加</button>
+      </div>
+      <div class="menulist-tags" id="menulistTags"></div>
+      <div id="menulistItems" class="menulist-items"></div>
+      <p class="menulist-empty" id="menulistEmpty" hidden>メニューがまだありません。「＋ 追加」で登録しましょう！</p>
+    </main>
+
+    <!-- 在庫タブ -->
+    <main class="container tab-content" id="tabStock" hidden>
+      <!-- カテゴリ切替 -->
+      <div class="stock-category-bar">
+        <button class="stock-cat-btn stock-cat-btn--active" data-cat="fridge" type="button">冷蔵庫</button>
+        <button class="stock-cat-btn" data-cat="freezer" type="button">冷凍庫</button>
+        <button class="stock-cat-btn" data-cat="pantry" type="button">常温・調味料</button>
+      </div>
+
+      <!-- 検索 + 追加 -->
+      <div class="stock-header">
+        <input type="text" id="stockSearch" class="menulist-search" placeholder="在庫検索..." />
+        <button id="addStockBtn" class="menulist-add-btn" type="button">＋ 追加</button>
+      </div>
+
+      <!-- 期限切れアラート -->
+      <div id="stockAlerts" class="stock-alerts" hidden></div>
+
+      <!-- 在庫リスト -->
+      <div id="stockItems" class="stock-items"></div>
+      <p class="menulist-empty" id="stockEmpty" hidden>在庫がありません。「＋ 追加」で登録しましょう！</p>
+    </main>
+
+    <!-- タブバー -->
+    <nav class="tab-bar">
+      <button class="tab-btn tab-btn--active" data-tab="calendar" type="button">
+        <span class="tab-icon">📅</span>
+        <span class="tab-label">献立表</span>
+      </button>
+      <button class="tab-btn" data-tab="menulist" type="button">
+        <span class="tab-icon">📋</span>
+        <span class="tab-label">メニュー</span>
+      </button>
+      <button class="tab-btn" data-tab="stock" type="button">
+        <span class="tab-icon">🥫</span>
+        <span class="tab-label">在庫</span>
+      </button>
+      <a href="../family-local-guide/" class="tab-btn tab-btn--link">
+        <span class="tab-label">ファミリーガイドへ</span>
+      </a>
+    </nav>
+
+    <!-- 献立入力モーダル -->
+    <div id="menuModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="menuModalTitle"></h3>
+        <div class="menu-form">
+          <div id="menuEntries" class="menu-entries"></div>
+          <button id="addEntryBtn" class="add-entry-btn" type="button">＋ メニューを追加</button>
+          <div class="menu-suggestions" id="menuSuggestions" hidden>
+            <p class="menu-suggestions-label">よく作るメニュー:</p>
+            <div id="menuSuggestionsList" class="menu-suggestions-list"></div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="menuSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="menuCopyNextBtn" class="modal-btn modal-btn--copy" type="button">翌日にコピー</button>
+          <button id="menuDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="menuCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- メニュー編集モーダル -->
+    <div id="menuEditModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="menuEditTitle">メニュー追加</h3>
+        <div class="menu-form">
+          <label class="menu-form-label">
+            メニュー名
+            <input id="menuEditName" type="text" class="menu-form-input" placeholder="例：カレーライス" maxlength="100" />
+          </label>
+          <div class="menu-edit-tags">
+            <p class="menu-form-label">タグ</p>
+            <div id="menuEditTagsList" class="menu-edit-tags-list"></div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button id="menuEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="menuEditCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 在庫編集モーダル -->
+    <div id="stockEditModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="stockEditTitle">在庫追加</h3>
+        <div class="menu-form">
+          <label class="menu-form-label">
+            品名
+            <input id="stockEditName" type="text" class="menu-form-input" placeholder="例：牛乳" maxlength="100" />
+          </label>
+          <label class="menu-form-label" style="margin-top: 12px;">
+            カテゴリ
+            <select id="stockEditCategory" class="menu-form-input stock-select">
+              <option value="fridge">冷蔵庫</option>
+              <option value="freezer">冷凍庫</option>
+              <option value="pantry">常温・調味料</option>
+            </select>
+          </label>
+          <label class="menu-form-label" style="margin-top: 12px;" id="stockSubCatRow" hidden>
+            小カテゴリ（任意）
+            <select id="stockEditSubCategory" class="menu-form-input stock-select">
+              <option value="">その他</option>
+            </select>
+          </label>
+          <div class="stock-quantity-row" style="margin-top: 12px;">
+            <div class="stock-quantity-field">
+              <span class="menu-form-label">個数</span>
+              <div class="quantity-control">
+                <button type="button" class="qty-btn" id="stockQtyMinus">−</button>
+                <input type="number" id="stockEditQty" class="qty-input" value="1" min="0" max="999" />
+                <button type="button" class="qty-btn" id="stockQtyPlus">＋</button>
+              </div>
+            </div>
+            <div class="stock-quantity-field">
+              <span class="menu-form-label">予備</span>
+              <div class="quantity-control">
+                <button type="button" class="qty-btn" id="stockSpareQtyMinus">−</button>
+                <input type="number" id="stockEditSpareQty" class="qty-input" value="0" min="0" max="999" />
+                <button type="button" class="qty-btn" id="stockSpareQtyPlus">＋</button>
+              </div>
+            </div>
+          </div>
+          <label class="menu-form-label" style="margin-top: 12px;" id="stockFrozenDateRow" hidden>
+            冷凍した日（任意）
+            <input id="stockEditFrozenDate" type="date" class="menu-form-input" />
+          </label>
+          <label class="menu-form-label" style="margin-top: 12px;">
+            賞味期限（任意）
+            <input id="stockEditExpiry" type="date" class="menu-form-input" />
+          </label>
+          <label class="menu-form-label" style="margin-top: 12px;">
+            メモ（任意）
+            <input id="stockEditMemo" type="text" class="menu-form-input" placeholder="例：2本" maxlength="100" />
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="stockEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="stockEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="stockEditCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- トースト -->
+    <div id="toast" class="toast" hidden></div>
+
+    <footer class="site-footer">
+      <small>※ 家庭内利用を想定。データは端末とクラウドに同期されます。</small>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Family Local Guide</title>
+    <meta
+      name="description"
+      content="家庭内用の近所の小児科・保育園・緊急連絡先をまとめるサイト"
+    />
+    <link rel="stylesheet" href="./style.css?v=2" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  </head>
+  <body>
+    <div class="sticky-top">
+      <header class="site-header">
+        <img src="./images/char-bunny.png" alt="" class="header-char header-char-left" />
+        <div class="header-center">
+          <h1>Family Local Guide</h1>
+          <div class="header-search">
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="🔍 名前・地域・メモで検索"
+              aria-label="連絡先検索"
+            />
+            <div id="searchHistory" class="search-history" hidden>
+              <div class="search-history-header">
+                <span>検索履歴</span>
+                <button id="clearSearchHistory" type="button">クリア</button>
+              </div>
+              <ul id="searchHistoryList"></ul>
+            </div>
+          </div>
+          <div id="searchResultInfo" class="search-result-info" hidden></div>
+        </div>
+        <img src="./images/char-puppy.png" alt="" class="header-char header-char-right" />
+        <div class="header-menu-wrapper">
+          <button id="headerMenuBtn" class="header-menu-btn" type="button" aria-label="メニュー">⋮</button>
+          <div id="headerMenuDropdown" class="header-menu-dropdown" hidden>
+            <button class="header-menu-item" id="menuFavorites" type="button">お気に入り☆<span class="menu-fav-badge" id="menuFavBadge" hidden></span></button>
+            <button class="header-menu-item" id="menuAddChild" type="button">👶 こども登録</button>
+            <button class="header-menu-item" id="menuViewChildren" type="button">📋 こども一覧</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- ===== ヘッダー下ナビ ===== -->
+      <nav class="header-nav" id="headerNav">
+        <button class="header-nav-item active" data-nav="home" type="button">🏠 ホーム</button>
+        <button class="header-nav-item" data-nav="hospital" type="button">🏥 病院</button>
+        <button class="header-nav-item" data-nav="emergency" type="button">⭐ 緊急</button>
+        <button class="header-nav-item" data-nav="taxi" type="button">🚕 タクシー</button>
+        <button class="header-nav-item" data-nav="nursery" type="button">🏫 保育園</button>
+        <button class="header-nav-item" data-nav="caresupport" type="button">👶 預け先</button>
+        <button class="header-nav-item" data-nav="govlinks" type="button">🏛️ 行政</button>
+        <button class="header-nav-item" data-nav="calendar" type="button">📅 カレンダー</button>
+
+        <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
+        <button class="header-nav-item" data-nav="kondate" type="button">🍽️ 献立</button>
+      </nav>
+    </div>
+
+    <!-- ===== ホーム画面 ===== -->
+    <main id="homeView" class="container">
+      <section class="children-section" id="childrenSection">
+        <div class="children-section-header">
+          <h2>👨‍👩‍👧‍👦 ファミリー</h2>
+          <button class="children-add-btn" id="addChildBtn" type="button">＋ 登録</button>
+        </div>
+        <div class="children-list" id="childrenList"></div>
+        <p class="children-empty" id="childrenEmpty">こどもを登録すると、年齢が自動で表示されます。</p>
+      </section>
+      <div class="home-grid">
+        <button class="home-card home-card--pink" data-tab="hospital">
+          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">病院</span>
+        </button>
+        <button class="home-card home-card--yellow" data-tab="emergency">
+          <img src="./images/char-star.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">困ったとき</span>
+        </button>
+        <button class="home-card home-card--purple" data-tab="taxi">
+          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">タクシー</span>
+        </button>
+        <button class="home-card home-card--peach" data-tab="nursery">
+          <img src="./images/char-star.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">保育園</span>
+        </button>
+        <button class="home-card home-card--green" data-tab="caresupport">
+          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">預け先</span>
+        </button>
+        <button class="home-card home-card--blue" data-tab="govlinks">
+          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">行政リンク</span>
+        </button>
+        <button class="home-card home-card--rose" data-tab="calendar">
+          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">カレンダー</span>
+        </button>
+
+        <button class="home-card home-card--mint" data-tab="shopping">
+          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">買い物リスト</span>
+        </button>
+
+        <button class="home-card home-card--orange" data-tab="kondate">
+          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">献立</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- ===== リスト表示画面 ===== -->
+    <div id="listView" class="container" hidden>
+      <p id="statusMessage" class="status-message" aria-live="polite"></p>
+
+      <section class="panel" id="hospital" hidden>
+        <div class="panel-header">
+          <h2>病院リスト</h2>
+          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <!-- 小児科 / 耳鼻科 / 皮膚科 切替トグル -->
+        <div class="hospital-toggle">
+          <button class="hospital-toggle-btn active" data-hospital-mode="pediatrics" type="button">🩺 小児科</button>
+          <button class="hospital-toggle-btn" data-hospital-mode="ent" type="button">👂 耳鼻科</button>
+          <button class="hospital-toggle-btn" data-hospital-mode="derma" type="button">🧴 皮膚科</button>
+        </div>
+        <div id="pediatricsPane">
+          <ul id="pediatricsList"></ul>
+        </div>
+        <div id="entPane" hidden>
+          <ul id="entList"></ul>
+        </div>
+        <div id="dermaPane" hidden>
+          <ul id="dermaList"></ul>
+        </div>
+      </section>
+
+      <section class="panel" id="emergency" hidden>
+        <div class="panel-header">
+          <h2>困ったときの連絡先</h2>
+          <img src="./images/char-star.png" alt="" class="panel-char" />
+        </div>
+        <ul id="emergencyList"></ul>
+      </section>
+
+      <section class="panel" id="taxi" hidden>
+        <div class="panel-header">
+          <h2>タクシー</h2>
+          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+        </div>
+        <!-- 通常 / 陣痛 切替トグル -->
+        <div class="taxi-toggle">
+          <button class="taxi-toggle-btn active" data-taxi-mode="general" type="button">通常タクシー</button>
+          <button class="taxi-toggle-btn" data-taxi-mode="labor" type="button">陣痛タクシー</button>
+        </div>
+        <!-- 通常タクシー -->
+        <div id="taxiGeneralPane">
+          <ul id="taxiGeneralList"></ul>
+        </div>
+        <!-- 陣痛タクシー -->
+        <div id="taxiLaborPane" hidden>
+          <div class="taxi-finder">
+            <button id="findTaxiBtn" class="taxi-finder-btn" type="button">
+              現在地からタクシーを探す
+            </button>
+            <div id="taxiFinderResult" class="taxi-finder-result"></div>
+          </div>
+          <ul id="taxiLaborList"></ul>
+        </div>
+      </section>
+
+      <section class="panel" id="nursery" hidden>
+        <div class="panel-header">
+          <h2>保育園リスト</h2>
+          <button id="nurseryMapToggle" class="nursery-map-icon-btn" type="button" title="地図で見る">🗺️ 地図で見る</button>
+          <img src="./images/char-star.png" alt="" class="panel-char" />
+        </div>
+
+        <div id="nurseryMapContainer" class="nursery-map-container" hidden>
+          <div id="nurseryMap" class="nursery-map"></div>
+          <p class="nursery-map-note">🏠 = 自宅</p>
+        </div>
+
+        <!-- 種別フィルター -->
+        <div class="nursery-filter">
+          <button class="nursery-filter-btn active" data-nursery-filter="all" type="button">すべて</button>
+          <button class="nursery-filter-btn nursery-filter-btn--ninka" data-nursery-filter="認可" type="button">認可</button>
+          <button class="nursery-filter-btn nursery-filter-btn--ninkagai" data-nursery-filter="認可外" type="button">認可外</button>
+          <button class="nursery-filter-btn nursery-filter-btn--shokibo" data-nursery-filter="小規模" type="button">小規模</button>
+          <button class="nursery-filter-btn nursery-filter-btn--kodomoen" data-nursery-filter="認定こども園" type="button">こども園</button>
+          <button class="nursery-filter-btn nursery-filter-btn--kigyo" data-nursery-filter="企業主導型" type="button">企業主導型</button>
+          <button class="nursery-help-link-btn" id="nurseryHelpAllBtn" type="button">種別の違いは？</button>
+        </div>
+
+        <!-- 距離フィルター -->
+        <div class="nursery-distance-filter">
+          <span class="nursery-distance-label">距離:</span>
+          <button class="nursery-distance-btn active" data-walk-max="99" type="button">すべて</button>
+          <button class="nursery-distance-btn" data-walk-max="5" type="button">〜5分</button>
+          <button class="nursery-distance-btn" data-walk-max="10" type="button">〜10分</button>
+          <button class="nursery-distance-btn" data-walk-max="15" type="button">〜15分</button>
+        </div>
+
+        <!-- ソート -->
+        <div class="nursery-sort">
+          <label class="nursery-sort-label">
+            並び替え:
+            <select id="nurserySortSelect" class="nursery-sort-select">
+              <option value="walk">距離順</option>
+              <option value="name">名前順</option>
+              <option value="interest">気になる順</option>
+            </select>
+          </label>
+        </div>
+
+        <ul id="nurseryList"></ul>
+
+        <!-- 保活お役立ち情報 -->
+        <div class="nursery-tips">
+          <h3>保活お役立ち情報</h3>
+          <ul class="nursery-tips-list">
+            <li><a href="https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/riyou/hoikuriyou/" target="_blank" rel="noopener noreferrer">横浜市 保育所等の利用手続き ↗</a></li>
+            <li><a href="https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/riyou/hoikuriyou/riyou-chosei.html" target="_blank" rel="noopener noreferrer">利用調整基準（ポイント制）↗</a></li>
+            <li><a href="https://www.city.yokohama.lg.jp/kosodate-kyoiku/hoiku-yoji/shisetsu/shisetsu-annai/" target="_blank" rel="noopener noreferrer">横浜市 保育施設検索 ↗</a></li>
+            <li><a href="https://www.city.yokohama.lg.jp/minami/madoguchi-shisetsu/kuyakusho/gyomuannai/kodomokatei.html" target="_blank" rel="noopener noreferrer">南区 こども家庭支援課（保育担当）↗</a></li>
+            <li><a href="https://www.city.yokohama.lg.jp/minami/kosodate_kyoiku/hoiku/906002.html" target="_blank" rel="noopener noreferrer">南区 保育所等一覧（PDF）↗</a></li>
+            <li><a href="https://enmikke.jp/parental/ensagashisupport/yokohama/" target="_blank" rel="noopener noreferrer">えんさがしサポート よこはま保育 ↗</a></li>
+          </ul>
+          <div class="nursery-tips-schedule">
+            <h4>申込スケジュール目安（4月入園の場合）</h4>
+            <ul>
+              <li><strong>6〜9月</strong>：情報収集・見学</li>
+              <li><strong>10月頃</strong>：申込書の配布開始（区役所）</li>
+              <li><strong>11月頃</strong>：一次申込の締切</li>
+              <li><strong>1〜2月頃</strong>：結果通知</li>
+              <li><strong>2〜3月</strong>：二次募集（空きがある場合）</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="caresupport" hidden>
+        <div class="panel-header">
+          <h2>預け先・サポート</h2>
+          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <div class="care-filter">
+          <button class="care-filter-btn active" data-care-filter="all" type="button">すべて</button>
+          <button class="care-filter-btn" data-care-filter="病児保育" type="button">🏥 病児保育</button>
+          <button class="care-filter-btn" data-care-filter="シッター" type="button">👶 シッター</button>
+          <button class="care-filter-btn" data-care-filter="一時預かり" type="button">🏠 一時預かり</button>
+          <button class="care-filter-btn" data-care-filter="母乳外来" type="button">🤱 母乳外来</button>
+          <button class="care-filter-btn" data-care-filter="産後ケア" type="button">💆 産後ケア</button>
+          <button class="care-filter-btn" data-care-filter="ファミサポ" type="button">🤝 ファミサポ</button>
+        </div>
+        <ul id="careSupportList"></ul>
+      </section>
+
+      <section class="panel" id="govlinks" hidden>
+        <div class="panel-header">
+          <h2>行政リンク集</h2>
+          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+        </div>
+        <ul id="govlinksList"></ul>
+      </section>
+
+      <section class="panel" id="calendar" hidden>
+        <div class="panel-header">
+          <h2>こどもカレンダー</h2>
+          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <p class="calendar-intro">お子さまの成長に合わせた行事・予防接種・健診の目安をまとめました。</p>
+        <div class="calendar-filter">
+          <button class="calendar-filter-btn calendar-filter-btn--event active" data-filter="event" type="button">お祝い</button>
+          <button class="calendar-filter-btn calendar-filter-btn--vaccine active" data-filter="vaccine" type="button">予防接種</button>
+          <button class="calendar-filter-btn calendar-filter-btn--checkup active" data-filter="checkup" type="button">健診</button>
+          <button class="calendar-filter-btn calendar-filter-btn--todo active" data-filter="todo" type="button">手続き</button>
+        </div>
+        <div class="calendar-jump">
+          <span class="calendar-jump-label">月齢:</span>
+          <button class="calendar-jump-btn" data-jump="cal-birth" type="button">出生直後</button>
+          <button class="calendar-jump-btn" data-jump="cal-1m" type="button">1ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-2m" type="button">2ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-3m" type="button">3ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-3-4m" type="button">3〜4ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-5m" type="button">5ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-6m" type="button">6〜7ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-9m" type="button">9〜11ヶ月</button>
+          <button class="calendar-jump-btn" data-jump="cal-1y" type="button">1歳</button>
+          <button class="calendar-jump-btn" data-jump="cal-1y6m" type="button">1歳半</button>
+          <button class="calendar-jump-btn" data-jump="cal-3y" type="button">3歳</button>
+          <button class="calendar-jump-btn" data-jump="cal-4y" type="button">4歳</button>
+          <button class="calendar-jump-btn" data-jump="cal-5y" type="button">5〜6歳</button>
+          <button class="calendar-add-btn" id="calendarAddBtn" type="button" title="項目を追加">＋</button>
+        </div>
+
+        <!-- カスタム項目追加モーダル -->
+        <div class="calendar-modal-overlay" id="calendarModal" hidden>
+          <div class="calendar-modal">
+            <div class="calendar-modal-header">
+              <h3>項目を追加</h3>
+              <button class="calendar-modal-close" id="calendarModalClose" type="button">&times;</button>
+            </div>
+            <form id="calendarAddForm" class="calendar-modal-form">
+              <label class="calendar-modal-label">
+                カテゴリ
+                <div class="calendar-modal-categories">
+                  <label class="calendar-modal-cat calendar-modal-cat--event"><input type="radio" name="cal-cat" value="event" checked><span>お祝い</span></label>
+                  <label class="calendar-modal-cat calendar-modal-cat--vaccine"><input type="radio" name="cal-cat" value="vaccine"><span>予防接種</span></label>
+                  <label class="calendar-modal-cat calendar-modal-cat--checkup"><input type="radio" name="cal-cat" value="checkup"><span>健診</span></label>
+                  <label class="calendar-modal-cat calendar-modal-cat--todo"><input type="radio" name="cal-cat" value="todo"><span>手続き</span></label>
+                </div>
+              </label>
+              <label class="calendar-modal-label">
+                時期
+                <select id="calAddPeriod" class="calendar-modal-select" required></select>
+              </label>
+              <label class="calendar-modal-label">
+                タイトル
+                <input type="text" id="calAddTitle" class="calendar-modal-input" placeholder="例: お食い初め" required maxlength="50">
+              </label>
+              <label class="calendar-modal-label">
+                メモ（任意）
+                <input type="text" id="calAddDesc" class="calendar-modal-input" placeholder="例: 生後100日頃にお祝い膳を用意" maxlength="100">
+              </label>
+              <button type="submit" class="calendar-modal-submit">追加する</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- 出生直後（〜14日） -->
+        <div class="calendar-period" id="cal-birth">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">👶</span>
+            <h3 class="calendar-period-title">出生直後（〜14日）</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い お七夜 命名式 生後7日目 命名書を書いてお祝い 出生直後">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>お七夜・命名式</strong>
+                <p>生後7日目。命名書を書いてお祝い</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 出生届の提出 生後14日以内に市区町村役場へ届出 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>出生届の提出</strong>
+                <p>生後14日以内に市区町村役場へ届出</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 健康保険の加入手続き 14日以内 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>健康保険の加入手続き</strong>
+                <p>生後14日以内。届出と合わせて手続き</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 乳幼児医療証の申請 14日以内 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>乳幼児医療証の申請</strong>
+                <p>生後14日以内。届出と合わせて手続き</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 児童手当の申請 15日以内 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>児童手当の申請</strong>
+                <p>出生日の翌日から15日以内に届出</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 出産育児一時金の申請 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>出産育児一時金の申請</strong>
+                <p>直接支払制度を利用しない場合に申請</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="手続き 出産手当金の申請 産休中 出生直後">
+              <span class="calendar-tag calendar-tag--todo">手続き</span>
+              <div class="calendar-item-body">
+                <strong>出産手当金の申請</strong>
+                <p>産休中の場合。勤務先へ確認</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後1ヶ月 -->
+        <div class="calendar-period" id="cal-1m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">🍼</span>
+            <h3 class="calendar-period-title">生後1ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い お宮参り 生後1ヶ月頃 神社へ健やかな成長を祈願 生後1ヶ月">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>お宮参り</strong>
+                <p>生後1ヶ月頃。神社へ健やかな成長を祈願</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--checkup" data-search="健診 1ヶ月健診 出産した病院で母子ともに受診 生後1ヶ月">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>1ヶ月健診</strong>
+                <p>出産した病院で母子ともに受診</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後2ヶ月 -->
+        <div class="calendar-period" id="cal-2m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">💉</span>
+            <h3 class="calendar-period-title">生後2ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ヒブ hib 小児用肺炎球菌 同時接種が一般的 生後2ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ヒブ（Hib）① / 小児用肺炎球菌①</strong>
+                <p>同時接種が一般的</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン b型肝炎 計3回接種のうち1回目 生後2ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>B型肝炎①</strong>
+                <p>計3回接種のうち1回目</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ロタウイルス 経口ワクチン 生後2ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ロタウイルス①</strong>
+                <p>経口ワクチン（1価 or 5価）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後3ヶ月 -->
+        <div class="calendar-period" id="cal-3m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">💉</span>
+            <h3 class="calendar-period-title">生後3ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ヒブ 小児用肺炎球菌 b型肝炎 2回目の接種 生後3ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ヒブ② / 小児用肺炎球菌② / B型肝炎②</strong>
+                <p>2回目の接種</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 四種混合 dpt-ipv ジフテリア 百日咳 破傷風 ポリオ 生後3ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>四種混合（DPT-IPV）①</strong>
+                <p>ジフテリア・百日咳・破傷風・ポリオ</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ロタウイルス 2回目の経口接種 生後3ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ロタウイルス②</strong>
+                <p>2回目の経口接種</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後3〜4ヶ月 -->
+        <div class="calendar-period" id="cal-3-4m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">📋</span>
+            <h3 class="calendar-period-title">生後3〜4ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い お食い初め 百日祝い 生後100日頃 一生食べ物に困らないよう祈る 生後3〜4ヶ月">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>お食い初め（百日祝い）</strong>
+                <p>生後100日頃。一生食べ物に困らないよう祈る</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--checkup" data-search="健診 3〜4ヶ月児健診 自治体の集団健診 首すわり 体重確認 生後3〜4ヶ月">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>3〜4ヶ月児健診</strong>
+                <p>自治体の集団健診。首すわり・体重確認など</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ヒブ 小児用肺炎球菌 四種混合 3回目の接種 生後3〜4ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ヒブ③ / 小児用肺炎球菌③ / 四種混合②</strong>
+                <p>3回目の接種</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後5ヶ月 -->
+        <div class="calendar-period" id="cal-5m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">💉</span>
+            <h3 class="calendar-period-title">生後5ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン bcg 結核予防 スタンプ式の接種 生後5ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>BCG</strong>
+                <p>結核予防。スタンプ式の接種</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 四種混合 初回接種3回目 生後5ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>四種混合③</strong>
+                <p>初回接種3回目</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="やること 離乳食スタートの準備 5〜6ヶ月頃から開始が目安 生後5ヶ月 離乳食">
+              <span class="calendar-tag calendar-tag--todo">やること</span>
+              <div class="calendar-item-body">
+                <strong>離乳食スタートの準備</strong>
+                <p>5〜6ヶ月頃から開始が目安</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後6〜7ヶ月 -->
+        <div class="calendar-period" id="cal-6m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">🎂</span>
+            <h3 class="calendar-period-title">生後6〜7ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い ハーフバースデー 生後6ヶ月の記念 写真撮影 生後6〜7ヶ月">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>ハーフバースデー</strong>
+                <p>生後6ヶ月の記念。写真撮影など</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--checkup" data-search="健診 6〜7ヶ月児健診 おすわり 離乳食の進み具合を確認 生後6〜7ヶ月">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>6〜7ヶ月児健診</strong>
+                <p>おすわり・離乳食の進み具合を確認</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン b型肝炎 3回目 生後6〜7ヶ月">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>B型肝炎③</strong>
+                <p>3回目（1回目から約20〜24週後）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 生後9〜11ヶ月 -->
+        <div class="calendar-period" id="cal-9m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">📋</span>
+            <h3 class="calendar-period-title">生後9〜11ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--checkup" data-search="健診 9〜10ヶ月児健診 はいはい つかまり立ちの確認 歯の本数 生後9〜11ヶ月">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>9〜10ヶ月児健診</strong>
+                <p>はいはい・つかまり立ちの確認。歯の本数など</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--event" data-search="お祝い 初節句 桃の節句 端午の節句 ひな祭り こどもの日 生後9〜11ヶ月">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>初節句</strong>
+                <p>女の子は3月3日（桃の節句）、男の子は5月5日（端午の節句）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1歳 -->
+        <div class="calendar-period" id="cal-1y">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">🎉</span>
+            <h3 class="calendar-period-title">1歳</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い 初誕生 一升餅 選び取り 1歳">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>初誕生（一升餅・選び取り）</strong>
+                <p>一升餅を背負わせたり、選び取りで将来を占う</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン mr 麻しん 風しん 混合 1歳になったら早めに接種 1歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>MR（麻しん風しん混合）①</strong>
+                <p>1歳になったら早めに接種</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 水痘 みずぼうそう 1回目の接種 1歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>水痘（みずぼうそう）①</strong>
+                <p>1回目の接種</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン おたふくかぜ 任意接種 自費 1歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>おたふくかぜ①</strong>
+                <p>任意接種（自費の場合あり）</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン ヒブ 小児用肺炎球菌 追加接種 4回目 1歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>ヒブ④ / 小児用肺炎球菌④</strong>
+                <p>追加接種（4回目）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1歳半 -->
+        <div class="calendar-period" id="cal-1y6m">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">📋</span>
+            <h3 class="calendar-period-title">1歳6ヶ月</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--checkup" data-search="健診 1歳6ヶ月児健診 歩行 言葉の発達確認 歯科検診 1歳半">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>1歳6ヶ月児健診</strong>
+                <p>歩行・言葉の発達確認。歯科検診も実施</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 水痘 四種混合 追加 1歳半">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>水痘② / 四種混合④（追加）</strong>
+                <p>水痘は1回目から3ヶ月以上あけて</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3歳 -->
+        <div class="calendar-period" id="cal-3y">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">🎌</span>
+            <h3 class="calendar-period-title">3歳</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い 七五三 3歳 神社でお祝い">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>七五三（3歳）</strong>
+                <p>11月15日頃。神社でお祝い（男女とも）</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--checkup" data-search="健診 3歳児健診 視力 聴力検査 尿検査 3歳">
+              <span class="calendar-tag calendar-tag--checkup">健診</span>
+              <div class="calendar-item-body">
+                <strong>3歳児健診</strong>
+                <p>視力・聴力検査、尿検査なども実施</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 日本脳炎 1〜4週間隔で2回接種 3歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>日本脳炎①②</strong>
+                <p>1〜4週間隔で2回接種</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4歳 -->
+        <div class="calendar-period" id="cal-4y">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">💉</span>
+            <h3 class="calendar-period-title">4歳</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン 日本脳炎 追加接種 4歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>日本脳炎③（追加）</strong>
+                <p>2回目から約1年後に追加接種</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5〜6歳（年長） -->
+        <div class="calendar-period" id="cal-5y">
+          <div class="calendar-period-header">
+            <span class="calendar-period-icon">🎒</span>
+            <h3 class="calendar-period-title">5〜6歳（年長）</h3>
+          </div>
+          <div class="calendar-items">
+            <div class="calendar-item calendar-item--event" data-search="お祝い 七五三 5歳 7歳 5〜6歳 年長">
+              <span class="calendar-tag calendar-tag--event">お祝い</span>
+              <div class="calendar-item-body">
+                <strong>七五三（5歳・7歳）</strong>
+                <p>5歳は男の子、7歳は女の子が一般的</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン mr 麻しん 風しん 混合 小学校入学前 年長児 5〜6歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>MR（麻しん風しん混合）②</strong>
+                <p>小学校入学前の年度に接種（年長児）</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--vaccine" data-search="予防接種 ワクチン おたふくかぜ 任意接種 2回目 5〜6歳">
+              <span class="calendar-tag calendar-tag--vaccine">予防接種</span>
+              <div class="calendar-item-body">
+                <strong>おたふくかぜ②</strong>
+                <p>任意接種の2回目</p>
+              </div>
+            </div>
+            <div class="calendar-item calendar-item--todo" data-search="やること 就学前健診 小学校入学前年の秋頃に実施 5〜6歳 年長">
+              <span class="calendar-tag calendar-tag--todo">やること</span>
+              <div class="calendar-item-body">
+                <strong>就学前健診</strong>
+                <p>小学校入学前年の秋頃に実施</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="calendar-note">
+          <p>※ 接種時期は目安です。かかりつけ医と相談して進めましょう。</p>
+          <p>※ 自治体により健診時期や助成内容が異なる場合があります。</p>
+        </div>
+      </section>
+
+
+      <section class="panel" id="shopping" hidden>
+        <div class="panel-header">
+          <h2>買い物リスト</h2>
+          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+        </div>
+        <p class="shopping-sync-status" id="shoppingSyncStatus"></p>
+        <div class="shopping-filter" id="shoppingFilter"></div>
+        <div class="shopping-categories" id="shoppingCategories"></div>
+        <div class="shopping-add-category">
+          <input id="newCategoryInput" type="text" class="shopping-input" placeholder="新しいカテゴリ名（例：ドラッグストア）" maxlength="30" />
+          <button id="addCategoryBtn" class="shopping-add-btn" type="button">追加</button>
+        </div>
+      </section>
+
+      <!-- 献立（kyou-nani連携） -->
+      <section class="panel" id="kondate" hidden>
+        <div class="panel-header">
+          <h2>献立カレンダー</h2>
+          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <p class="kondate-sync-status" id="kondateSyncStatus"></p>
+        <div class="kondate-month-nav">
+          <button id="kondatePrevMonth" class="kondate-nav-btn" type="button">◀</button>
+          <h3 id="kondateMonthLabel" class="kondate-month-label"></h3>
+          <button id="kondateNextMonth" class="kondate-nav-btn" type="button">▶</button>
+          <button id="kondateTodayBtn" class="kondate-today-btn" type="button">今月</button>
+        </div>
+        <div class="kondate-calendar">
+          <div class="kondate-weekdays">
+            <span class="kondate-wd kondate-wd--sun">日</span>
+            <span class="kondate-wd">月</span>
+            <span class="kondate-wd">火</span>
+            <span class="kondate-wd">水</span>
+            <span class="kondate-wd">木</span>
+            <span class="kondate-wd">金</span>
+            <span class="kondate-wd kondate-wd--sat">土</span>
+          </div>
+          <div id="kondateGrid" class="kondate-grid"></div>
+        </div>
+        <div class="kondate-link">
+          <a href="../kyou-nani/" class="kondate-link-btn">🍽️ 献立を編集する ↗</a>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="site-footer">
+      <small>※ 家庭内利用を想定。必要に応じて情報を更新してください。</small>
+    </footer>
+
+
+    <!-- 共有モーダル -->
+    <div id="shareModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>お気に入りを共有</h3>
+        <p>このリンクを家族に送ると、お気に入りが共有されます。</p>
+        <textarea id="shareUrl" class="share-url" readonly rows="3"></textarea>
+        <div class="modal-buttons">
+          <button id="copyShareBtn" class="modal-btn modal-btn--primary" type="button">コピー</button>
+          <button id="closeShareBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- インポート確認 -->
+    <div id="importModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>お気に入りを受け取りました</h3>
+        <p id="importMessage"></p>
+        <div class="modal-buttons">
+          <button id="importMergeBtn" class="modal-btn modal-btn--primary" type="button">追加する</button>
+          <button id="importReplaceBtn" class="modal-btn modal-btn--warn" type="button">置き換える</button>
+          <button id="importCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- こども登録・編集モーダル -->
+    <div id="childModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3 id="childModalTitle">こどもを登録</h3>
+        <div class="child-form">
+          <div class="child-form-label">
+            登録タイプ
+            <div class="child-status-toggle" id="childStatusToggle">
+              <button type="button" class="child-status-btn active" data-status="born">出生済み</button>
+              <button type="button" class="child-status-btn" data-status="expected">出産予定</button>
+            </div>
+          </div>
+          <div class="child-form-label">
+            アイコン
+            <div class="child-icon-grid" id="childIconGrid"></div>
+          </div>
+          <label class="child-form-label">
+            なまえ
+            <input id="childNameInput" type="text" class="child-form-input" placeholder="例：たろう" maxlength="20" />
+            <span id="childNameHint" class="child-form-hint" hidden>※ 決まっていなければニックネームでOK</span>
+          </label>
+          <label class="child-form-label" id="childBirthdateGroup">
+            生年月日
+            <input id="childBirthdateInput" type="date" class="child-form-input" />
+          </label>
+          <label class="child-form-label" id="childDueDateGroup" hidden>
+            出産予定日
+            <input id="childDueDateInput" type="date" class="child-form-input" />
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="childSaveBtn" class="modal-btn modal-btn--primary" type="button">登録する</button>
+          <button id="childCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 出産変換モーダル -->
+    <div id="birthConvertModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>🎉 おめでとうございます！</h3>
+        <p>赤ちゃんの情報を登録しましょう。</p>
+        <div class="child-form">
+          <label class="child-form-label">
+            生年月日
+            <input id="birthConvertDate" type="date" class="child-form-input" />
+          </label>
+          <label class="child-form-label">
+            なまえ
+            <input id="birthConvertName" type="text" class="child-form-input" placeholder="例：たろう" maxlength="20" />
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="birthConvertSaveBtn" class="modal-btn modal-btn--primary" type="button">登録する</button>
+          <button id="birthConvertCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- こども一覧モーダル -->
+    <div id="childListModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <div class="child-list-modal-header">
+          <h3>📋 こども一覧</h3>
+          <button id="childListAddBtn" class="children-add-btn" type="button">＋ 登録</button>
+        </div>
+        <div id="childListModalBody" class="child-list-modal-body"></div>
+        <div class="modal-buttons">
+          <button id="childListCloseBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- こども削除確認モーダル -->
+    <div id="childDeleteModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>こどもの情報を削除</h3>
+        <p id="childDeleteMessage"></p>
+        <div class="modal-buttons">
+          <button id="childDeleteConfirmBtn" class="modal-btn modal-btn--warn" type="button">削除する</button>
+          <button id="childDeleteCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 保育園種別ヘルプモーダル -->
+    <div id="nurseryHelpModal" class="modal-overlay" hidden>
+      <div class="modal-content nursery-help-modal">
+        <div class="modal-header">
+          <h3 id="nurseryHelpTitle"></h3>
+          <button id="nurseryHelpCloseX" class="modal-close-x" type="button" aria-label="閉じる">&times;</button>
+        </div>
+        <div id="nurseryHelpBody" class="nursery-help-body"></div>
+      </div>
+    </div>
+
+    <!-- 保育園口コミ・メモモーダル -->
+    <div id="nurseryMemoModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3 id="nurseryMemoTitle">メモ・口コミ</h3>
+        <div class="child-form">
+          <label class="child-form-label">
+            見学日
+            <input id="nurseryVisitDate" type="date" class="child-form-input" />
+          </label>
+          <label class="child-form-label">
+            メモ・口コミ
+            <textarea id="nurseryMemoText" class="child-form-input nursery-memo-textarea" placeholder="見学の感想、園の雰囲気、先生の印象など自由にメモ..." rows="5" maxlength="500"></textarea>
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="nurseryMemoSaveBtn" class="modal-btn modal-btn--primary" type="button">保存する</button>
+          <button id="nurseryMemoCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- トースト -->
+    <div id="toast" class="toast" hidden></div>
+
+    <!-- トップに戻るボタン -->
+    <button id="scrollTopBtn" class="scroll-top-btn" type="button" hidden aria-label="トップに戻る">▲</button>
+
+    <!-- お気に入りポップアップ -->
+    <div class="fav-overlay" id="favOverlay" hidden></div>
+    <aside class="fav-popup" id="favPopup" hidden>
+      <div class="fav-popup-header">
+        <h2>お気に入り</h2>
+        <button class="fav-popup-close" id="favPopupClose" type="button">&times;</button>
+      </div>
+      <div class="favorites-actions">
+        <button id="shareFavBtn" class="share-btn" type="button">共有リンクを作成</button>
+      </div>
+      <ul id="favoritesList"></ul>
+      <p id="favoritesEmpty" class="favorites-empty" hidden>お気に入りがまだありません。各リストの項目をタップして追加しましょう。</p>
+    </aside>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
