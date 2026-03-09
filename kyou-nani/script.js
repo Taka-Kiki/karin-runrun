@@ -179,6 +179,7 @@ function getMenuList() {
 }
 
 function saveMenuList(list) {
+  _menuListCache = list;
   localStorage.setItem(MENU_LIST_KEY, JSON.stringify(list));
   kondateFirebaseSet(FIREBASE_PATHS.menuList, list);
 }
@@ -224,7 +225,7 @@ function saveStock(list) {
   kondateFirebaseSet(FIREBASE_PATHS.stock, list);
 }
 
-function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate) {
+function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType) {
   const list = getStock();
   list.push({
     id: "s_" + Date.now(),
@@ -233,14 +234,15 @@ function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, 
     subCategory: subCategory || "",
     expiry: expiry || "",
     frozenDate: frozenDate || "",
+    dateType: dateType || "frozen",
     memo: memo ? memo.trim() : "",
-    qty: qty || 1,
+    qty: qty != null ? qty : 1,
     spareQty: spareQty || 0,
   });
   saveStock(list);
 }
 
-function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate) {
+function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType) {
   const list = getStock();
   const item = list.find((s) => s.id === id);
   if (item) {
@@ -249,8 +251,9 @@ function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCat
     item.subCategory = subCategory || "";
     item.expiry = expiry || "";
     item.frozenDate = frozenDate || "";
+    item.dateType = dateType || "frozen";
     item.memo = memo ? memo.trim() : "";
-    item.qty = qty || 1;
+    item.qty = qty != null ? qty : 1;
     item.spareQty = spareQty || 0;
     saveStock(list);
   }
@@ -318,7 +321,7 @@ function renderPinnedStock() {
   pinnedStockEl.hidden = false;
   pinnedStockChips.innerHTML = pinned
     .map((s) => {
-      const qty = s.qty || 1;
+      const qty = s.qty != null ? s.qty : 1;
       const catLabel = s.category === "freezer" ? "冷凍" : "";
       const label = `${escapeHtml(s.name)}×${qty}${catLabel ? "(" + catLabel + ")" : ""}`;
       return `<span class="pinned-chip pinned-chip--${s.category}">
@@ -427,9 +430,11 @@ function renderCalendar() {
   calendarGrid.innerHTML = html;
   calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty)").forEach((cell) => {
     cell.addEventListener("click", (e) => {
-      // Don't open modal if clicking on a draggable menu item (handled by drag)
-      if (e.target.classList.contains("day-menu")) return;
-      openMenuModal(cell.dataset.date);
+      if (isDragging) return;
+      // Clicking on a menu item or the day cell itself opens the modal for that date
+      const menuEl = e.target.closest(".day-menu");
+      const date = menuEl ? menuEl.dataset.date : cell.dataset.date;
+      openMenuModal(date);
     });
   });
   initDragAndDrop();
@@ -453,21 +458,21 @@ function openMenuModal(dateStr) {
   }
   renderMenuEntries();
 
-  // Frequent suggestions (for manual mode)
-  const suggestions = getFrequentMenus(10);
+  // Suggestions from menu list (sorted by usage)
+  const menuList = getMenuList();
+  const suggestions = [...menuList].sort((a, b) => b.usageCount - a.usageCount).slice(0, 10);
   if (suggestions.length > 0) {
     menuSuggestions.hidden = false;
     menuSuggestionsList.innerHTML = suggestions
-      .map((s) => `<button type="button" class="menu-suggestion-tag">${escapeHtml(s)}</button>`)
+      .map((s) => `<button type="button" class="menu-suggestion-tag">${escapeHtml(s.name)}</button>`)
       .join("");
     menuSuggestionsList.querySelectorAll(".menu-suggestion-tag").forEach((btn) => {
       btn.addEventListener("click", () => {
-        // Find the first empty manual entry, or the last entry
+        // Find the first empty entry, or the last entry
         const idx = menuEntries.findIndex((e) => !e.value.trim()) !== -1
           ? menuEntries.findIndex((e) => !e.value.trim())
           : menuEntries.length - 1;
         menuEntries[idx].value = btn.textContent;
-        menuEntries[idx].mode = "manual";
         renderMenuEntries();
       });
     });
@@ -483,36 +488,25 @@ function openMenuModal(dateStr) {
 }
 
 function renderMenuEntries() {
-  const menuList = getMenuList();
-  const hasMenuList = menuList.length > 0;
-
   menuEntriesEl.innerHTML = menuEntries
     .map((entry, idx) => {
       const removeBtn = menuEntries.length > 1
         ? `<button type="button" class="entry-remove-btn" data-idx="${idx}" title="削除">×</button>`
         : "";
 
-      const modeToggle = hasMenuList
-        ? `<div class="entry-mode-toggle">
-            <button type="button" class="entry-mode-btn${entry.mode === "manual" ? " entry-mode-btn--active" : ""}" data-idx="${idx}" data-mode="manual">手入力</button>
-            <button type="button" class="entry-mode-btn${entry.mode === "list" ? " entry-mode-btn--active" : ""}" data-idx="${idx}" data-mode="list">一覧から</button>
-          </div>`
-        : "";
+      const searchBtn = `<button type="button" class="entry-search-btn" title="メニューから探す">📋 さがす</button>`;
 
-      let inputArea;
-      if (entry.mode === "list" && hasMenuList) {
-        inputArea = renderMenuListPicker(idx, entry.value, menuList);
-      } else {
-        inputArea = `<input type="text" class="menu-form-input menu-entry-input" data-idx="${idx}" placeholder="例：カレーライス" maxlength="100" value="${escapeHtml(entry.value)}" />`;
-      }
+      const inputArea = `<input type="text" class="menu-form-input menu-entry-input" data-idx="${idx}" placeholder="例：カレーライス" maxlength="100" value="${escapeHtml(entry.value)}" />`;
 
       return `
         <div class="menu-entry" data-idx="${idx}">
           <div class="menu-entry-header">
             <span class="menu-entry-label">${menuEntries.length > 1 ? `メニュー${idx + 1}` : "夕飯メニュー"}</span>
-            ${removeBtn}
+            <div class="menu-entry-actions">
+              ${searchBtn}
+              ${removeBtn}
+            </div>
           </div>
-          ${modeToggle}
           ${inputArea}
         </div>`;
     })
@@ -532,32 +526,12 @@ function renderMenuEntries() {
     });
   });
 
-  menuEntriesEl.querySelectorAll(".entry-mode-btn").forEach((btn) => {
+  // Search button → go to menu list tab
+  menuEntriesEl.querySelectorAll(".entry-search-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const idx = Number(btn.dataset.idx);
-      menuEntries[idx].mode = btn.dataset.mode;
-      renderMenuEntries();
-    });
-  });
-
-  // List picker item clicks
-  menuEntriesEl.querySelectorAll(".list-picker-item").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const idx = Number(btn.dataset.idx);
-      menuEntries[idx].value = btn.dataset.name;
-      renderMenuEntries();
-    });
-  });
-
-  // List picker tag filter clicks
-  menuEntriesEl.querySelectorAll(".list-picker-tag").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const idx = Number(btn.dataset.idx);
-      const tag = btn.dataset.tag;
-      const picker = btn.closest(".menu-list-picker");
-      const currentTag = picker.dataset.filterTag || "";
-      picker.dataset.filterTag = currentTag === tag ? "" : tag;
-      renderMenuEntries();
+      closeMenuModal();
+      switchTab("menulist");
+      menulistSearch.focus();
     });
   });
 }
@@ -695,6 +669,8 @@ function moveMenuItem(srcDate, srcIdx, dstDate) {
   setMenuArray(dstDate, dstArr);
 }
 
+let isDragging = false;
+
 function initDragAndDrop() {
   const menuEls = calendarGrid.querySelectorAll(".day-menu");
   const dayCells = calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty)");
@@ -711,6 +687,7 @@ function initDragAndDrop() {
   // --- PC: HTML5 Drag & Drop on menu items ---
   menuEls.forEach((el) => {
     el.addEventListener("dragstart", (e) => {
+      isDragging = true;
       e.stopPropagation();
       el.classList.add("day-menu--dragging");
       e.dataTransfer.effectAllowed = "move";
@@ -723,6 +700,7 @@ function initDragAndDrop() {
     el.addEventListener("dragend", () => {
       el.classList.remove("day-menu--dragging");
       cleanupDragClasses();
+      setTimeout(() => { isDragging = false; }, 0);
     });
 
     el.addEventListener("dragover", (e) => {
@@ -984,13 +962,18 @@ function renderStockItem(s) {
 
   let frozenDateHtml = "";
   if (s.category === "freezer" && s.frozenDate) {
-    frozenDateHtml = `<span class="stock-frozen-badge">冷凍 ${formatExpiry(s.frozenDate)}</span>`;
+    const dateTypeLabels = { frozen: "冷凍", cut: "カット", purchased: "購入" };
+    const dtLabel = dateTypeLabels[s.dateType] || "冷凍";
+    frozenDateHtml = `<span class="stock-frozen-badge">${dtLabel} ${formatExpiry(s.frozenDate)}</span>`;
   }
 
-  const qty = s.qty || 1;
+  const qty = s.qty != null ? s.qty : 1;
   const spareQty = s.spareQty || 0;
+  const isOutOfStock = qty === 0;
   const memoHtml = s.memo ? `<div class="stock-item-memo">${escapeHtml(s.memo)}</div>` : "";
   const pinActive = s.pinned ? " pin-btn--active" : "";
+
+  if (isOutOfStock) itemClass += " stock-item--out-of-stock";
 
   return `
   <div class="${itemClass}" data-id="${s.id}">
@@ -1083,7 +1066,7 @@ function changeStockQty(id, field, delta) {
   const list = getStock();
   const item = list.find((s) => s.id === id);
   if (!item) return;
-  const current = item[field] || (field === "qty" ? 1 : 0);
+  const current = item[field] != null ? item[field] : (field === "qty" ? 1 : 0);
   item[field] = Math.max(0, Math.min(999, current + delta));
   saveStock(list);
   renderStock();
@@ -1118,10 +1101,11 @@ function openStockEditModal(id) {
   stockEditTitle.textContent = item ? "在庫編集" : "在庫追加";
   stockEditName.value = item ? item.name : "";
   stockEditCategory.value = item ? item.category : stockCategory;
-  stockEditQty.value = item ? (item.qty || 1) : 1;
+  stockEditQty.value = item ? (item.qty != null ? item.qty : 1) : 1;
   stockEditSpareQty.value = item ? (item.spareQty || 0) : 0;
   stockEditExpiry.value = item ? item.expiry : "";
   $("stockEditFrozenDate").value = item ? (item.frozenDate || "") : "";
+  $("stockEditDateType").value = item ? (item.dateType || "frozen") : "frozen";
   stockEditMemo.value = item ? item.memo : "";
   stockEditDeleteBtn.hidden = !item;
 
@@ -1149,16 +1133,18 @@ function saveStockEditItem() {
   const category = stockEditCategory.value;
   const expiry = stockEditExpiry.value;
   const memo = stockEditMemo.value;
-  const qty = Math.max(0, Math.min(999, parseInt(stockEditQty.value) || 1));
+  const qtyParsed = parseInt(stockEditQty.value);
+  const qty = Math.max(0, Math.min(999, isNaN(qtyParsed) ? 1 : qtyParsed));
   const spareQty = Math.max(0, Math.min(999, parseInt(stockEditSpareQty.value) || 0));
   const subCategory = $("stockEditSubCategory").value;
   const frozenDate = $("stockEditFrozenDate").value;
+  const dateType = $("stockEditDateType").value;
 
   if (editingStockId) {
-    updateStockItem(editingStockId, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate);
+    updateStockItem(editingStockId, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType);
     showToast("更新しました");
   } else {
-    addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate);
+    addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType);
     showToast("追加しました");
   }
 
@@ -1611,7 +1597,7 @@ function init() {
 
   // Qty +/- buttons
   $("stockQtyMinus").addEventListener("click", () => {
-    stockEditQty.value = Math.max(0, (parseInt(stockEditQty.value) || 1) - 1);
+    const cur = parseInt(stockEditQty.value); stockEditQty.value = Math.max(0, (isNaN(cur) ? 1 : cur) - 1);
   });
   $("stockQtyPlus").addEventListener("click", () => {
     stockEditQty.value = Math.min(999, (parseInt(stockEditQty.value) || 0) + 1);
@@ -1623,8 +1609,36 @@ function init() {
     stockEditSpareQty.value = Math.min(999, (parseInt(stockEditSpareQty.value) || 0) + 1);
   });
 
+  // Migrate existing calendar data to menu list (one-time)
+  migrateCalendarToMenuList();
+
   // Firebase sync
   setupKondateSync();
+}
+
+function migrateCalendarToMenuList() {
+  const list = getMenuList();
+  if (list.length > 0) return;
+
+  const menus = getMenus();
+  const counts = {};
+  Object.values(menus).forEach((m) => {
+    const items = Array.isArray(m) ? m : [m];
+    items.forEach((item) => {
+      const key = item.trim();
+      if (key) counts[key] = (counts[key] || 0) + 1;
+    });
+  });
+
+  if (Object.keys(counts).length === 0) return;
+
+  const newList = Object.entries(counts).map(([name, count]) => ({
+    id: "m_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    name,
+    tags: [],
+    usageCount: count,
+  }));
+  saveMenuList(newList);
 }
 
 document.addEventListener("DOMContentLoaded", init);

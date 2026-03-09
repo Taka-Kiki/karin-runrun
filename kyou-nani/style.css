@@ -796,6 +796,30 @@ body {
   color: var(--text);
 }
 
+.menu-entry-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-search-btn {
+  padding: 3px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.entry-search-btn:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
 .entry-remove-btn {
   width: 24px;
   height: 24px;
@@ -908,6 +932,9 @@ body {
   border-radius: 12px;
   padding: 3px;
   margin-bottom: 12px;
+  position: sticky;
+  top: calc(10vh + 2px);
+  z-index: 5;
 }
 
 .stock-cat-btn {
@@ -977,6 +1004,16 @@ body {
 }
 .stock-item:hover {
   box-shadow: 0 2px 8px var(--shadow);
+}
+
+.stock-item--out-of-stock {
+  opacity: 0.5;
+  background: #f3f3f3;
+  border-color: #ccc;
+}
+
+.stock-item--out-of-stock .stock-item-name {
+  color: #aaa;
 }
 
 .stock-item--expired {
@@ -1068,6 +1105,24 @@ body {
   font-size: 0.65rem;
   background: #e0f0ff;
   color: #2563a8;
+}
+
+.stock-date-type-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.stock-date-type-select {
+  flex: 1;
+  max-width: 180px;
+}
+
+.stock-date-type-optional {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  white-space: nowrap;
 }
 
 /* ===== Stock Quantity Controls ===== */

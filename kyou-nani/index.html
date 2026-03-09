@@ -115,7 +115,7 @@
           <div id="menuEntries" class="menu-entries"></div>
           <button id="addEntryBtn" class="add-entry-btn" type="button">＋ メニューを追加</button>
           <div class="menu-suggestions" id="menuSuggestions" hidden>
-            <p class="menu-suggestions-label">よく作るメニュー:</p>
+            <p class="menu-suggestions-label">登録メニュー:</p>
             <div id="menuSuggestionsList" class="menu-suggestions-list"></div>
           </div>
         </div>
@@ -190,10 +190,17 @@
               </div>
             </div>
           </div>
-          <label class="menu-form-label" style="margin-top: 12px;" id="stockFrozenDateRow" hidden>
-            冷凍した日（任意）
+          <div class="menu-form-label" style="margin-top: 12px;" id="stockFrozenDateRow" hidden>
+            <div class="stock-date-type-row">
+              <select id="stockEditDateType" class="menu-form-input stock-select stock-date-type-select">
+                <option value="frozen">冷凍した日</option>
+                <option value="cut">カットした日</option>
+                <option value="purchased">購入日</option>
+              </select>
+              <span class="stock-date-type-optional">（任意）</span>
+            </div>
             <input id="stockEditFrozenDate" type="date" class="menu-form-input" />
-          </label>
+          </div>
           <label class="menu-form-label" style="margin-top: 12px;">
             賞味期限（任意）
             <input id="stockEditExpiry" type="date" class="menu-form-input" />
