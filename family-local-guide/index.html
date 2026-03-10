@@ -57,6 +57,7 @@
         <button class="header-nav-item" data-nav="calendar" type="button">📅 カレンダー</button>
 
         <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
+        <button class="header-nav-item" data-nav="supplies" type="button">🧴 在庫</button>
         <button class="header-nav-item" data-nav="kondate" type="button">🍽️ 献立</button>
       </nav>
     </div>
@@ -104,6 +105,11 @@
         <button class="home-card home-card--mint" data-tab="shopping">
           <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
           <span class="home-card-label">買い物リスト</span>
+        </button>
+
+        <button class="home-card home-card--teal" data-tab="supplies">
+          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <span class="home-card-label">在庫</span>
         </button>
 
         <button class="home-card home-card--orange" data-tab="kondate">
@@ -770,6 +776,31 @@
         </div>
       </section>
 
+      <!-- 在庫管理 -->
+      <section class="panel" id="supplies" hidden>
+        <div class="panel-header">
+          <h2>在庫管理</h2>
+          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <p class="supplies-sync-status" id="suppliesSyncStatus"></p>
+        <div class="supplies-cat-bar">
+          <button class="supplies-cat-btn supplies-cat-btn--active" data-cat="kitchen" type="button">🍳 キッチン</button>
+          <button class="supplies-cat-btn" data-cat="bath" type="button">🛁 お風呂・整容</button>
+          <button class="supplies-cat-btn" data-cat="toilet" type="button">🚽 トイレ</button>
+          <button class="supplies-cat-btn" data-cat="paper" type="button">🧻 ペーパー類</button>
+          <button class="supplies-cat-btn" data-cat="other" type="button">📦 その他</button>
+        </div>
+        <div class="supplies-search-bar">
+          <input id="suppliesSearch" type="text" class="supplies-search-input" placeholder="検索..." />
+          <button id="suppliesSearchBtn" class="supplies-search-btn" type="button">🔍</button>
+        </div>
+        <button id="addSupplyBtn" class="supplies-add-btn" type="button">＋ 追加</button>
+        <div id="suppliesSwipeArea">
+          <div id="suppliesItems" class="supplies-items"></div>
+          <p id="suppliesEmpty" class="supplies-empty" hidden>アイテムがありません</p>
+        </div>
+      </section>
+
       <!-- 献立（kyou-nani連携） -->
       <section class="panel" id="kondate" hidden>
         <div class="panel-header">
@@ -946,6 +977,56 @@
         <div class="modal-buttons">
           <button id="nurseryMemoSaveBtn" class="modal-btn modal-btn--primary" type="button">保存する</button>
           <button id="nurseryMemoCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 在庫編集モーダル -->
+    <div id="suppliesEditModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3 id="suppliesEditTitle">在庫追加</h3>
+        <div class="child-form">
+          <label class="child-form-label">
+            品名
+            <input id="suppliesEditName" type="text" class="child-form-input" placeholder="例：食器用洗剤" maxlength="50" />
+          </label>
+          <label class="child-form-label">
+            カテゴリ
+            <select id="suppliesEditCategory" class="child-form-input">
+              <option value="kitchen">🍳 キッチン</option>
+              <option value="bath">🛁 お風呂・整容</option>
+              <option value="toilet">🚽 トイレ</option>
+              <option value="paper">🧻 ペーパー類</option>
+              <option value="other">📦 その他</option>
+            </select>
+          </label>
+          <div class="supplies-qty-row">
+            <label class="child-form-label supplies-qty-label">
+              個数
+              <div class="supplies-qty-control">
+                <button id="suppliesQtyMinus" class="qty-modal-btn" type="button">−</button>
+                <input id="suppliesEditQty" type="number" class="child-form-input supplies-qty-input" value="1" min="0" max="999" />
+                <button id="suppliesQtyPlus" class="qty-modal-btn" type="button">＋</button>
+              </div>
+            </label>
+            <label class="child-form-label supplies-qty-label">
+              予備
+              <div class="supplies-qty-control">
+                <button id="suppliesSpareQtyMinus" class="qty-modal-btn" type="button">−</button>
+                <input id="suppliesEditSpareQty" type="number" class="child-form-input supplies-qty-input" value="0" min="0" max="999" />
+                <button id="suppliesSpareQtyPlus" class="qty-modal-btn" type="button">＋</button>
+              </div>
+            </label>
+          </div>
+          <label class="child-form-label">
+            メモ
+            <textarea id="suppliesEditMemo" class="child-form-input" placeholder="メモ（任意）" rows="2" maxlength="200"></textarea>
+          </label>
+        </div>
+        <div class="modal-buttons">
+          <button id="suppliesEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="suppliesEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="suppliesEditCancelBtn" class="modal-btn" type="button">キャンセル</button>
         </div>
       </div>
     </div>

@@ -20,6 +20,8 @@
   --rose-light: #fff1f2;
   --orange: #fb923c;
   --orange-light: #fff3e0;
+  --teal: #2dd4bf;
+  --teal-light: #ccfbf1;
   --bg: #fff5f9;
   --text: #5c4a5e;
   --text-light: #8b7a8e;
@@ -333,6 +335,7 @@ h1::before {
 .home-card--green  { border-color: var(--green);  background: linear-gradient(180deg, var(--green-light) 0%, var(--white) 60%); }
 .home-card--rose   { border-color: var(--rose);   background: linear-gradient(180deg, var(--rose-light) 0%, var(--white) 60%); }
 .home-card--peach  { border-color: var(--peach);  background: linear-gradient(180deg, var(--peach-light) 0%, var(--white) 60%); }
+.home-card--teal   { border-color: var(--teal);   background: linear-gradient(180deg, var(--teal-light) 0%, var(--white) 60%); }
 .home-card--orange { border-color: var(--orange); background: linear-gradient(180deg, var(--orange-light) 0%, var(--white) 60%); }
 
 a.home-card { text-decoration: none; color: inherit; position: relative; }
@@ -3345,4 +3348,242 @@ mark.search-highlight {
 }
 .kondate-link-btn:hover {
   background: #c84b31;
+}
+
+/* ===== 在庫管理 ===== */
+#supplies h2 { color: #0d9488; }
+#supplies h2::before { content: "🧴 "; }
+
+.supplies-sync-status {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin: 0 0 8px;
+}
+
+.supplies-cat-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+}
+
+.supplies-cat-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 20px;
+  background: var(--white);
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.supplies-cat-btn--active {
+  border-color: #0d9488;
+  background: #ccfbf1;
+  color: #0d9488;
+  font-weight: 700;
+}
+
+.supplies-search-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  position: sticky;
+  top: 44px;
+  z-index: 5;
+  background: var(--bg);
+  padding: 4px 0;
+}
+
+.supplies-search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.supplies-search-input:focus {
+  border-color: #0d9488;
+}
+
+.supplies-search-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 12px;
+  background: #0d9488;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.supplies-add-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 2px dashed #0d9488;
+  border-radius: 12px;
+  background: transparent;
+  color: #0d9488;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.supplies-add-btn:hover {
+  background: #ccfbf1;
+}
+
+.supplies-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.supply-item {
+  background: var(--white);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, opacity 0.2s;
+}
+
+.supply-item:hover {
+  border-color: #0d9488;
+}
+
+.supply-item--out-of-stock {
+  opacity: 0.5;
+}
+
+.supply-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.supply-item-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 80px;
+}
+
+.supply-inline-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.supply-inline-label {
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+.quantity-control--inline {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.quantity-control--inline .qty-display {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sup-qty-btn {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  transition: border-color 0.2s;
+}
+
+.sup-qty-btn:hover {
+  border-color: #0d9488;
+}
+
+.supply-item-memo {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.supplies-empty {
+  text-align: center;
+  color: var(--text-light);
+  padding: 32px 0;
+  font-size: 0.9rem;
+}
+
+/* 在庫モーダル qty row */
+.supplies-qty-row {
+  display: flex;
+  gap: 16px;
+}
+
+.supplies-qty-label {
+  flex: 1;
+}
+
+.supplies-qty-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.supplies-qty-input {
+  width: 60px !important;
+  text-align: center;
+}
+
+.qty-modal-btn {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  background: var(--white);
+  font-size: 1.1rem;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.2s;
+}
+
+.qty-modal-btn:hover {
+  border-color: #0d9488;
 }

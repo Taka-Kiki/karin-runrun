@@ -968,7 +968,7 @@ function setupFavoriteClicks() {
 }
 
 // ===== タブ・ナビゲーション =====
-const TAB_IDS = ["hospital", "emergency", "taxi", "nursery", "caresupport", "govlinks", "calendar", "shopping", "kondate"];
+const TAB_IDS = ["hospital", "emergency", "taxi", "nursery", "caresupport", "govlinks", "calendar", "shopping", "supplies", "kondate"];
 
 function navigateTo(target) {
   const homeView = document.getElementById("homeView");
@@ -2209,6 +2209,14 @@ function setupFirebaseSync() {
     refreshNurseryUI();
   });
 
+  // Supplies リスナー
+  shoppingDb.ref("shared/supplies").on("value", (snap) => {
+    const list = snap.val() || [];
+    _suppliesCache = Array.isArray(list) ? list : Object.values(list);
+    localStorage.setItem(SUPPLIES_KEY, JSON.stringify(_suppliesCache));
+    renderSupplies();
+  });
+
   // Custom Calendar リスナー
   shoppingDb.ref("shared/customCalendar").on("value", (snap) => {
     const obj = snap.val() || {};
@@ -2252,6 +2260,7 @@ function migrateLocalStorageToFirebase() {
     { key: NURSERY_MEMO_KEY, path: "shared/nursery/memos", convert: null },
     { key: CUSTOM_CALENDAR_KEY, path: "shared/customCalendar",
       convert: arr => arrayToFirebaseObj(arr, i => i.id || ("cal_" + Math.random().toString(36).slice(2))) },
+    { key: SUPPLIES_KEY, path: "shared/supplies", convert: null },
   ];
 
   const promises = [];
@@ -2879,6 +2888,299 @@ function setupNursery() {
   }
 }
 
+// ===== 日用品在庫管理 =====
+const SUPPLIES_KEY = "familyGuide_supplies";
+const SUPPLIES_CATEGORIES = {
+  kitchen: "🍳 キッチン",
+  bath: "🛁 お風呂・整容",
+  toilet: "🚽 トイレ",
+  paper: "🧻 ペーパー類",
+  other: "📦 その他",
+};
+const SUPPLIES_CAT_ORDER = ["kitchen", "bath", "toilet", "paper", "other"];
+let suppliesCategory = "kitchen";
+let suppliesSearchQuery = "";
+let editingSupplyId = null;
+let _suppliesCache = null;
+
+function getSupplies() {
+  if (_suppliesCache !== null) return _suppliesCache;
+  try {
+    return JSON.parse(localStorage.getItem(SUPPLIES_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveSupplies(list) {
+  _suppliesCache = list;
+  localStorage.setItem(SUPPLIES_KEY, JSON.stringify(list));
+  if (shoppingDb) {
+    shoppingDb.ref("shared/supplies").set(list);
+  }
+}
+
+function addSupply(name, category, qty, spareQty, memo) {
+  const list = getSupplies();
+  list.push({
+    id: "sup_" + Date.now(),
+    name: name.trim(),
+    category: category,
+    qty: qty != null ? qty : 1,
+    spareQty: spareQty || 0,
+    memo: memo ? memo.trim() : "",
+  });
+  saveSupplies(list);
+}
+
+function updateSupply(id, name, category, qty, spareQty, memo) {
+  const list = getSupplies();
+  const item = list.find((s) => s.id === id);
+  if (item) {
+    item.name = name.trim();
+    item.category = category;
+    item.qty = qty != null ? qty : 1;
+    item.spareQty = spareQty || 0;
+    item.memo = memo ? memo.trim() : "";
+    saveSupplies(list);
+  }
+}
+
+function deleteSupply(id) {
+  const list = getSupplies().filter((s) => s.id !== id);
+  saveSupplies(list);
+}
+
+function changeSupplyQty(id, field, delta) {
+  const list = getSupplies();
+  const item = list.find((s) => s.id === id);
+  if (!item) return;
+  const current = item[field] != null ? item[field] : (field === "qty" ? 1 : 0);
+  item[field] = Math.max(0, Math.min(999, current + delta));
+  saveSupplies(list);
+  renderSupplies();
+}
+
+function renderSupplyItem(s) {
+  const qty = s.qty != null ? s.qty : 1;
+  const spareQty = s.spareQty || 0;
+  const isOutOfStock = qty === 0;
+  let itemClass = "supply-item";
+  if (isOutOfStock) itemClass += " supply-item--out-of-stock";
+  const memoHtml = s.memo ? `<div class="supply-item-memo">${escapeHtml(s.memo)}</div>` : "";
+
+  return `
+  <div class="${itemClass}" data-id="${s.id}">
+    <div class="supply-item-row">
+      <div class="supply-item-name">${escapeHtml(s.name)}</div>
+      <div class="supply-inline-qty">
+        <div class="supply-inline-label">個数</div>
+        <div class="quantity-control quantity-control--inline">
+          <button class="sup-qty-btn" data-id="${s.id}" data-field="qty" data-delta="-1" type="button">−</button>
+          <span class="qty-display">${qty}</span>
+          <button class="sup-qty-btn" data-id="${s.id}" data-field="qty" data-delta="1" type="button">＋</button>
+        </div>
+      </div>
+      <div class="supply-inline-qty">
+        <div class="supply-inline-label">予備</div>
+        <div class="quantity-control quantity-control--inline">
+          <button class="sup-qty-btn" data-id="${s.id}" data-field="spareQty" data-delta="-1" type="button">−</button>
+          <span class="qty-display">${spareQty}</span>
+          <button class="sup-qty-btn" data-id="${s.id}" data-field="spareQty" data-delta="1" type="button">＋</button>
+        </div>
+      </div>
+    </div>
+    ${memoHtml}
+  </div>`;
+}
+
+function renderSupplies() {
+  const suppliesItems = document.getElementById("suppliesItems");
+  const suppliesEmpty = document.getElementById("suppliesEmpty");
+  if (!suppliesItems) return;
+
+  let list = getSupplies().filter((s) => s.category === suppliesCategory);
+
+  if (suppliesSearchQuery) {
+    const q = suppliesSearchQuery.toLowerCase();
+    list = list.filter((s) => s.name.toLowerCase().includes(q));
+  }
+
+  list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+
+  if (list.length === 0) {
+    suppliesItems.innerHTML = "";
+    suppliesEmpty.hidden = false;
+    return;
+  }
+
+  suppliesEmpty.hidden = true;
+  suppliesItems.innerHTML = list.map(renderSupplyItem).join("");
+
+  // qty buttons
+  suppliesItems.querySelectorAll(".sup-qty-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      changeSupplyQty(btn.dataset.id, btn.dataset.field, Number(btn.dataset.delta));
+    });
+  });
+
+  // item click → edit
+  suppliesItems.querySelectorAll(".supply-item").forEach((el) => {
+    el.addEventListener("click", () => openSuppliesEditModal(el.dataset.id));
+  });
+}
+
+function switchSuppliesCategory(cat) {
+  suppliesCategory = cat;
+  document.querySelectorAll(".supplies-cat-btn").forEach((btn) => {
+    btn.classList.toggle("supplies-cat-btn--active", btn.dataset.cat === cat);
+  });
+  renderSupplies();
+}
+
+function openSuppliesEditModal(id) {
+  editingSupplyId = id || null;
+  const item = id ? getSupplies().find((s) => s.id === id) : null;
+
+  document.getElementById("suppliesEditTitle").textContent = item ? "在庫編集" : "在庫追加";
+  document.getElementById("suppliesEditName").value = item ? item.name : "";
+  document.getElementById("suppliesEditCategory").value = item ? item.category : suppliesCategory;
+  document.getElementById("suppliesEditQty").value = item ? (item.qty != null ? item.qty : 1) : 1;
+  document.getElementById("suppliesEditSpareQty").value = item ? (item.spareQty || 0) : 0;
+  document.getElementById("suppliesEditMemo").value = item ? (item.memo || "") : "";
+  document.getElementById("suppliesEditDeleteBtn").hidden = !item;
+
+  document.getElementById("suppliesEditModal").hidden = false;
+  setTimeout(() => document.getElementById("suppliesEditName").focus(), 100);
+}
+
+function closeSuppliesEditModal() {
+  document.getElementById("suppliesEditModal").hidden = true;
+  editingSupplyId = null;
+}
+
+function saveSuppliesEditItem() {
+  const name = document.getElementById("suppliesEditName").value.trim();
+  if (!name) { showToast("品名を入力してください"); return; }
+
+  const category = document.getElementById("suppliesEditCategory").value;
+  const memo = document.getElementById("suppliesEditMemo").value;
+  const qtyParsed = parseInt(document.getElementById("suppliesEditQty").value);
+  const qty = Math.max(0, Math.min(999, isNaN(qtyParsed) ? 1 : qtyParsed));
+  const spareQty = Math.max(0, Math.min(999, parseInt(document.getElementById("suppliesEditSpareQty").value) || 0));
+
+  if (editingSupplyId) {
+    updateSupply(editingSupplyId, name, category, qty, spareQty, memo);
+    showToast("更新しました");
+  } else {
+    addSupply(name, category, qty, spareQty, memo);
+    showToast("追加しました");
+  }
+
+  document.getElementById("suppliesSearch").value = "";
+  suppliesSearchQuery = "";
+  closeSuppliesEditModal();
+  renderSupplies();
+}
+
+function deleteSuppliesEditItem() {
+  if (!editingSupplyId) return;
+  const item = getSupplies().find((s) => s.id === editingSupplyId);
+  if (item && confirm(`「${item.name}」を削除しますか？`)) {
+    deleteSupply(editingSupplyId);
+    document.getElementById("suppliesSearch").value = "";
+    suppliesSearchQuery = "";
+    closeSuppliesEditModal();
+    renderSupplies();
+    showToast("削除しました");
+  }
+}
+
+function setupSuppliesSwipe() {
+  const area = document.getElementById("suppliesSwipeArea");
+  if (!area) return;
+  let startX = 0, startY = 0, tracking = false;
+
+  area.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY; tracking = true;
+  }, { passive: true });
+
+  area.addEventListener("touchmove", () => {}, { passive: true });
+
+  area.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    const idx = SUPPLIES_CAT_ORDER.indexOf(suppliesCategory);
+    if (dx < 0 && idx < SUPPLIES_CAT_ORDER.length - 1) {
+      switchSuppliesCategory(SUPPLIES_CAT_ORDER[idx + 1]);
+    } else if (dx > 0 && idx > 0) {
+      switchSuppliesCategory(SUPPLIES_CAT_ORDER[idx - 1]);
+    }
+  }, { passive: true });
+}
+
+function setupSupplies() {
+  const addBtn = document.getElementById("addSupplyBtn");
+  const searchInput = document.getElementById("suppliesSearch");
+  const searchBtn = document.getElementById("suppliesSearchBtn");
+  const saveBtn = document.getElementById("suppliesEditSaveBtn");
+  const deleteBtn = document.getElementById("suppliesEditDeleteBtn");
+  const cancelBtn = document.getElementById("suppliesEditCancelBtn");
+  const modal = document.getElementById("suppliesEditModal");
+
+  if (addBtn) addBtn.addEventListener("click", () => openSuppliesEditModal());
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      suppliesSearchQuery = searchInput.value;
+      renderSupplies();
+    });
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.isComposing) {
+        e.preventDefault();
+        suppliesSearchQuery = searchInput.value;
+        renderSupplies();
+        searchInput.blur();
+      }
+    });
+  }
+  if (searchBtn) searchBtn.addEventListener("click", () => {
+    suppliesSearchQuery = searchInput.value;
+    renderSupplies();
+    searchInput.blur();
+  });
+
+  document.querySelectorAll(".supplies-cat-btn").forEach((btn) => {
+    btn.addEventListener("click", () => switchSuppliesCategory(btn.dataset.cat));
+  });
+
+  if (saveBtn) saveBtn.addEventListener("click", saveSuppliesEditItem);
+  if (deleteBtn) deleteBtn.addEventListener("click", deleteSuppliesEditItem);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeSuppliesEditModal);
+  if (modal) {
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeSuppliesEditModal(); });
+  }
+
+  // Modal qty +/- buttons
+  const qtyMinus = document.getElementById("suppliesQtyMinus");
+  const qtyPlus = document.getElementById("suppliesQtyPlus");
+  const spareQtyMinus = document.getElementById("suppliesSpareQtyMinus");
+  const spareQtyPlus = document.getElementById("suppliesSpareQtyPlus");
+  const qtyInput = document.getElementById("suppliesEditQty");
+  const spareQtyInput = document.getElementById("suppliesEditSpareQty");
+
+  if (qtyMinus) qtyMinus.addEventListener("click", () => { qtyInput.value = Math.max(0, (parseInt(qtyInput.value) || 0) - 1); });
+  if (qtyPlus) qtyPlus.addEventListener("click", () => { qtyInput.value = Math.min(999, (parseInt(qtyInput.value) || 0) + 1); });
+  if (spareQtyMinus) spareQtyMinus.addEventListener("click", () => { spareQtyInput.value = Math.max(0, (parseInt(spareQtyInput.value) || 0) - 1); });
+  if (spareQtyPlus) spareQtyPlus.addEventListener("click", () => { spareQtyInput.value = Math.min(999, (parseInt(spareQtyInput.value) || 0) + 1); });
+
+  setupSuppliesSwipe();
+  renderSupplies();
+}
+
 async function init() {
   setupNavigation();
   setupSwipeNavigation();
@@ -2895,6 +3197,7 @@ async function init() {
   setupHeaderMenu();
   setupChildManagement();
   setupShoppingList();
+  setupSupplies();
   setupFirebaseSync();
   setupNursery();
   setupKondateView();
