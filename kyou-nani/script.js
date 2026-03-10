@@ -2,6 +2,7 @@ const STORAGE_KEY = "kondate_menus";
 const MENU_LIST_KEY = "kondate_menu_list";
 const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
+const EVENTS_KEY = "kondate_events";
 const PRESET_TAGS = ["いつもの", "お気に入り", "和食", "洋食", "中華"];
 const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
@@ -28,6 +29,7 @@ const FIREBASE_PATHS = {
   stock: "stock",
   memo: "memo",
   customTags: "customTags",
+  events: "events",
 };
 
 let kondateDb = null;
@@ -36,6 +38,7 @@ let _menuListCache = null;
 let _stockCache = null;
 let _memoCache = null;
 let _customTagsCache = null;
+let _eventsCache = null;
 let _localMenusSnapshot = {};
 
 // ===== State =====
@@ -169,6 +172,37 @@ function removeCustomTag(name) {
 
 function getAllTags() {
   return [...PRESET_TAGS, ...getCustomTags()];
+}
+
+// ===== Storage: Events (予定) =====
+function getEvents() {
+  if (_eventsCache !== null) return _eventsCache;
+  try {
+    return JSON.parse(localStorage.getItem(EVENTS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveEvents(events) {
+  _eventsCache = events;
+  localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+  kondateFirebaseSet(FIREBASE_PATHS.events, events);
+}
+
+function getEvent(dateStr) {
+  return (getEvents()[dateStr] || "").trim();
+}
+
+function setEvent(dateStr, text) {
+  const events = getEvents();
+  const trimmed = (text || "").trim();
+  if (trimmed) {
+    events[dateStr] = trimmed;
+  } else {
+    delete events[dateStr];
+  }
+  saveEvents(events);
 }
 
 function getMenuArray(dateStr) {
@@ -472,6 +506,7 @@ function renderCalendar() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   const menus = getMenus();
+  const events = getEvents();
   let filledCount = 0;
   let html = "";
 
@@ -483,6 +518,7 @@ function renderCalendar() {
     const dateStr = formatDateStr(currentYear, currentMonth, d);
     const dow = (firstDay + d - 1) % 7;
     const menuArr = getMenuArray(dateStr);
+    const eventText = (events[dateStr] || "").trim();
     const hasMenu = menuArr.length > 0;
     if (hasMenu) filledCount++;
 
@@ -492,7 +528,12 @@ function renderCalendar() {
     if (dateStr === todayStr) classes += " day-cell--today";
 
     html += `<div class="${classes}" data-date="${dateStr}">`;
+    html += `<div class="day-header">`;
     html += `<span class="day-number">${d}</span>`;
+    if (eventText) {
+      html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
+    }
+    html += `</div>`;
     if (hasMenu) {
       html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     }
@@ -525,8 +566,12 @@ function openMenuModal(dateStr) {
   const dow = ["日", "月", "火", "水", "木", "金", "土"][new Date(y, m - 1, d).getDay()];
   menuModalTitle.textContent = `${m}月${d}日（${dow}）の夕飯`;
 
+  // Load event
+  const eventInput = $("menuEventInput");
+  eventInput.value = getEvent(dateStr);
+
   const current = getMenuArray(dateStr);
-  menuDeleteBtn.hidden = current.length === 0;
+  menuDeleteBtn.hidden = current.length === 0 && !getEvent(dateStr);
 
   // Init entries
   if (current.length > 0) {
@@ -808,6 +853,10 @@ function saveMenu() {
   const values = menuEntries.map((e) => e.value.trim()).filter(Boolean);
   setMenuArray(editingDate, values);
 
+  // Save event
+  const eventInput = $("menuEventInput");
+  setEvent(editingDate, eventInput.value);
+
   // Increment usageCount or auto-add to menu list
   if (values.length > 0) {
     const list = getMenuList();
@@ -883,6 +932,7 @@ function copySingleToNextDay(menuName) {
 function deleteMenu() {
   if (!editingDate) return;
   setMenuArray(editingDate, []);
+  setEvent(editingDate, "");
   closeMenuModal();
   renderCalendar();
   showToast("削除しました");
@@ -1815,6 +1865,13 @@ function setupKondateSync() {
     }
   });
 
+  // Events listener
+  kondateDb.ref(FIREBASE_PATHS.events).on("value", (snap) => {
+    _eventsCache = snap.val() || {};
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(_eventsCache));
+    renderCalendar();
+  });
+
   // Custom tags listener
   kondateDb.ref(FIREBASE_PATHS.customTags).on("value", (snap) => {
     const val = snap.val();
@@ -1834,6 +1891,7 @@ function migrateKondateToFirebase() {
     { key: STOCK_KEY, path: FIREBASE_PATHS.stock },
     { key: MEMO_KEY, path: FIREBASE_PATHS.memo, isString: true },
     { key: CUSTOM_TAGS_KEY, path: FIREBASE_PATHS.customTags },
+    { key: EVENTS_KEY, path: FIREBASE_PATHS.events },
   ];
 
   const promises = [];

@@ -208,11 +208,32 @@ body {
 .day-cell--sun .day-number { color: var(--sun); }
 .day-cell--sat .day-number { color: var(--sat); }
 
+.day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin-bottom: 2px;
+}
+
 .day-number {
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.day-event {
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--white);
+  background: var(--basil);
+  border-radius: 3px;
+  padding: 1px 3px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .day-menu {
@@ -943,6 +964,41 @@ body {
   color: var(--white);
 }
 
+/* ===== Event Input (予定) ===== */
+.event-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #e8f5e0;
+  border: 1.5px solid #c5e4b5;
+  border-radius: 12px;
+}
+
+.event-input-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--basil);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.event-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1.5px solid #c5e4b5;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  background: var(--white);
+  transition: border-color 0.2s;
+}
+.event-input:focus {
+  border-color: var(--basil);
+}
+
 /* ===== Multi-Entry Modal ===== */
 .menu-entries {
   display: flex;
@@ -1553,15 +1609,21 @@ body {
     print-color-adjust: exact;
   }
 
-  .container {
+  /* 1ページに収める: flex縦積みレイアウト */
+  #tabCalendar {
+    height: 100vh;
+    display: flex !important;
+    flex-direction: column;
     max-width: 100%;
     padding: 0;
     margin: 0;
+    overflow: hidden;
   }
 
   .month-nav {
     justify-content: center;
-    margin-bottom: 4mm;
+    margin-bottom: 2mm;
+    flex-shrink: 0;
   }
   .month-label {
     font-size: 16pt;
@@ -1573,10 +1635,16 @@ body {
     border-radius: 0;
     border: 2px solid #666;
     width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    page-break-inside: avoid;
   }
 
   .calendar-weekdays {
     background: #f0f0f0 !important;
+    flex-shrink: 0;
   }
   .weekday {
     font-size: 9pt;
@@ -1585,11 +1653,17 @@ body {
   .weekday--sun { color: #c84b31; }
   .weekday--sat { color: #5a8a3c; }
 
+  .calendar-grid {
+    flex: 1;
+    grid-auto-rows: 1fr;
+  }
+
   .day-cell {
-    min-height: 18mm;
+    min-height: 0;
     padding: 2mm;
     border-color: #999;
     cursor: default;
+    overflow: hidden;
   }
   .day-cell--empty {
     background: #fafafa !important;
@@ -1608,12 +1682,19 @@ body {
     font-size: 8pt;
   }
 
+  .day-event {
+    font-size: 6pt;
+    background: #5a8a3c !important;
+    color: white !important;
+  }
+
   .day-menu {
     font-size: 7pt;
     white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: #333;
     cursor: default;
+    line-height: 1.2;
   }
 }
