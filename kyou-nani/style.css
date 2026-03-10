@@ -906,11 +906,11 @@ body {
 
 .tag-delete-btn {
   font-family: inherit;
-  font-size: 0.7rem;
-  width: 18px;
-  height: 18px;
+  font-size: 0.75rem;
+  width: 24px;
+  height: 24px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid #e74c3c;
   border-radius: 50%;
   background: var(--white);
   color: #e74c3c;
@@ -918,11 +918,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: -6px;
-  margin-right: 2px;
+  margin-left: 2px;
   line-height: 1;
 }
-.tag-delete-btn:hover {
+.tag-delete-btn:hover,
+.tag-delete-btn:active {
   background: #e74c3c;
   color: var(--white);
 }
@@ -1272,13 +1272,47 @@ body {
 }
 
 .stock-alerts {
-  padding: 10px 14px;
+  padding: 0;
   background: #fde8e4;
   border: 1.5px solid var(--primary-dark);
   border-radius: 12px;
   margin-bottom: 12px;
   font-size: 0.8rem;
   color: var(--primary-dark);
+  overflow: hidden;
+}
+
+.stock-alerts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stock-alerts-header:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.stock-alerts-header-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.stock-alerts-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  color: #888;
+}
+
+.stock-alerts-arrow--open {
+  transform: rotate(0deg);
+}
+
+.stock-alerts-body {
+  padding: 0 14px 10px;
 }
 
 .stock-alert-title {
@@ -1578,7 +1612,7 @@ body {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 8mm;
+    margin: 8mm 6mm;
   }
 
   /* 非表示 */
@@ -1590,9 +1624,6 @@ body {
   .print-btn,
   .modal-overlay,
   .toast,
-  .pinned-stock,
-  .calendar-memo,
-  .cal-expiry-alerts,
   .sync-status,
   .scroll-top-btn,
   #tabMenuList,
@@ -1622,11 +1653,11 @@ body {
 
   .month-nav {
     justify-content: center;
-    margin-bottom: 2mm;
+    margin-bottom: 1mm;
     flex-shrink: 0;
   }
   .month-label {
-    font-size: 16pt;
+    font-size: 14pt;
     color: #333;
   }
 
@@ -1660,7 +1691,7 @@ body {
 
   .day-cell {
     min-height: 0;
-    padding: 2mm;
+    padding: 1.5mm;
     border-color: #999;
     cursor: default;
     overflow: hidden;
@@ -1696,5 +1727,88 @@ body {
     color: #333;
     cursor: default;
     line-height: 1.2;
+  }
+
+  /* === 今ある食材（印刷用） === */
+  .pinned-stock {
+    display: block !important;
+    flex-shrink: 0;
+    margin-top: 2mm;
+    padding: 1.5mm 2mm;
+    border: 1px solid #999;
+    border-radius: 0;
+    background: white;
+  }
+  .pinned-stock-title {
+    font-size: 8pt;
+    margin: 0 0 1mm;
+    color: #333;
+  }
+  .pinned-stock-chips {
+    gap: 2px;
+  }
+  .pinned-chip {
+    font-size: 6.5pt;
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+  .pinned-chip-remove {
+    display: none !important;
+  }
+
+  /* === 献立メモ（印刷用） === */
+  .calendar-memo {
+    flex-shrink: 0;
+    margin-top: 2mm;
+    border: 1px solid #999;
+    border-radius: 0;
+    background: white;
+  }
+  .calendar-memo-toggle {
+    display: none !important;
+  }
+  .calendar-memo-text {
+    display: block !important;
+    font-size: 7pt;
+    line-height: 1.3;
+    padding: 1.5mm 2mm;
+    min-height: 0;
+    max-height: 15mm;
+    overflow: hidden;
+    color: #333;
+  }
+
+  /* === 在庫の期限（印刷用） === */
+  .cal-expiry-alerts {
+    display: block !important;
+    flex-shrink: 0;
+    margin-top: 2mm;
+    padding: 1.5mm 2mm;
+    border: 1px solid #999;
+    border-radius: 0;
+    background: white;
+  }
+  .cal-expiry-header {
+    font-size: 8pt;
+    margin-bottom: 1mm;
+    color: #333;
+  }
+  .cal-expiry-group {
+    margin-bottom: 1mm;
+    padding-bottom: 0;
+  }
+  .cal-expiry-label {
+    font-size: 7pt;
+  }
+  .cal-expiry-chips {
+    gap: 2px;
+  }
+  .cal-expiry-chip {
+    font-size: 6.5pt;
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+  .cal-expiry-chip small {
+    font-size: 5.5pt;
   }
 }

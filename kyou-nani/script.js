@@ -804,14 +804,14 @@ function setupEntryDragAndDrop() {
 }
 
 function renderMenuListPicker(idx, selectedValue, menuList) {
-  const usedTags = [...new Set(menuList.flatMap((m) => m.tags))];
+  const usedTags = [...new Set(menuList.flatMap((m) => m.tags || []))];
   // We'll use a data attribute to track filter state; re-read from DOM if exists
   const existingPicker = menuEntriesEl.querySelector(`.menu-list-picker[data-idx="${idx}"]`);
   const filterTag = existingPicker ? existingPicker.dataset.filterTag || "" : "";
 
   let filtered = menuList;
   if (filterTag) {
-    filtered = menuList.filter((m) => m.tags.includes(filterTag));
+    filtered = menuList.filter((m) => (m.tags || []).includes(filterTag));
   }
   filtered.sort((a, b) => b.usageCount - a.usageCount);
 
@@ -940,13 +940,21 @@ function deleteMenu() {
 
 // ===== Drag & Drop Menu Swap =====
 function swapMenuItems(date1, idx1, date2, idx2) {
-  const arr1 = getMenuArray(date1);
-  const arr2 = getMenuArray(date2);
-  const temp = arr1[idx1];
-  arr1[idx1] = arr2[idx2];
-  arr2[idx2] = temp;
-  setMenuArray(date1, arr1);
-  setMenuArray(date2, arr2);
+  if (date1 === date2) {
+    const arr = getMenuArray(date1);
+    const temp = arr[idx1];
+    arr[idx1] = arr[idx2];
+    arr[idx2] = temp;
+    setMenuArray(date1, arr);
+  } else {
+    const arr1 = getMenuArray(date1);
+    const arr2 = getMenuArray(date2);
+    const temp = arr1[idx1];
+    arr1[idx1] = arr2[idx2];
+    arr2[idx2] = temp;
+    setMenuArray(date1, arr1);
+    setMenuArray(date2, arr2);
+  }
 }
 
 function moveMenuItem(srcDate, srcIdx, dstDate) {
@@ -1211,10 +1219,16 @@ function renderStockAlerts() {
     else if (status === "week") week.push(item);
   });
 
-  if (expired.length === 0 && soon.length === 0 && week.length === 0) {
+  const totalAlerts = expired.length + soon.length + week.length;
+  if (totalAlerts === 0) {
     stockAlerts.hidden = true;
     return;
   }
+
+  const countEl = document.getElementById("stockAlertsCount");
+  const bodyEl = document.getElementById("stockAlertsBody");
+
+  countEl.textContent = `(${totalAlerts}件)`;
 
   let html = "";
   if (expired.length > 0) {
@@ -1244,7 +1258,7 @@ function renderStockAlerts() {
     html += "</ul>";
   }
 
-  stockAlerts.innerHTML = html;
+  bodyEl.innerHTML = html;
   stockAlerts.hidden = false;
 }
 
@@ -1523,7 +1537,7 @@ function renderMenuList() {
 
   // Filter by tag
   if (menuListFilterTag) {
-    list = list.filter((m) => m.tags.includes(menuListFilterTag));
+    list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
   }
 
   // Filter by search
@@ -1549,7 +1563,7 @@ function renderMenuList() {
       <div class="menulist-item-info">
         <div class="menulist-item-name">${escapeHtml(m.name)}</div>
         <div class="menulist-item-tags">
-          ${m.tags.map((t) => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}
+          ${(m.tags || []).map((t) => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}
         </div>
       </div>
       <div class="menulist-item-actions">
@@ -1609,7 +1623,8 @@ function renderMenuEditTags(selectedTags) {
 
   // Delete custom tag
   menuEditTagsList.querySelectorAll(".tag-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const tag = btn.dataset.tag;
       if (confirm(`タグ「${tag}」を削除しますか？`)) {
         removeCustomTag(tag);
@@ -1651,7 +1666,7 @@ function openMenuEditModal(id) {
   menuEditTitle.textContent = item ? "メニュー編集" : "メニュー追加";
   menuEditName.value = item ? item.name : "";
 
-  const selectedTags = item ? [...item.tags] : [];
+  const selectedTags = item ? [...(item.tags || [])] : [];
 
   renderMenuEditTags(selectedTags);
 
@@ -1976,7 +1991,7 @@ function init() {
   menuCancelBtn.addEventListener("click", closeMenuModal);
   addEntryBtn.addEventListener("click", addMenuEntry);
   menuModal.addEventListener("click", (e) => {
-    if (e.target === menuModal) closeMenuModal();
+    if (e.target === menuModal) document.activeElement?.blur();
   });
 
   // Tab navigation
@@ -1999,10 +2014,19 @@ function init() {
   menuEditSaveBtn.addEventListener("click", saveMenuListItem);
   menuEditCancelBtn.addEventListener("click", closeMenuEditModal);
   menuEditModal.addEventListener("click", (e) => {
-    if (e.target === menuEditModal) closeMenuEditModal();
+    if (e.target === menuEditModal) document.activeElement?.blur();
   });
 
-  // Stock tab
+  // Stock tab - alerts toggle
+  $("stockAlertsToggle").addEventListener("click", () => {
+    const body = $("stockAlertsBody");
+    const arrow = $("stockAlertsArrow");
+    const isOpen = !body.hidden;
+    body.hidden = isOpen;
+    arrow.textContent = isOpen ? "▶" : "▼";
+    arrow.classList.toggle("stock-alerts-arrow--open", !isOpen);
+  });
+
   addStockBtn.addEventListener("click", () => openStockEditModal());
   stockSearch.addEventListener("input", () => {
     stockSearchQuery = stockSearch.value;

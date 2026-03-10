@@ -92,8 +92,14 @@
 
       <!-- スワイプ対象エリア -->
       <div class="stock-swipe-area" id="stockSwipeArea">
-        <!-- 期限切れアラート -->
-        <div id="stockAlerts" class="stock-alerts" hidden></div>
+        <!-- 期限注意（折りたたみ） -->
+        <div id="stockAlerts" class="stock-alerts" hidden>
+          <div class="stock-alerts-header" id="stockAlertsToggle">
+            <span class="stock-alerts-header-title">⚠ 期限注意 <span id="stockAlertsCount"></span></span>
+            <span class="stock-alerts-arrow" id="stockAlertsArrow">▶</span>
+          </div>
+          <div class="stock-alerts-body" id="stockAlertsBody" hidden></div>
+        </div>
 
         <!-- 在庫リスト -->
         <div id="stockItems" class="stock-items"></div>
