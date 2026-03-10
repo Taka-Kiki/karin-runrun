@@ -1038,6 +1038,55 @@ function setupNavigation() {
   });
 }
 
+// ===== スワイプナビゲーション =====
+function setupSwipeNavigation() {
+  const ALL_TABS = ["home", ...TAB_IDS];
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let pointerStartTime = 0;
+  let isTracking = false;
+
+  document.addEventListener("pointerdown", (e) => {
+    // マウスの右クリックなどは無視、タッチとマウス左ボタンのみ
+    if (e.button !== 0) return;
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+    pointerStartTime = Date.now();
+    isTracking = true;
+  });
+
+  document.addEventListener("pointerup", (e) => {
+    if (!isTracking) return;
+    isTracking = false;
+
+    const dx = e.clientX - pointerStartX;
+    const dy = e.clientY - pointerStartY;
+    const dt = Date.now() - pointerStartTime;
+
+    // 条件: 横移動50px以上、縦移動より横移動が大きい、500ms以内
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) || dt > 500) return;
+
+    // 地図やスクロール可能な要素上のスワイプは無視
+    const startEl = document.elementFromPoint(pointerStartX, pointerStartY);
+    if (startEl && startEl.closest(".leaflet-container, .header-nav, input, textarea")) return;
+
+    const currentIndex = ALL_TABS.indexOf(currentTab);
+    if (currentIndex === -1) return;
+
+    if (dx < 0 && currentIndex < ALL_TABS.length - 1) {
+      // 左スワイプ → 次のタブ
+      navigateTo(ALL_TABS[currentIndex + 1]);
+    } else if (dx > 0 && currentIndex > 0) {
+      // 右スワイプ → 前のタブ
+      navigateTo(ALL_TABS[currentIndex - 1]);
+    }
+  });
+
+  document.addEventListener("pointercancel", () => {
+    isTracking = false;
+  });
+}
+
 // ===== 病院 小児科/耳鼻科 切替 =====
 function setupHospitalToggle() {
   const toggleBtns = document.querySelectorAll(".hospital-toggle-btn");
@@ -2210,7 +2259,7 @@ function addCategory(input) {
   const id = "cat_" + Date.now();
   shoppingDb.ref("shopping/categories/" + id).set({
     name: name,
-    icon: "📝",
+    icon: "",
     order: Date.now()
   });
   input.value = "";
@@ -2221,7 +2270,7 @@ function renderShoppingFilter(sortedCategories) {
   if (!filterContainer) return;
 
   filterContainer.innerHTML = sortedCategories.map(([catId, cat]) =>
-    `<button class="shopping-filter-btn" data-jump-cat="${catId}" type="button">${cat.icon || "📝"} ${escapeHtml(cat.name)}</button>`
+    `<button class="shopping-filter-btn" data-jump-cat="${catId}" type="button">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</button>`
   ).join("");
 
   filterContainer.querySelectorAll(".shopping-filter-btn").forEach((btn) => {
@@ -2255,7 +2304,7 @@ function renderShoppingCategories(categories) {
     section.id = "shopping-cat-" + catId;
     section.innerHTML = `
       <div class="shopping-category-header">
-        <h3 class="shopping-category-title">${cat.icon || "📝"} ${escapeHtml(cat.name)}</h3>
+        <h3 class="shopping-category-title">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</h3>
         <button class="shopping-delete-cat-btn" data-cat-id="${catId}" type="button" title="カテゴリ削除">✕</button>
       </div>
       <ul class="shopping-items" id="shopping-items-${catId}"></ul>
@@ -2792,6 +2841,7 @@ function setupNursery() {
 
 async function init() {
   setupNavigation();
+  setupSwipeNavigation();
   setupSearch();
   setupHospitalToggle();
   setupTaxiToggle();
