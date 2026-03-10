@@ -2305,7 +2305,10 @@ function renderShoppingCategories(categories) {
     section.innerHTML = `
       <div class="shopping-category-header">
         <h3 class="shopping-category-title">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</h3>
-        <button class="shopping-delete-cat-btn" data-cat-id="${catId}" type="button" title="カテゴリ削除">✕</button>
+        <div class="shopping-cat-actions">
+          <button class="shopping-edit-cat-btn" data-cat-id="${catId}" data-cat-name="${escapeHtml(cat.name)}" type="button" title="カテゴリ名を編集">✎</button>
+          <button class="shopping-delete-cat-btn" data-cat-id="${catId}" type="button" title="カテゴリ削除">✕</button>
+        </div>
       </div>
       <ul class="shopping-items" id="shopping-items-${catId}"></ul>
       <div class="shopping-add-item">
@@ -2327,6 +2330,15 @@ function renderShoppingCategories(categories) {
     addItemBtn.addEventListener("click", () => addShoppingItem(catId, itemInput));
     itemInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") addShoppingItem(catId, itemInput);
+    });
+
+    // Edit category name
+    const editCatBtn = section.querySelector(".shopping-edit-cat-btn");
+    editCatBtn.addEventListener("click", () => {
+      const newName = prompt("カテゴリ名を入力", cat.name);
+      if (newName !== null && newName.trim() && newName.trim() !== cat.name) {
+        shoppingDb.ref("shopping/categories/" + catId + "/name").set(newName.trim());
+      }
     });
 
     // Delete category

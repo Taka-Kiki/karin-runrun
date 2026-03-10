@@ -1109,6 +1109,28 @@ li:hover {
   color: #065f46;
 }
 
+.shopping-cat-actions {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.shopping-edit-cat-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.shopping-edit-cat-btn:hover {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
 .shopping-delete-cat-btn {
   background: none;
   border: none;
