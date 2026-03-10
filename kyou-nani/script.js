@@ -1439,8 +1439,35 @@ function renderMenuListTags() {
   });
 }
 
+function renderUntaggedMenus() {
+  const section = $("untaggedSection");
+  if (!section) return;
+
+  const untagged = getMenuList().filter((m) => !m.tags || m.tags.length === 0);
+  if (untagged.length === 0) {
+    section.hidden = true;
+    return;
+  }
+
+  untagged.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+
+  section.hidden = false;
+  section.innerHTML =
+    `<div class="untagged-title">タグ未設定（${untagged.length}）</div>` +
+    `<div class="untagged-chips">${untagged
+      .map((m) => `<button type="button" class="untagged-chip" data-id="${m.id}">${escapeHtml(m.name)}</button>`)
+      .join("")}</div>`;
+
+  section.querySelectorAll(".untagged-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openMenuEditModal(btn.dataset.id);
+    });
+  });
+}
+
 function renderMenuList() {
   renderMenuListTags();
+  renderUntaggedMenus();
 
   let list = getMenuList();
 
