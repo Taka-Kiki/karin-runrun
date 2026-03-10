@@ -3363,23 +3363,21 @@ mark.search-highlight {
 
 .supplies-cat-bar {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
+  gap: 4px;
+  flex-wrap: wrap;
   padding: 4px 0 8px;
-  -webkit-overflow-scrolling: touch;
   position: sticky;
   top: 0;
   z-index: 5;
-  background: var(--bg);
+  background: var(--white);
 }
 
 .supplies-cat-btn {
-  flex-shrink: 0;
-  padding: 6px 12px;
+  padding: 5px 8px;
   border: 2px solid #d1d5db;
   border-radius: 20px;
   background: var(--white);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-family: inherit;
   color: var(--text);
   cursor: pointer;
@@ -3401,7 +3399,7 @@ mark.search-highlight {
   position: sticky;
   top: 44px;
   z-index: 5;
-  background: var(--bg);
+  background: var(--white);
   padding: 4px 0;
 }
 
