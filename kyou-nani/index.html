@@ -52,6 +52,12 @@
         <textarea id="calendarMemo" class="calendar-memo-text"
           placeholder="作りたいメニューや買い物メモなど自由に..." rows="6"></textarea>
       </div>
+
+      <!-- 在庫の期限アラート -->
+      <div class="cal-expiry-alerts" id="calendarExpiryAlerts" hidden>
+        <div class="cal-expiry-header">⏰ 在庫の期限</div>
+        <div class="cal-expiry-content"></div>
+      </div>
     </main>
 
     <!-- メニューリストタブ -->
@@ -75,17 +81,23 @@
       </div>
 
       <!-- 検索 + 追加 -->
-      <div class="stock-header">
-        <input type="text" id="stockSearch" class="menulist-search" placeholder="在庫検索..." />
+      <div class="stock-header stock-header--sticky">
+        <div class="stock-search-wrap">
+          <input type="text" id="stockSearch" class="menulist-search" placeholder="在庫検索..." />
+          <button id="stockSearchBtn" class="stock-search-btn" type="button">🔍</button>
+        </div>
         <button id="addStockBtn" class="menulist-add-btn" type="button">＋ 追加</button>
       </div>
 
-      <!-- 期限切れアラート -->
-      <div id="stockAlerts" class="stock-alerts" hidden></div>
+      <!-- スワイプ対象エリア -->
+      <div class="stock-swipe-area" id="stockSwipeArea">
+        <!-- 期限切れアラート -->
+        <div id="stockAlerts" class="stock-alerts" hidden></div>
 
-      <!-- 在庫リスト -->
-      <div id="stockItems" class="stock-items"></div>
-      <p class="menulist-empty" id="stockEmpty" hidden>在庫がありません。「＋ 追加」で登録しましょう！</p>
+        <!-- 在庫リスト -->
+        <div id="stockItems" class="stock-items"></div>
+        <p class="menulist-empty" id="stockEmpty" hidden>在庫がありません。「＋ 追加」で登録しましょう！</p>
+      </div>
     </main>
 
     <!-- タブバー -->
@@ -217,6 +229,9 @@
         </div>
       </div>
     </div>
+
+    <!-- トップへ戻るボタン -->
+    <button id="scrollTopBtn" class="scroll-top-btn" type="button" aria-label="トップへ戻る">▲</button>
 
     <!-- トースト -->
     <div id="toast" class="toast" hidden></div>

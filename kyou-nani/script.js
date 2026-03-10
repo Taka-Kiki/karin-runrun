@@ -2,7 +2,8 @@ const STORAGE_KEY = "kondate_menus";
 const MENU_LIST_KEY = "kondate_menu_list";
 const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
-const PRESET_TAGS = ["いつものメニュー", "お気に入り", "和食", "洋食", "中華", "丼もの", "魚", "肉", "野菜", "麺類", "鍋"];
+const PRESET_TAGS = ["いつもの", "お気に入り", "和食", "洋食", "中華"];
+const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
 const STOCK_SUBCATEGORIES = {
   fridge: { staple: "常備品", vegetable: "野菜" },
@@ -26,6 +27,7 @@ const FIREBASE_PATHS = {
   menuList: "menuList",
   stock: "stock",
   memo: "memo",
+  customTags: "customTags",
 };
 
 let kondateDb = null;
@@ -33,6 +35,7 @@ let _menusCache = null;
 let _menuListCache = null;
 let _stockCache = null;
 let _memoCache = null;
+let _customTagsCache = null;
 let _localMenusSnapshot = {};
 
 // ===== State =====
@@ -133,6 +136,39 @@ function getMenus() {
 function saveMenus(menus) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(menus));
   kondateFirebaseSet(FIREBASE_PATHS.menus, menus);
+}
+
+// ===== Storage: Custom Tags =====
+function getCustomTags() {
+  if (_customTagsCache !== null) return _customTagsCache;
+  try {
+    return JSON.parse(localStorage.getItem(CUSTOM_TAGS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomTags(tags) {
+  _customTagsCache = tags;
+  localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify(tags));
+  kondateFirebaseSet(FIREBASE_PATHS.customTags, tags);
+}
+
+function addCustomTag(name) {
+  const tags = getCustomTags();
+  if (!tags.includes(name) && !PRESET_TAGS.includes(name)) {
+    tags.push(name);
+    saveCustomTags(tags);
+  }
+}
+
+function removeCustomTag(name) {
+  const tags = getCustomTags().filter((t) => t !== name);
+  saveCustomTags(tags);
+}
+
+function getAllTags() {
+  return [...PRESET_TAGS, ...getCustomTags()];
 }
 
 function getMenuArray(dateStr) {
@@ -337,6 +373,46 @@ function renderPinnedStock() {
   });
 }
 
+function renderCalendarExpiryAlerts() {
+  const el = $("calendarExpiryAlerts");
+  if (!el) return;
+  const list = getStock();
+  const expired = [];
+  const soon = [];
+  const week = [];
+
+  list.forEach((item) => {
+    const status = getExpiryStatus(item.expiry);
+    if (status === "expired") expired.push(item);
+    else if (status === "soon") soon.push(item);
+    else if (status === "week") week.push(item);
+  });
+
+  if (expired.length === 0 && soon.length === 0 && week.length === 0) {
+    el.hidden = true;
+    return;
+  }
+
+  const renderGroup = (title, items, cls) => {
+    let html = `<div class="cal-expiry-group cal-expiry-group--${cls}">`;
+    html += `<div class="cal-expiry-label">${title}</div>`;
+    html += `<div class="cal-expiry-chips">`;
+    items.forEach((item) => {
+      html += `<span class="cal-expiry-chip cal-expiry-chip--${cls}">${escapeHtml(item.name)} <small>${formatExpiry(item.expiry)}</small></span>`;
+    });
+    html += `</div></div>`;
+    return html;
+  };
+
+  let html = "";
+  if (expired.length > 0) html += renderGroup(`期限切れ（${expired.length}）`, expired, "expired");
+  if (soon.length > 0) html += renderGroup(`期限間近（${soon.length}）`, soon, "soon");
+  if (week.length > 0) html += renderGroup(`1週間以内（${week.length}）`, week, "week");
+
+  el.querySelector(".cal-expiry-content").innerHTML = html;
+  el.hidden = false;
+}
+
 // ===== Suggestions =====
 function getFrequentMenus(limit) {
   const menus = getMenus();
@@ -372,6 +448,7 @@ function switchTab(tabName) {
 
   if (tabName === "calendar") {
     renderPinnedStock();
+    renderCalendarExpiryAlerts();
   } else if (tabName === "menulist") {
     renderMenuList();
   } else if (tabName === "stock") {
@@ -1052,6 +1129,7 @@ function getExpiryStatus(expiryStr) {
   const diff = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
   if (diff < 0) return "expired";
   if (diff <= 3) return "soon";
+  if (diff <= 7) return "week";
   return "ok";
 }
 
@@ -1074,20 +1152,23 @@ function renderStockAlerts() {
   const expired = [];
   const soon = [];
 
+  const week = [];
+
   list.forEach((item) => {
     const status = getExpiryStatus(item.expiry);
     if (status === "expired") expired.push(item);
     else if (status === "soon") soon.push(item);
+    else if (status === "week") week.push(item);
   });
 
-  if (expired.length === 0 && soon.length === 0) {
+  if (expired.length === 0 && soon.length === 0 && week.length === 0) {
     stockAlerts.hidden = true;
     return;
   }
 
   let html = "";
   if (expired.length > 0) {
-    html += `<div class="stock-alert-title">期限切れ (${expired.length}件)</div>`;
+    html += `<div class="stock-alert-title stock-alert-title--expired">期限切れ (${expired.length}件)</div>`;
     html += '<ul class="stock-alert-list">';
     expired.forEach((item) => {
       html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
@@ -1096,9 +1177,18 @@ function renderStockAlerts() {
   }
   if (soon.length > 0) {
     if (expired.length > 0) html += '<div style="margin-top:6px"></div>';
-    html += `<div class="stock-alert-title">期限間近 (${soon.length}件)</div>`;
+    html += `<div class="stock-alert-title stock-alert-title--soon">期限間近 (${soon.length}件)</div>`;
     html += '<ul class="stock-alert-list">';
     soon.forEach((item) => {
+      html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
+    });
+    html += "</ul>";
+  }
+  if (week.length > 0) {
+    if (expired.length > 0 || soon.length > 0) html += '<div style="margin-top:6px"></div>';
+    html += `<div class="stock-alert-title stock-alert-title--week">1週間以内 (${week.length}件)</div>`;
+    html += '<ul class="stock-alert-list">';
+    week.forEach((item) => {
       html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
     });
     html += "</ul>";
@@ -1113,11 +1203,12 @@ function renderStockItem(s) {
   let itemClass = "stock-item";
   if (status === "expired") itemClass += " stock-item--expired";
   else if (status === "soon") itemClass += " stock-item--soon";
+  else if (status === "week") itemClass += " stock-item--week";
 
   let expiryHtml = "";
   if (s.expiry) {
     const badgeClass = status ? `stock-expiry-badge--${status}` : "";
-    const labels = { expired: "期限切れ", soon: "期限間近", ok: "" };
+    const labels = { expired: "期限切れ", soon: "期限間近", week: "1週間以内", ok: "" };
     const label = labels[status] || "";
     expiryHtml = `<span class="stock-expiry-badge ${badgeClass}">${label ? label + " " : ""}${formatExpiry(s.expiry)}</span>`;
   }
@@ -1334,7 +1425,7 @@ function deleteStockEditItem() {
 
 // ===== Menu List Tab =====
 function renderMenuListTags() {
-  menulistTags.innerHTML = PRESET_TAGS.map(
+  menulistTags.innerHTML = getAllTags().map(
     (t) =>
       `<button type="button" class="tag-filter-btn${menuListFilterTag === t ? " tag-filter-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join("");
@@ -1412,6 +1503,70 @@ function renderMenuList() {
 }
 
 // ===== Menu Edit Modal =====
+function renderMenuEditTags(selectedTags) {
+  const allTags = getAllTags();
+  const customTags = getCustomTags();
+
+  const tagsHtml = allTags.map((t) => {
+    const isCustom = customTags.includes(t);
+    const isActive = selectedTags.includes(t);
+    return `<span class="tag-toggle-wrap">` +
+      `<button type="button" class="tag-toggle-btn${isActive ? " tag-toggle-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>` +
+      (isCustom ? `<button type="button" class="tag-delete-btn" data-tag="${escapeHtml(t)}" title="タグを削除">×</button>` : "") +
+      `</span>`;
+  }).join("");
+
+  const addTagHtml = `<span class="tag-add-wrap">` +
+    `<input type="text" class="tag-add-input" id="tagAddInput" placeholder="新しいタグ" maxlength="20" />` +
+    `<button type="button" class="tag-add-btn" id="tagAddBtn">＋</button>` +
+    `</span>`;
+
+  menuEditTagsList.innerHTML = tagsHtml + addTagHtml;
+
+  // Tag toggle
+  menuEditTagsList.querySelectorAll(".tag-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("tag-toggle-btn--active");
+    });
+  });
+
+  // Delete custom tag
+  menuEditTagsList.querySelectorAll(".tag-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tag = btn.dataset.tag;
+      if (confirm(`タグ「${tag}」を削除しますか？`)) {
+        removeCustomTag(tag);
+        const currentSelected = [];
+        menuEditTagsList.querySelectorAll(".tag-toggle-btn--active").forEach((b) => currentSelected.push(b.dataset.tag));
+        renderMenuEditTags(currentSelected.filter((t) => t !== tag));
+        renderMenuList();
+      }
+    });
+  });
+
+  // Add new tag
+  const tagAddBtn = menuEditTagsList.querySelector("#tagAddBtn");
+  const tagAddInput = menuEditTagsList.querySelector("#tagAddInput");
+  const doAddTag = () => {
+    const name = tagAddInput.value.trim();
+    if (!name) return;
+    if (getAllTags().includes(name)) {
+      showToast("そのタグは既にあります");
+      return;
+    }
+    addCustomTag(name);
+    const currentSelected = [];
+    menuEditTagsList.querySelectorAll(".tag-toggle-btn--active").forEach((b) => currentSelected.push(b.dataset.tag));
+    currentSelected.push(name);
+    renderMenuEditTags(currentSelected);
+    renderMenuList();
+  };
+  tagAddBtn.addEventListener("click", doAddTag);
+  tagAddInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); doAddTag(); }
+  });
+}
+
 function openMenuEditModal(id) {
   editingMenuId = id || null;
   const item = id ? getMenuList().find((m) => m.id === id) : null;
@@ -1421,16 +1576,7 @@ function openMenuEditModal(id) {
 
   const selectedTags = item ? [...item.tags] : [];
 
-  menuEditTagsList.innerHTML = PRESET_TAGS.map(
-    (t) =>
-      `<button type="button" class="tag-toggle-btn${selectedTags.includes(t) ? " tag-toggle-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
-  ).join("");
-
-  menuEditTagsList.querySelectorAll(".tag-toggle-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("tag-toggle-btn--active");
-    });
-  });
+  renderMenuEditTags(selectedTags);
 
   menuEditModal.classList.add("is-open");
   setTimeout(() => menuEditName.focus(), 100);
@@ -1629,7 +1775,7 @@ function setupKondateSync() {
     _stockCache = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     localStorage.setItem(STOCK_KEY, JSON.stringify(_stockCache));
     if (activeTab === "stock") renderStock();
-    if (activeTab === "calendar") renderPinnedStock();
+    if (activeTab === "calendar") { renderPinnedStock(); renderCalendarExpiryAlerts(); }
   });
 
   // Memo listener
@@ -1640,6 +1786,14 @@ function setupKondateSync() {
     if (document.activeElement !== calendarMemo) {
       loadCalendarMemo();
     }
+  });
+
+  // Custom tags listener
+  kondateDb.ref(FIREBASE_PATHS.customTags).on("value", (snap) => {
+    const val = snap.val();
+    _customTagsCache = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify(_customTagsCache));
+    if (activeTab === "menulist") renderMenuList();
   });
 }
 
@@ -1652,6 +1806,7 @@ function migrateKondateToFirebase() {
     { key: MENU_LIST_KEY, path: FIREBASE_PATHS.menuList },
     { key: STOCK_KEY, path: FIREBASE_PATHS.stock },
     { key: MEMO_KEY, path: FIREBASE_PATHS.memo, isString: true },
+    { key: CUSTOM_TAGS_KEY, path: FIREBASE_PATHS.customTags },
   ];
 
   const promises = [];
@@ -1685,6 +1840,25 @@ function migrateKondateToFirebase() {
   }
 }
 
+function migrateTagRename() {
+  if (localStorage.getItem("kondate_tagMigrated_v1")) return;
+  const list = getMenuList();
+  let changed = false;
+  list.forEach((m) => {
+    if (m.tags) {
+      const idx = m.tags.indexOf("いつものメニュー");
+      if (idx !== -1) {
+        m.tags[idx] = "いつもの";
+        changed = true;
+      }
+    }
+  });
+  if (changed) {
+    saveMenuList(list);
+  }
+  localStorage.setItem("kondate_tagMigrated_v1", "1");
+}
+
 // ===== Init =====
 function init() {
   // Firebase上書き前にlocalStorageのカレンダーデータを保存（マイグレーション用）
@@ -1697,6 +1871,7 @@ function init() {
   renderCalendar();
   loadCalendarMemo();
   renderPinnedStock();
+  renderCalendarExpiryAlerts();
   setupSwipe();
   setupKeyboard();
 
@@ -1748,6 +1923,18 @@ function init() {
     stockSearchQuery = stockSearch.value;
     renderStock();
   });
+  const commitStockSearch = () => {
+    stockSearchQuery = stockSearch.value;
+    renderStock();
+    stockSearch.blur();
+  };
+  stockSearch.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.isComposing) {
+      e.preventDefault();
+      commitStockSearch();
+    }
+  });
+  $("stockSearchBtn").addEventListener("click", commitStockSearch);
   document.querySelectorAll(".stock-cat-btn").forEach((btn) => {
     btn.addEventListener("click", () => switchStockCategory(btn.dataset.cat));
   });
@@ -1756,9 +1943,6 @@ function init() {
   stockEditSaveBtn.addEventListener("click", saveStockEditItem);
   stockEditDeleteBtn.addEventListener("click", deleteStockEditItem);
   stockEditCancelBtn.addEventListener("click", closeStockEditModal);
-  stockEditModal.addEventListener("click", (e) => {
-    if (e.target === stockEditModal) closeStockEditModal();
-  });
   stockEditCategory.addEventListener("change", updateStockSubCatOptions);
 
   // Qty +/- buttons
@@ -1774,6 +1958,15 @@ function init() {
   $("stockSpareQtyPlus").addEventListener("click", () => {
     stockEditSpareQty.value = Math.min(999, (parseInt(stockEditSpareQty.value) || 0) + 1);
   });
+
+  // Migrate tag rename: いつものメニュー → いつもの
+  migrateTagRename();
+
+  // Stock swipe navigation
+  setupStockSwipe();
+
+  // Scroll-to-top button
+  setupScrollTopBtn();
 
   // Firebase sync
   setupKondateSync();
@@ -1805,6 +1998,55 @@ function migrateCalendarToMenuList() {
     usageCount: count,
   }));
   saveMenuList(newList);
+}
+
+// ===== Stock Swipe Navigation =====
+function setupStockSwipe() {
+  const area = $("stockSwipeArea");
+  if (!area) return;
+  const catOrder = ["fridge", "freezer", "pantry"];
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+
+  area.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    tracking = true;
+  }, { passive: true });
+
+  area.addEventListener("touchmove", (e) => {
+    // let browser handle vertical scroll
+  }, { passive: true });
+
+  area.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    // Only trigger if horizontal swipe is dominant and > 50px
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    const idx = catOrder.indexOf(stockCategory);
+    if (dx < 0 && idx < catOrder.length - 1) {
+      switchStockCategory(catOrder[idx + 1]);
+    } else if (dx > 0 && idx > 0) {
+      switchStockCategory(catOrder[idx - 1]);
+    }
+  }, { passive: true });
+}
+
+// ===== Scroll to Top Button =====
+function setupScrollTopBtn() {
+  const btn = $("scrollTopBtn");
+  if (!btn) return;
+  window.addEventListener("scroll", () => {
+    btn.classList.toggle("scroll-top-btn--visible", window.scrollY > 300);
+  }, { passive: true });
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);

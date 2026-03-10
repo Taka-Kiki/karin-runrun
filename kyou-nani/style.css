@@ -372,6 +372,77 @@ body {
 }
 .calendar-memo-text--open { display: block; }
 
+/* ===== Calendar Expiry Alerts ===== */
+.cal-expiry-alerts {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+
+.cal-expiry-header {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.cal-expiry-group {
+  margin-bottom: 6px;
+}
+
+.cal-expiry-group:last-child {
+  margin-bottom: 0;
+}
+
+.cal-expiry-label {
+  font-weight: 700;
+  font-size: 0.72rem;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.cal-expiry-group--expired .cal-expiry-label { color: var(--primary-dark); }
+.cal-expiry-group--soon .cal-expiry-label { color: #b45309; }
+.cal-expiry-group--week .cal-expiry-label { color: #7d6608; }
+
+.cal-expiry-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cal-expiry-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cal-expiry-chip small {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.cal-expiry-chip--expired {
+  background: #fde8e4;
+  color: var(--primary-dark);
+}
+
+.cal-expiry-chip--soon {
+  background: #fff3cd;
+  color: #92600a;
+}
+
+.cal-expiry-chip--week {
+  background: #fef9e7;
+  color: #7d6608;
+}
+
 /* ===== Pin Button (Stock Tab) ===== */
 .pin-btn {
   flex-shrink: 0;
@@ -766,6 +837,72 @@ body {
   color: var(--white);
 }
 
+.tag-toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.tag-delete-btn {
+  font-family: inherit;
+  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: #e74c3c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -6px;
+  margin-right: 2px;
+  line-height: 1;
+}
+.tag-delete-btn:hover {
+  background: #e74c3c;
+  color: var(--white);
+}
+
+.tag-add-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-add-input {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--text);
+  width: 100px;
+  outline: none;
+}
+.tag-add-input:focus {
+  border-color: var(--basil);
+}
+
+.tag-add-btn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border: 1.5px solid var(--basil);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--basil);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.tag-add-btn:hover {
+  background: var(--basil);
+  color: var(--white);
+}
+
 /* ===== Multi-Entry Modal ===== */
 .menu-entries {
   display: flex;
@@ -1014,6 +1151,29 @@ body {
   gap: 8px;
   margin-bottom: 12px;
 }
+.stock-search-wrap {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+.stock-search-wrap .menulist-search {
+  flex: 1;
+  padding-right: 36px;
+}
+.stock-search-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .stock-alerts {
   padding: 10px 14px;
@@ -1029,6 +1189,10 @@ body {
   font-weight: 700;
   margin-bottom: 4px;
 }
+
+.stock-alert-title--expired { color: var(--primary-dark); }
+.stock-alert-title--soon { color: #b45309; }
+.stock-alert-title--week { color: #7d6608; }
 
 .stock-alert-list {
   list-style: none;
@@ -1078,6 +1242,11 @@ body {
   background: #fff9f0;
 }
 
+.stock-item--week {
+  border-color: #c9b458;
+  background: #fffef5;
+}
+
 .stock-item-row {
   display: flex;
   align-items: center;
@@ -1125,6 +1294,11 @@ body {
 .stock-expiry-badge--soon {
   background: #fff3cd;
   color: #92600a;
+}
+
+.stock-expiry-badge--week {
+  background: #fef9e7;
+  color: #7d6608;
 }
 
 .stock-expiry-badge--ok {
@@ -1247,6 +1421,56 @@ body {
   font-weight: 700;
 }
 
+/* ===== Stock Sticky Header ===== */
+.stock-header--sticky {
+  position: sticky;
+  top: calc(10vh + 2px + 42px);
+  z-index: 4;
+  background: var(--bg);
+  padding-top: 4px;
+  padding-bottom: 4px;
+  margin-left: -12px;
+  margin-right: -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* ===== Stock Swipe Container ===== */
+.stock-swipe-area {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+/* ===== Scroll to Top Button ===== */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 72px;
+  right: 16px;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(10px);
+}
+.scroll-top-btn--visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.scroll-top-btn:active {
+  opacity: 0.7;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 400px) {
   .day-cell { min-height: 60px; }
@@ -1272,7 +1496,9 @@ body {
   .toast,
   .pinned-stock,
   .calendar-memo,
+  .cal-expiry-alerts,
   .sync-status,
+  .scroll-top-btn,
   #tabMenuList,
   #tabStock {
     display: none !important;
