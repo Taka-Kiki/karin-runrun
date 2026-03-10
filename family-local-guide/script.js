@@ -1041,49 +1041,77 @@ function setupNavigation() {
 // ===== スワイプナビゲーション =====
 function setupSwipeNavigation() {
   const ALL_TABS = ["home", ...TAB_IDS];
-  let pointerStartX = 0;
-  let pointerStartY = 0;
-  let pointerStartTime = 0;
-  let isTracking = false;
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let isSwiping = false; // 横スワイプ確定フラグ
 
-  document.addEventListener("pointerdown", (e) => {
-    // マウスの右クリックなどは無視、タッチとマウス左ボタンのみ
-    if (e.button !== 0) return;
-    pointerStartX = e.clientX;
-    pointerStartY = e.clientY;
-    pointerStartTime = Date.now();
-    isTracking = true;
-  });
+  function isExcluded(x, y) {
+    const el = document.elementFromPoint(x, y);
+    return el && el.closest(".leaflet-container, .header-nav, input, textarea");
+  }
 
-  document.addEventListener("pointerup", (e) => {
-    if (!isTracking) return;
-    isTracking = false;
-
-    const dx = e.clientX - pointerStartX;
-    const dy = e.clientY - pointerStartY;
-    const dt = Date.now() - pointerStartTime;
-
-    // 条件: 横移動50px以上、縦移動より横移動が大きい、500ms以内
-    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) || dt > 500) return;
-
-    // 地図やスクロール可能な要素上のスワイプは無視
-    const startEl = document.elementFromPoint(pointerStartX, pointerStartY);
-    if (startEl && startEl.closest(".leaflet-container, .header-nav, input, textarea")) return;
-
+  function handleSwipeEnd(endX) {
+    const dx = endX - startX;
     const currentIndex = ALL_TABS.indexOf(currentTab);
     if (currentIndex === -1) return;
-
     if (dx < 0 && currentIndex < ALL_TABS.length - 1) {
-      // 左スワイプ → 次のタブ
       navigateTo(ALL_TABS[currentIndex + 1]);
     } else if (dx > 0 && currentIndex > 0) {
-      // 右スワイプ → 前のタブ
       navigateTo(ALL_TABS[currentIndex - 1]);
     }
+  }
+
+  // --- タッチイベント（スマホ） ---
+  document.addEventListener("touchstart", (e) => {
+    isSwiping = false;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (isExcluded(startX, startY)) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    // 横方向の移動が縦より大きければ横スワイプと判定し、ブラウザのジェスチャーを抑制
+    if (!isSwiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      isSwiping = true;
+    }
+    if (isSwiping) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener("touchend", (e) => {
+    if (!isSwiping) return;
+    isSwiping = false;
+    const dt = Date.now() - startTime;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) || dt > 500) return;
+    handleSwipeEnd(e.changedTouches[0].clientX);
+  }, { passive: true });
+
+  // --- マウスイベント（PC） ---
+  let mouseDown = false;
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    mouseDown = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
   });
 
-  document.addEventListener("pointercancel", () => {
-    isTracking = false;
+  document.addEventListener("mouseup", (e) => {
+    if (!mouseDown) return;
+    mouseDown = false;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const dt = Date.now() - startTime;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx) || dt > 500) return;
+    if (isExcluded(startX, startY)) return;
+    handleSwipeEnd(e.clientX);
   });
 }
 
