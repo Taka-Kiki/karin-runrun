@@ -2,7 +2,7 @@ const STORAGE_KEY = "kondate_menus";
 const MENU_LIST_KEY = "kondate_menu_list";
 const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
-const PRESET_TAGS = ["和食", "洋食", "中華", "丼もの", "魚", "肉", "野菜", "麺類", "鍋"];
+const PRESET_TAGS = ["いつものメニュー", "お気に入り", "和食", "洋食", "中華", "丼もの", "魚", "肉", "野菜", "麺類", "鍋"];
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
 const STOCK_SUBCATEGORIES = {
   fridge: { staple: "常備品", vegetable: "野菜" },
@@ -33,6 +33,7 @@ let _menusCache = null;
 let _menuListCache = null;
 let _stockCache = null;
 let _memoCache = null;
+let _localMenusSnapshot = {};
 
 // ===== State =====
 let currentYear;
@@ -468,11 +469,13 @@ function openMenuModal(dateStr) {
       .join("");
     menuSuggestionsList.querySelectorAll(".menu-suggestion-tag").forEach((btn) => {
       btn.addEventListener("click", () => {
-        // Find the first empty entry, or the last entry
-        const idx = menuEntries.findIndex((e) => !e.value.trim()) !== -1
-          ? menuEntries.findIndex((e) => !e.value.trim())
-          : menuEntries.length - 1;
-        menuEntries[idx].value = btn.textContent;
+        // Find the first empty entry, or add a new entry
+        const emptyIdx = menuEntries.findIndex((e) => !e.value.trim());
+        if (emptyIdx !== -1) {
+          menuEntries[emptyIdx].value = btn.textContent;
+        } else {
+          menuEntries.push({ value: btn.textContent, mode: "manual" });
+        }
         renderMenuEntries();
       });
     });
@@ -494,16 +497,25 @@ function renderMenuEntries() {
         ? `<button type="button" class="entry-remove-btn" data-idx="${idx}" title="削除">×</button>`
         : "";
 
-      const searchBtn = `<button type="button" class="entry-search-btn" title="メニューから探す">📋 さがす</button>`;
+      const searchBtn = `<button type="button" class="entry-search-btn" title="メニューから探す">さがす</button>`;
+      const copyBtn = `<button type="button" class="entry-copy-btn" data-idx="${idx}" title="翌日にコピー">翌日も→</button>`;
 
       const inputArea = `<input type="text" class="menu-form-input menu-entry-input" data-idx="${idx}" placeholder="例：カレーライス" maxlength="100" value="${escapeHtml(entry.value)}" />`;
 
+      const dragHandle = menuEntries.length > 1
+        ? `<span class="entry-drag-handle" data-idx="${idx}" title="ドラッグで並べ替え">☰</span>`
+        : "";
+
       return `
-        <div class="menu-entry" data-idx="${idx}">
+        <div class="menu-entry" data-idx="${idx}" draggable="${menuEntries.length > 1}">
           <div class="menu-entry-header">
-            <span class="menu-entry-label">${menuEntries.length > 1 ? `メニュー${idx + 1}` : "夕飯メニュー"}</span>
+            <div class="menu-entry-label-wrap">
+              ${dragHandle}
+              <span class="menu-entry-label">${menuEntries.length > 1 ? `メニュー${idx + 1}` : "夕飯メニュー"}</span>
+            </div>
             <div class="menu-entry-actions">
               ${searchBtn}
+              ${copyBtn}
               ${removeBtn}
             </div>
           </div>
@@ -533,6 +545,139 @@ function renderMenuEntries() {
       switchTab("menulist");
       menulistSearch.focus();
     });
+  });
+
+  // Copy single entry to next day
+  menuEntriesEl.querySelectorAll(".entry-copy-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.idx);
+      const value = menuEntries[idx].value.trim();
+      if (!value) {
+        showToast("コピーするメニューがありません");
+        return;
+      }
+      copySingleToNextDay(value);
+    });
+  });
+
+  // Drag & drop reordering
+  setupEntryDragAndDrop();
+}
+
+function setupEntryDragAndDrop() {
+  const entries = menuEntriesEl.querySelectorAll(".menu-entry");
+  if (entries.length < 2) return;
+
+  let dragSrcIdx = null;
+
+  // --- PC: HTML5 Drag and Drop ---
+  entries.forEach((el) => {
+    el.addEventListener("dragstart", (e) => {
+      // Only allow drag from the handle
+      const handle = el.querySelector(".entry-drag-handle");
+      if (!handle || !handle.contains(e.target)) {
+        e.preventDefault();
+        return;
+      }
+      dragSrcIdx = Number(el.dataset.idx);
+      el.classList.add("menu-entry--dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", dragSrcIdx);
+    });
+
+    el.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      el.classList.add("menu-entry--drag-over");
+    });
+
+    el.addEventListener("dragleave", () => {
+      el.classList.remove("menu-entry--drag-over");
+    });
+
+    el.addEventListener("dragend", () => {
+      el.classList.remove("menu-entry--dragging");
+      entries.forEach((e) => e.classList.remove("menu-entry--drag-over"));
+    });
+
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      el.classList.remove("menu-entry--drag-over");
+      const dropIdx = Number(el.dataset.idx);
+      if (dragSrcIdx !== null && dragSrcIdx !== dropIdx) {
+        const [moved] = menuEntries.splice(dragSrcIdx, 1);
+        menuEntries.splice(dropIdx, 0, moved);
+        renderMenuEntries();
+      }
+      dragSrcIdx = null;
+    });
+  });
+
+  // --- Mobile: Touch-based drag ---
+  const handles = menuEntriesEl.querySelectorAll(".entry-drag-handle");
+
+  handles.forEach((handle) => {
+    handle.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const entry = handle.closest(".menu-entry");
+      const touchDragIdx = Number(entry.dataset.idx);
+      const touchStartY = e.touches[0].clientY;
+
+      entry.classList.add("menu-entry--dragging");
+
+      // Create floating clone
+      const touchClone = entry.cloneNode(true);
+      touchClone.classList.add("menu-entry-clone");
+      const rect = entry.getBoundingClientRect();
+      touchClone.style.width = rect.width + "px";
+      touchClone.style.left = rect.left + "px";
+      touchClone.style.top = rect.top + "px";
+      document.body.appendChild(touchClone);
+
+      function onTouchMove(ev) {
+        const touch = ev.touches[0];
+        const dy = touch.clientY - touchStartY;
+        touchClone.style.top = (rect.top + dy) + "px";
+
+        // Highlight drop target
+        entries.forEach((el) => el.classList.remove("menu-entry--drag-over"));
+        // Temporarily hide clone so elementFromPoint can see through it
+        touchClone.style.display = "none";
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        touchClone.style.display = "";
+        if (target) {
+          const targetEntry = target.closest(".menu-entry");
+          if (targetEntry && targetEntry.parentElement === menuEntriesEl) {
+            targetEntry.classList.add("menu-entry--drag-over");
+          }
+        }
+      }
+
+      function onTouchEnd() {
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", onTouchEnd);
+
+        const overEl = menuEntriesEl.querySelector(".menu-entry--drag-over");
+        if (overEl) {
+          const dropIdx = Number(overEl.dataset.idx);
+          if (touchDragIdx !== dropIdx) {
+            const [moved] = menuEntries.splice(touchDragIdx, 1);
+            menuEntries.splice(dropIdx, 0, moved);
+          }
+        }
+
+        touchClone.remove();
+        entries.forEach((el) => {
+          el.classList.remove("menu-entry--dragging");
+          el.classList.remove("menu-entry--drag-over");
+        });
+
+        renderMenuEntries();
+      }
+
+      document.addEventListener("touchmove", onTouchMove, { passive: true });
+      document.addEventListener("touchend", onTouchEnd, { once: true });
+    }, { passive: false });
   });
 }
 
@@ -639,6 +784,23 @@ function copyToNextDay() {
   closeMenuModal();
   renderCalendar();
   showToast("翌日にコピーしました");
+}
+
+function copySingleToNextDay(menuName) {
+  if (!editingDate) return;
+  const d = new Date(editingDate + "T00:00:00");
+  d.setDate(d.getDate() + 1);
+  const nextDateStr = formatDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+
+  const dstArr = getMenuArray(nextDateStr);
+  if (dstArr.includes(menuName)) {
+    showToast("翌日にすでに同じメニューがあります");
+    return;
+  }
+  dstArr.push(menuName);
+  setMenuArray(nextDateStr, dstArr);
+  renderCalendar();
+  showToast(`「${menuName}」を翌日にコピーしました`);
 }
 
 function deleteMenu() {
@@ -1457,6 +1619,7 @@ function setupKondateSync() {
     const val = snap.val();
     _menuListCache = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     localStorage.setItem(MENU_LIST_KEY, JSON.stringify(_menuListCache));
+    if (_menuListCache.length === 0) migrateCalendarToMenuList();
     if (activeTab === "menulist") renderMenuList();
   });
 
@@ -1524,6 +1687,9 @@ function migrateKondateToFirebase() {
 
 // ===== Init =====
 function init() {
+  // Firebase上書き前にlocalStorageのカレンダーデータを保存（マイグレーション用）
+  try { _localMenusSnapshot = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { _localMenusSnapshot = {}; }
+
   const now = new Date();
   currentYear = now.getFullYear();
   currentMonth = now.getMonth();
@@ -1609,9 +1775,6 @@ function init() {
     stockEditSpareQty.value = Math.min(999, (parseInt(stockEditSpareQty.value) || 0) + 1);
   });
 
-  // Migrate existing calendar data to menu list (one-time)
-  migrateCalendarToMenuList();
-
   // Firebase sync
   setupKondateSync();
 }
@@ -1620,7 +1783,10 @@ function migrateCalendarToMenuList() {
   const list = getMenuList();
   if (list.length > 0) return;
 
-  const menus = getMenus();
+  // Firebase上書き前のスナップショット優先、なければ現在のキャッシュ/localStorage
+  const menus = Object.keys(_localMenusSnapshot || {}).length > 0
+    ? _localMenusSnapshot
+    : getMenus();
   const counts = {};
   Object.values(menus).forEach((m) => {
     const items = Array.isArray(m) ? m : [m];

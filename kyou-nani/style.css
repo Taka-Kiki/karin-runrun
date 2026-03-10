@@ -781,6 +781,22 @@ body {
   background: var(--accent-light);
   border-radius: 12px;
   border: 1px solid var(--border);
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.menu-entry--dragging {
+  opacity: 0.4;
+}
+.menu-entry--drag-over {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--accent-light));
+}
+.menu-entry-clone {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.85;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  border-radius: 12px;
 }
 
 .menu-entry-header {
@@ -788,6 +804,24 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
+}
+
+.menu-entry-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-drag-handle {
+  cursor: grab;
+  font-size: 1rem;
+  color: var(--text-light);
+  user-select: none;
+  touch-action: none;
+  padding: 2px 4px;
+}
+.entry-drag-handle:active {
+  cursor: grabbing;
 }
 
 .menu-entry-label {
@@ -818,6 +852,24 @@ body {
 .entry-search-btn:hover {
   background: var(--primary-light);
   border-color: var(--primary);
+}
+
+.entry-copy-btn {
+  padding: 3px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #2563a8;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.entry-copy-btn:hover {
+  background: #e0f0ff;
+  border-color: #2563a8;
 }
 
 .entry-remove-btn {
