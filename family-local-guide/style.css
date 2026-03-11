@@ -2433,6 +2433,32 @@ mark.search-highlight {
   color: #047857;
 }
 
+.children-section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.children-toggle-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--mint);
+  border-radius: 50%;
+  background: var(--white);
+  font-size: 0.75rem;
+  color: #047857;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.children-toggle-btn:hover {
+  background: var(--mint-light);
+  transform: translateY(-1px);
+}
+
 .children-add-btn {
   padding: 6px 16px;
   border: 2px solid var(--mint);

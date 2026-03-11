@@ -338,6 +338,8 @@ function renderChildrenList() {
     </div>`;
     })
     .join("");
+
+  applyFamilyToggleState();
 }
 
 let editingChildId = null;
@@ -467,11 +469,30 @@ function closeDeleteConfirm() {
   deletingChildId = null;
 }
 
+function isFamilyDetailsCollapsed() {
+  return localStorage.getItem("family-details-collapsed") === "1";
+}
+
+function applyFamilyToggleState() {
+  const collapsed = isFamilyDetailsCollapsed();
+  const btn = document.getElementById("childrenToggleBtn");
+  if (btn) btn.textContent = collapsed ? "▶" : "▼";
+  document.querySelectorAll(".child-suggestions").forEach((el) => {
+    el.hidden = collapsed;
+  });
+}
+
 function setupChildManagement() {
   const addBtn = document.getElementById("addChildBtn");
   if (addBtn) {
     addBtn.addEventListener("click", () => openChildModal(null));
   }
+
+  document.getElementById("childrenToggleBtn")?.addEventListener("click", () => {
+    const collapsed = isFamilyDetailsCollapsed();
+    localStorage.setItem("family-details-collapsed", collapsed ? "0" : "1");
+    applyFamilyToggleState();
+  });
 
   // ステータストグル
   document.getElementById("childStatusToggle")?.addEventListener("click", (e) => {
