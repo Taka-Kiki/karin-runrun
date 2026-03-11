@@ -9,6 +9,7 @@
   <body>
     <header class="site-header">
       <h1 class="visually-hidden">今日のごはん、なーに？</h1>
+      <img class="site-header-print-img" src="./images/header.png" alt="今日のごはん、なーに？" />
     </header>
     <div class="sync-status" id="syncStatus"></div>
 
@@ -47,10 +48,25 @@
       <!-- 献立メモ -->
       <div class="calendar-memo" id="calendarMemoSection">
         <button class="calendar-memo-toggle" id="calendarMemoToggle" type="button">
-          📝 献立メモ <span class="toggle-arrow" id="memoToggleArrow">▼</span>
+          献立メモ <span class="toggle-arrow" id="memoToggleArrow">▼</span>
         </button>
-        <textarea id="calendarMemo" class="calendar-memo-text"
-          placeholder="作りたいメニューや買い物メモなど自由に..." rows="6"></textarea>
+        <div class="calendar-memo-body" id="calendarMemoBody">
+          <div class="memo-section">
+            <label class="memo-label memo-label--tsukuritai">作りたい</label>
+            <textarea class="memo-input" id="memoTsukuritai" rows="2" placeholder="メニュー名..."></textarea>
+            <button type="button" class="memo-pick-btn" id="memoPickBtn">＋ メニューから追加</button>
+          </div>
+          <div class="memo-section">
+            <label class="memo-label memo-label--reitou">冷凍</label>
+            <textarea class="memo-input" id="memoReitou" rows="2" placeholder="冷凍食材..."></textarea>
+          </div>
+          <div class="memo-section">
+            <label class="memo-label memo-label--tsukeawase">付け合わせ</label>
+            <textarea class="memo-input" id="memoTsukeawase" rows="2" placeholder="副菜・サラダなど..."></textarea>
+          </div>
+          <hr class="memo-divider">
+          <textarea class="memo-input memo-input--free" id="memoFree" rows="2" placeholder="自由メモ..."></textarea>
+        </div>
       </div>
 
       <!-- 在庫の期限アラート -->

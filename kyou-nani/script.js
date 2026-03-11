@@ -67,6 +67,7 @@ let menuListFilterTag = null;
 let menuListSearchQuery = "";
 let modalFilterTag = null;
 let menuListPickMode = null; // { entryIdx, editingDate, menuEntries, eventValue }
+let memoPickMode = false; // true when picking menu for memo "作りたい"
 
 // Multi-entry modal state
 let menuEntries = []; // [{value: "", mode: "manual"}]
@@ -132,9 +133,16 @@ const stockEditDeleteBtn = $("stockEditDeleteBtn");
 const stockEditCancelBtn = $("stockEditCancelBtn");
 
 // Calendar Memo & Pinned Stock
-const calendarMemo = $("calendarMemo");
+const calendarMemoBody = $("calendarMemoBody");
 const calendarMemoToggle = $("calendarMemoToggle");
 const memoToggleArrow = $("memoToggleArrow");
+const memoTsukuritai = $("memoTsukuritai");
+const memoReitou = $("memoReitou");
+const memoTsukeawase = $("memoTsukeawase");
+const memoFree = $("memoFree");
+const memoPickBtn = $("memoPickBtn");
+const MEMO_FIELDS = ["tsukuritai", "reitou", "tsukeawase", "free"];
+const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, reitou: () => memoReitou, tsukeawase: () => memoTsukeawase, free: () => memoFree };
 const pinnedStockEl = $("pinnedStock");
 const pinnedStockChips = $("pinnedStockChips");
 
@@ -353,28 +361,66 @@ function deleteStockItem(id) {
 }
 
 // ===== Calendar Memo =====
+function parseMemoData(raw) {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
+  // Migration: old string format → free field
+  const obj = { tsukuritai: "", reitou: "", tsukeawase: "", free: "" };
+  if (typeof raw === "string" && raw.trim()) obj.free = raw;
+  return obj;
+}
+
 function loadCalendarMemo() {
-  const saved = (_memoCache !== null) ? _memoCache : (localStorage.getItem(MEMO_KEY) || "");
-  calendarMemo.value = saved;
-  // Open if has content, closed if empty
-  const hasContent = saved.trim().length > 0;
-  calendarMemo.classList.toggle("calendar-memo-text--open", hasContent);
+  let raw;
+  if (_memoCache !== null) {
+    raw = _memoCache;
+  } else {
+    const stored = localStorage.getItem(MEMO_KEY);
+    try { raw = JSON.parse(stored); } catch { raw = stored; } // old format was plain string
+  }
+  const data = parseMemoData(raw);
+  memoTsukuritai.value = data.tsukuritai || "";
+  memoReitou.value = data.reitou || "";
+  memoTsukeawase.value = data.tsukeawase || "";
+  memoFree.value = data.free || "";
+  const hasContent = MEMO_FIELDS.some(k => (data[k] || "").trim());
+  calendarMemoBody.classList.toggle("calendar-memo-body--open", hasContent);
   memoToggleArrow.classList.toggle("toggle-arrow--open", hasContent);
+  updateMemoPrintVisibility();
+}
+
+function collectMemoData() {
+  return {
+    tsukuritai: memoTsukuritai.value,
+    reitou: memoReitou.value,
+    tsukeawase: memoTsukeawase.value,
+    free: memoFree.value,
+  };
 }
 
 let memoSaveTimer;
 function saveCalendarMemo() {
   clearTimeout(memoSaveTimer);
   memoSaveTimer = setTimeout(() => {
-    localStorage.setItem(MEMO_KEY, calendarMemo.value);
-    kondateFirebaseSet(FIREBASE_PATHS.memo, calendarMemo.value);
+    const data = collectMemoData();
+    localStorage.setItem(MEMO_KEY, JSON.stringify(data));
+    kondateFirebaseSet(FIREBASE_PATHS.memo, data);
+    updateMemoPrintVisibility();
   }, 500);
 }
 
 function toggleCalendarMemo() {
-  const isOpen = calendarMemo.classList.toggle("calendar-memo-text--open");
+  const isOpen = calendarMemoBody.classList.toggle("calendar-memo-body--open");
   memoToggleArrow.classList.toggle("toggle-arrow--open", isOpen);
-  if (isOpen) calendarMemo.focus();
+  if (isOpen) memoTsukuritai.focus();
+}
+
+function updateMemoPrintVisibility() {
+  // Mark empty sections for print hide
+  document.querySelectorAll(".memo-section").forEach(sec => {
+    const input = sec.querySelector(".memo-input");
+    sec.classList.toggle("memo-section--empty", !input || !input.value.trim());
+  });
+  memoFree.classList.toggle("memo-section--empty", !memoFree.value.trim());
 }
 
 // ===== Stock Pin =====
@@ -911,6 +957,33 @@ function cancelPickMode() {
 function removPickModeBanner() {
   const banner = $("tabMenuList").querySelector('.pick-mode-banner');
   if (banner) banner.remove();
+}
+
+// ===== Memo Pick Mode =====
+function startMemoPickMode() {
+  memoPickMode = true;
+  switchTab("menulist");
+  renderMenuList();
+}
+
+function selectFromMemoPickMode(name) {
+  memoPickMode = false;
+  removPickModeBanner();
+  const cur = memoTsukuritai.value.trim();
+  memoTsukuritai.value = cur ? cur + "、" + name : name;
+  saveCalendarMemo();
+  switchTab("calendar");
+  // Ensure memo is open
+  if (!calendarMemoBody.classList.contains("calendar-memo-body--open")) {
+    calendarMemoBody.classList.add("calendar-memo-body--open");
+    memoToggleArrow.classList.add("toggle-arrow--open");
+  }
+}
+
+function cancelMemoPickMode() {
+  memoPickMode = false;
+  removPickModeBanner();
+  switchTab("calendar");
 }
 
 function reopenMenuModalWithState(state) {
@@ -1732,8 +1805,9 @@ function renderMenuList() {
 function handleMenuListPickMode() {
   const tabEl = $("tabMenuList");
   const existingBanner = tabEl.querySelector('.pick-mode-banner');
+  const isPickMode = menuListPickMode || memoPickMode;
 
-  if (!menuListPickMode) {
+  if (!isPickMode) {
     if (existingBanner) existingBanner.remove();
     return;
   }
@@ -1745,15 +1819,22 @@ function handleMenuListPickMode() {
     tabEl.insertBefore(banner, tabEl.firstElementChild);
   }
   const banner = tabEl.querySelector('.pick-mode-banner');
-  banner.innerHTML = `<span>📋 メニューをタップして選択</span><button type="button" class="pick-mode-cancel-btn">戻る</button>`;
-  banner.querySelector('.pick-mode-cancel-btn').addEventListener('click', cancelPickMode);
+  const cancelFn = memoPickMode ? cancelMemoPickMode : cancelPickMode;
+  const label = memoPickMode ? "作りたいに追加するメニューを選択" : "メニューをタップして選択";
+  banner.innerHTML = `<span>${label}</span><button type="button" class="pick-mode-cancel-btn">戻る</button>`;
+  banner.querySelector('.pick-mode-cancel-btn').addEventListener('click', cancelFn);
 
   // Make items selectable
   menulistItems.querySelectorAll(".menulist-item").forEach((el) => {
     el.addEventListener("click", (e) => {
       if (e.target.closest('.menulist-action-btn')) return;
       const item = getMenuList().find(m => m.id === el.dataset.id);
-      if (item) selectFromPickMode(item.name);
+      if (!item) return;
+      if (memoPickMode) {
+        selectFromMemoPickMode(item.name);
+      } else {
+        selectFromPickMode(item.name);
+      }
     });
   });
 }
@@ -2167,10 +2248,13 @@ function setupKondateSync() {
 
   // Memo listener
   kondateDb.ref(FIREBASE_PATHS.memo).on("value", (snap) => {
-    _memoCache = snap.val() || "";
-    localStorage.setItem(MEMO_KEY, _memoCache);
-    // Only update if user is not currently editing
-    if (document.activeElement !== calendarMemo) {
+    const raw = snap.val();
+    _memoCache = parseMemoData(raw);
+    localStorage.setItem(MEMO_KEY, JSON.stringify(_memoCache));
+    // Only update if user is not currently editing any memo field
+    const active = document.activeElement;
+    const isEditingMemo = [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].includes(active);
+    if (!isEditingMemo) {
       loadCalendarMemo();
     }
   });
@@ -2199,7 +2283,7 @@ function migrateKondateToFirebase() {
     { key: STORAGE_KEY, path: FIREBASE_PATHS.menus },
     { key: MENU_LIST_KEY, path: FIREBASE_PATHS.menuList },
     { key: STOCK_KEY, path: FIREBASE_PATHS.stock },
-    { key: MEMO_KEY, path: FIREBASE_PATHS.memo, isString: true },
+    { key: MEMO_KEY, path: FIREBASE_PATHS.memo },
     { key: CUSTOM_TAGS_KEY, path: FIREBASE_PATHS.customTags },
     { key: EVENTS_KEY, path: FIREBASE_PATHS.events },
   ];
@@ -2272,7 +2356,10 @@ function init() {
 
   // Calendar memo
   calendarMemoToggle.addEventListener("click", toggleCalendarMemo);
-  calendarMemo.addEventListener("input", saveCalendarMemo);
+  [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].forEach(el => {
+    el.addEventListener("input", saveCalendarMemo);
+  });
+  memoPickBtn.addEventListener("click", startMemoPickMode);
 
   // Calendar navigation
   prevMonthBtn.addEventListener("click", () => goMonth(-1));
