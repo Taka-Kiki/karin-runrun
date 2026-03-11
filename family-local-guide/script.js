@@ -32,17 +32,17 @@ const EXPECTED_CHILD_ICONS = ["🤰", "🍼", "👶", "🎀", "🧸", "💕", "�
 
 const BIRTH_TASKS = [
   // 出産前 — showFrom: 予定日までの残り日数がこの値以下になったら表示（null=常に表示）
-  { id: "pre_maternity_book",  phase: "pre",    label: "母子手帳の受け取り", nav: "govlinks", showFrom: null },
+  { id: "pre_maternity_book",  phase: "pre",    label: "母子手帳の受け取り", url: "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/ninshin/boshitecho.html", showFrom: null },
   { id: "pre_hospital_bag",    phase: "pre",    label: "出産バッグの準備", nav: null, showFrom: 120 },
   { id: "pre_labor_taxi",      phase: "pre",    label: "陣痛タクシーの登録", nav: "taxi", showFrom: 120 },
   { id: "pre_hospital_prep",   phase: "pre",    label: "入院準備", nav: null, showFrom: 120 },
   { id: "pre_baby_supplies",   phase: "pre",    label: "ベビー用品の準備", nav: null, showFrom: 120 },
   { id: "pre_postpartum_care", phase: "pre",    label: "産後ケア施設の確認", nav: "caresupport", showFrom: 120 },
   // 出生後すぐ（〜14日）
-  { id: "post_birth_reg",       phase: "post0",  label: "出生届の提出", deadline: 14, nav: "govlinks" },
+  { id: "post_birth_reg",       phase: "post0",  label: "出生届の提出", deadline: 14, url: "https://www.city.yokohama.lg.jp/kurashi/koseki-zei-hoken/todokede/koseki/syussyou.html" },
   { id: "post_health_insurance",phase: "post0",  label: "健康保険の加入手続き", deadline: 14, nav: null },
-  { id: "post_medical_cert",    phase: "post0",  label: "乳幼児医療証の申請", deadline: 14, nav: "govlinks" },
-  { id: "post_child_allowance", phase: "post0",  label: "児童手当の申請", deadline: 15, nav: "govlinks" },
+  { id: "post_medical_cert",    phase: "post0",  label: "乳幼児医療証の申請", deadline: 14, url: "https://www.city.yokohama.lg.jp/kenko-iryo-fukushi/kenko-iryo/iryohijosei/shoni/child.html" },
+  { id: "post_child_allowance", phase: "post0",  label: "児童手当の申請", deadline: 15, url: "https://www.city.yokohama.lg.jp/kosodate-kyoiku/oyakokenko/teate/teate/jite-gaiyou.html" },
   { id: "post_birth_lumpsum",   phase: "post0",  label: "出産育児一時金の申請", nav: null },
   { id: "post_maternity_allow", phase: "post0",  label: "出産手当金の申請（産休中の場合）", nav: null },
 ];
@@ -269,7 +269,11 @@ function renderChildrenList() {
           const itemsHtml = items.map((t) => {
             const checked = tasks[t.id] ? "checked" : "";
             const deadlineHtml = t.deadline ? `<span class="birth-task-deadline">（${t.deadline}日以内）</span>` : "";
-            const navHtml = t.nav ? `<button class="birth-task-nav-btn birth-task-nav-btn--sm" data-nav="${t.nav}" type="button" title="関連セクションへ">→</button>` : "";
+            const navHtml = t.nav
+              ? `<button class="birth-task-nav-btn birth-task-nav-btn--sm" data-nav="${t.nav}" type="button" title="関連セクションへ">→</button>`
+              : t.url
+                ? `<a href="${t.url}" target="_blank" rel="noopener noreferrer" class="birth-task-nav-btn birth-task-nav-btn--sm" title="詳細ページ">↗</a>`
+                : "";
             return `<label class="child-suggestion-item birth-task-item-inline ${checked ? "birth-task-item--done" : ""}">
               <input type="checkbox" ${checked} data-child-id="${child.id}" data-task-id="${t.id}" class="birth-task-checkbox birth-task-checkbox--sm" />
               <span class="child-suggestion-title">${t.label}${deadlineHtml}</span>${navHtml}
@@ -1028,6 +1032,12 @@ function setupFirstAidNav() {
 
 function renderAll(data) {
   allData = data;
+  hospitalData = {
+    pediatrics: data.pediatrics || [],
+    ent: data.ent || [],
+    dermatology: data.dermatology || [],
+    nightEmergency: data.nightEmergency || [],
+  };
   renderList("pediatricsList", data.pediatrics || [], "pediatrics");
   renderList("entList", data.ent || [], "ent");
   renderList("dermaList", data.dermatology || [], "dermatology");
@@ -1051,7 +1061,7 @@ const CATEGORY_LABELS = {
   taxiLabor: "陣痛タクシー",
   taxiGeneral: "通常タクシー",
   taxi: "タクシー",
-  govlinks: "行政リンク",
+  govlinks: "情報サイト",
   caresupport: "預け先",
   nursery: "保育園",
 };
@@ -1130,7 +1140,30 @@ function setupFavoriteClicks() {
 // ===== タブ・ナビゲーション =====
 const TAB_IDS = ["hospital", "emergency", "taxi", "nursery", "caresupport", "govlinks", "calendar", "shopping", "supplies", "kondate"];
 
+function closeAllMaps() {
+  const nurseryMapContainer = document.getElementById("nurseryMapContainer");
+  const nurseryMapToggleBtn = document.getElementById("nurseryMapToggle");
+  if (nurseryMapContainer && !nurseryMapContainer.hidden) {
+    nurseryMapContainer.hidden = true;
+    if (nurseryMapToggleBtn) {
+      nurseryMapToggleBtn.classList.remove("active");
+      nurseryMapToggleBtn.textContent = "🗺️ 地図で見る";
+    }
+  }
+  const hospitalMapContainer = document.getElementById("hospitalMapContainer");
+  const hospitalMapToggleBtn = document.getElementById("hospitalMapToggle");
+  if (hospitalMapContainer && !hospitalMapContainer.hidden) {
+    hospitalMapContainer.hidden = true;
+    if (hospitalMapToggleBtn) {
+      hospitalMapToggleBtn.classList.remove("active");
+      hospitalMapToggleBtn.textContent = "🗺️ 地図で見る";
+    }
+  }
+}
+
 function navigateTo(target) {
+  closeAllMaps();
+
   const homeView = document.getElementById("homeView");
   const listView = document.getElementById("listView");
   const searchInput = document.getElementById("searchInput");
@@ -1315,8 +1348,25 @@ function setupHospitalToggle() {
       Object.entries(panes).forEach(([key, pane]) => {
         if (pane) pane.hidden = key !== mode;
       });
+      updateHospitalMapMarkers();
     });
   });
+
+  // Hospital map toggle
+  const hospitalMapToggleBtn = document.getElementById("hospitalMapToggle");
+  const hospitalMapContainer = document.getElementById("hospitalMapContainer");
+  if (hospitalMapToggleBtn && hospitalMapContainer) {
+    hospitalMapToggleBtn.addEventListener("click", () => {
+      const isHidden = hospitalMapContainer.hidden;
+      hospitalMapContainer.hidden = !isHidden;
+      hospitalMapToggleBtn.classList.toggle("active", isHidden);
+      hospitalMapToggleBtn.textContent = isHidden ? "🗺️ 地図を閉じる" : "🗺️ 地図で見る";
+      if (isHidden) {
+        initHospitalMap();
+        setTimeout(() => { if (hospitalMap) hospitalMap.invalidateSize(); }, 200);
+      }
+    });
+  }
 }
 
 // ===== タクシー通常/陣痛 切替 =====
@@ -2996,6 +3046,9 @@ const NURSERY_TYPE_HELP = {
 let nurseryData = [];
 let nurseryMap = null;
 let nurseryMapMarkers = [];
+let hospitalMap = null;
+let hospitalMapMarkers = [];
+let hospitalData = {};
 const HOME_LAT = 35.4200;
 const HOME_LNG = 139.6095;
 
@@ -3076,6 +3129,86 @@ function updateNurseryMapMarkers() {
         offset: [0, -10],
       });
     nurseryMapMarkers.push(marker);
+  });
+}
+
+// ===== 病院マップ =====
+const HOSPITAL_TYPE_COLORS = {
+  pediatrics: "#ef4444",
+  ent: "#f59e0b",
+  dermatology: "#8b5cf6",
+  nightEmergency: "#3b82f6",
+};
+
+const HOSPITAL_MODE_TO_DATA_KEY = {
+  pediatrics: "pediatrics",
+  ent: "ent",
+  derma: "dermatology",
+  night: "nightEmergency",
+};
+
+function createHospitalMapIcon(category) {
+  const color = HOSPITAL_TYPE_COLORS[category] || "#6b7280";
+  return L.divIcon({
+    className: "hospital-map-marker",
+    html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.3);"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -10],
+  });
+}
+
+function initHospitalMap() {
+  if (hospitalMap) return;
+  const mapEl = document.getElementById("hospitalMap");
+  if (!mapEl || typeof L === "undefined") return;
+
+  hospitalMap = L.map("hospitalMap", { scrollWheelZoom: false }).setView([HOME_LAT, HOME_LNG], 14);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(hospitalMap);
+
+  const homeIcon = L.divIcon({
+    className: "hospital-map-home",
+    html: `<div style="font-size:24px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));">🏠</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+  L.marker([HOME_LAT, HOME_LNG], { icon: homeIcon })
+    .addTo(hospitalMap)
+    .bindPopup("<strong>自宅</strong>");
+
+  updateHospitalMapMarkers();
+}
+
+function updateHospitalMapMarkers() {
+  if (!hospitalMap) return;
+
+  hospitalMapMarkers.forEach((m) => hospitalMap.removeLayer(m));
+  hospitalMapMarkers = [];
+
+  const activeMode = localStorage.getItem("hospitalMode") || "pediatrics";
+  const dataKey = HOSPITAL_MODE_TO_DATA_KEY[activeMode] || "pediatrics";
+  const items = hospitalData[dataKey] || [];
+
+  items.forEach((item) => {
+    if (!item.lat || !item.lng) return;
+    const icon = createHospitalMapIcon(dataKey);
+    const marker = L.marker([item.lat, item.lng], { icon })
+      .addTo(hospitalMap)
+      .bindPopup(
+        `<strong>${item.name}</strong><br>` +
+        `<span style="font-size:0.8em;color:#666;">📍 ${item.area}</span>` +
+        (item.phone ? `<br><span style="font-size:0.8em;">📞 ${item.phone}</span>` : "") +
+        (item.url ? `<br><a href="${item.url}" target="_blank" style="font-size:0.8em;">サイトを見る ↗</a>` : "")
+      )
+      .bindTooltip(item.name, {
+        direction: "top",
+        className: "nursery-map-label",
+        offset: [0, -10],
+      });
+    hospitalMapMarkers.push(marker);
   });
 }
 

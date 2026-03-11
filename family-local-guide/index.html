@@ -53,7 +53,7 @@
         <button class="header-nav-item" data-nav="taxi" type="button">🚕 タクシー</button>
         <button class="header-nav-item" data-nav="nursery" type="button">🏫 保育園</button>
         <button class="header-nav-item" data-nav="caresupport" type="button">👶 預け先</button>
-        <button class="header-nav-item" data-nav="govlinks" type="button">🏛️ 行政</button>
+        <button class="header-nav-item" data-nav="govlinks" type="button">🌐 情報サイト</button>
         <button class="header-nav-item" data-nav="calendar" type="button">📅 カレンダー</button>
 
         <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
@@ -95,7 +95,7 @@
         </button>
         <button class="home-card home-card--blue" data-tab="govlinks">
           <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
-          <span class="home-card-label">行政リンク</span>
+          <span class="home-card-label">情報サイト</span>
         </button>
         <button class="home-card home-card--rose" data-tab="calendar">
           <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
@@ -126,7 +126,12 @@
       <section class="panel" id="hospital" hidden>
         <div class="panel-header">
           <h2>病院リスト</h2>
+          <button id="hospitalMapToggle" class="nursery-map-icon-btn" type="button" title="地図で見る">🗺️ 地図で見る</button>
           <img src="./images/char-bunny.png" alt="" class="panel-char" />
+        </div>
+        <div id="hospitalMapContainer" class="nursery-map-container" hidden>
+          <div id="hospitalMap" class="nursery-map"></div>
+          <p class="nursery-map-note">🏠 = 自宅</p>
         </div>
         <!-- 小児科 / 耳鼻科 / 皮膚科 / 休日・夜間 切替トグル -->
         <div class="hospital-toggle">
@@ -277,7 +282,7 @@
 
       <section class="panel" id="govlinks" hidden>
         <div class="panel-header">
-          <h2>行政リンク集</h2>
+          <h2>子育て情報サイト</h2>
           <img src="./images/char-puppy.png" alt="" class="panel-char" />
         </div>
         <ul id="govlinksList"></ul>

@@ -602,7 +602,7 @@ li:hover {
 }
 
 #govlinks h2 { color: #1d4ed8; }
-#govlinks h2::before { content: "🏛️ "; }
+#govlinks h2::before { content: "🌐 "; }
 
 #govlinks li {
   background: linear-gradient(135deg, #eff6ff, #e0f2fe);
