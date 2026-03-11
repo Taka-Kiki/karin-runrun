@@ -128,11 +128,12 @@
           <h2>病院リスト</h2>
           <img src="./images/char-bunny.png" alt="" class="panel-char" />
         </div>
-        <!-- 小児科 / 耳鼻科 / 皮膚科 切替トグル -->
+        <!-- 小児科 / 耳鼻科 / 皮膚科 / 休日・夜間 切替トグル -->
         <div class="hospital-toggle">
           <button class="hospital-toggle-btn active" data-hospital-mode="pediatrics" type="button">🩺 小児科</button>
           <button class="hospital-toggle-btn" data-hospital-mode="ent" type="button">👂 耳鼻科</button>
           <button class="hospital-toggle-btn" data-hospital-mode="derma" type="button">🧴 皮膚科</button>
+          <button class="hospital-toggle-btn" data-hospital-mode="night" type="button">🌙 休日/夜間</button>
         </div>
         <div id="pediatricsPane">
           <ul id="pediatricsList"></ul>
@@ -143,14 +144,22 @@
         <div id="dermaPane" hidden>
           <ul id="dermaList"></ul>
         </div>
+        <div id="nightPane" hidden>
+          <ul id="nightEmergencyList"></ul>
+        </div>
       </section>
 
       <section class="panel" id="emergency" hidden>
         <div class="panel-header">
-          <h2>困ったときの連絡先</h2>
+          <h2>困ったとき</h2>
           <img src="./images/char-star.png" alt="" class="panel-char" />
         </div>
-        <ul id="emergencyList"></ul>
+        <!-- 緊急電話バナー -->
+        <div id="emergencyBanners" class="emergency-banners"></div>
+        <!-- カテゴリジャンプナビ -->
+        <div id="firstAidNav" class="firstaid-nav"></div>
+        <!-- 応急手当アコーディオン -->
+        <ul id="firstAidList" class="firstaid-list"></ul>
       </section>
 
       <section class="panel" id="taxi" hidden>
@@ -1027,6 +1036,19 @@
           <button id="suppliesEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
           <button id="suppliesEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
           <button id="suppliesEditCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 買い物リスト追加モーダル（在庫→買い物連携） -->
+    <div id="shoppingAddModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>買い物リストに追加</h3>
+        <p id="shoppingAddItemName" style="font-weight:bold; margin:8px 0 12px;"></p>
+        <p style="color:#888; margin-bottom:12px;">どこで買いますか？</p>
+        <div id="shoppingAddCategories" class="shopping-add-categories"></div>
+        <div class="modal-buttons" style="margin-top: 16px;">
+          <button id="shoppingAddCancelBtn" class="modal-btn" type="button">キャンセル</button>
         </div>
       </div>
     </div>

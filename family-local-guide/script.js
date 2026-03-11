@@ -868,12 +868,171 @@ function renderGovLinks(targetId, items) {
     .join("");
 }
 
+// ===== 応急手当レンダリング =====
+function renderFirstAid(emergencyData) {
+  // --- バナー描画 ---
+  const bannerContainer = document.getElementById("emergencyBanners");
+  if (bannerContainer) {
+    const bannerItems = (emergencyData || []).filter((item) =>
+      item.phone === "#7119" || item.phone === "#8000"
+    );
+    bannerContainer.innerHTML = bannerItems.map((item) => {
+      const cls = item.phone === "#7119" ? "emergency-banner--7119" : "emergency-banner--8000";
+      return `
+        <a href="tel:${item.phone}" class="emergency-banner ${cls}">
+          <div class="emergency-banner-info">
+            <div class="emergency-banner-title">📞 ${item.name}</div>
+            <div class="emergency-banner-note">${item.note}</div>
+          </div>
+          <span class="emergency-banner-call">電話する</span>
+        </a>
+      `;
+    }).join("");
+  }
+
+  // --- カテゴリナビ描画 ---
+  const navContainer = document.getElementById("firstAidNav");
+  if (navContainer) {
+    navContainer.innerHTML = FIRST_AID_DATA.map((item) =>
+      `<button class="firstaid-nav-btn" data-firstaid-target="${item.id}" type="button">${item.icon} ${item.title.replace(/（.+）/, "")}</button>`
+    ).join("");
+  }
+
+  // --- アコーディオンリスト描画 ---
+  const listContainer = document.getElementById("firstAidList");
+  if (listContainer) {
+    listContainer.innerHTML = FIRST_AID_DATA.map((item) => {
+      const searchText = [item.title, item.searchKeywords, item.firstAction,
+        ...item.checkpoints.map((c) => c.text),
+        ...item.dontDo
+      ].join(" ").toLowerCase();
+
+      // 本文の構築
+      let bodyHtml = "";
+      bodyHtml += `<div class="firstaid-first-action"><span class="firstaid-first-action-label">まずやること</span>${item.firstAction}</div>`;
+
+      bodyHtml += `<div class="firstaid-checkpoints">`;
+      item.checkpoints.forEach((cp) => {
+        bodyHtml += `<div class="firstaid-checkpoint"><span class="firstaid-checkpoint-label">${cp.label}</span> ${cp.text}</div>`;
+      });
+      bodyHtml += `</div>`;
+
+      bodyHtml += `<div class="firstaid-dont-section"><div class="firstaid-dont-title">✗ やってはいけないこと</div>`;
+      item.dontDo.forEach((d) => {
+        bodyHtml += `<div class="firstaid-dont-item">・${d}</div>`;
+      });
+      bodyHtml += `</div>`;
+
+      // 「休日・夜間」は病院タブへのリンクボタン追加
+      if (item.linkToTab) {
+        bodyHtml += `<button class="firstaid-link-btn" data-goto-tab="${item.linkToTab}" type="button">🏥 休日・夜間の診療先を見る →</button>`;
+      }
+
+      // 参考リンク
+      if (item.refUrl) {
+        bodyHtml += `<a href="${item.refUrl}" target="_blank" rel="noopener noreferrer" class="firstaid-ref-link">🔗 参考サイトを見る</a>`;
+      }
+
+      return `
+        <li class="firstaid-item" id="firstaid-${item.id}" data-search="${searchText}">
+          <button class="firstaid-header" type="button">
+            <span class="firstaid-header-icon">${item.icon}</span>
+            <span class="firstaid-header-title">${item.title}</span>
+            <span class="firstaid-chevron">▸</span>
+          </button>
+          <div class="firstaid-body" hidden>${bodyHtml}</div>
+        </li>
+      `;
+    }).join("");
+  }
+}
+
+function setupFirstAidAccordion() {
+  const list = document.getElementById("firstAidList");
+  if (!list) return;
+
+  // アコーディオンの排他制御
+  list.addEventListener("click", (e) => {
+    const header = e.target.closest(".firstaid-header");
+    if (!header) return;
+
+    const item = header.closest(".firstaid-item");
+    const body = item.querySelector(".firstaid-body");
+    const isOpen = !body.hidden;
+
+    // 他のアコーディオンを全て閉じる
+    list.querySelectorAll(".firstaid-item").forEach((otherItem) => {
+      if (otherItem !== item) {
+        otherItem.classList.remove("open");
+        const otherBody = otherItem.querySelector(".firstaid-body");
+        if (otherBody) otherBody.hidden = true;
+      }
+    });
+
+    // 自身をトグル
+    if (isOpen) {
+      item.classList.remove("open");
+      body.hidden = true;
+    } else {
+      item.classList.add("open");
+      body.hidden = false;
+    }
+  });
+
+  // タブ遷移ボタン（休日・夜間 → 病院タブ）
+  list.addEventListener("click", (e) => {
+    const linkBtn = e.target.closest(".firstaid-link-btn");
+    if (!linkBtn) return;
+    const tabId = linkBtn.dataset.gotoTab;
+    if (tabId && typeof navigateTo === "function") {
+      navigateTo(tabId);
+      // 病院タブの夜間ペインを表示
+      const nightBtn = document.querySelector('[data-hospital-mode="night"]');
+      if (nightBtn) nightBtn.click();
+    }
+  });
+}
+
+function setupFirstAidNav() {
+  const nav = document.getElementById("firstAidNav");
+  if (!nav) return;
+
+  nav.addEventListener("click", (e) => {
+    const btn = e.target.closest(".firstaid-nav-btn");
+    if (!btn) return;
+
+    const targetId = btn.dataset.firstaidTarget;
+    const targetItem = document.getElementById(`firstaid-${targetId}`);
+    if (!targetItem) return;
+
+    const list = document.getElementById("firstAidList");
+
+    // 他のアコーディオンを全て閉じる
+    if (list) {
+      list.querySelectorAll(".firstaid-item").forEach((item) => {
+        item.classList.remove("open");
+        const body = item.querySelector(".firstaid-body");
+        if (body) body.hidden = true;
+      });
+    }
+
+    // 対象を開く
+    targetItem.classList.add("open");
+    const targetBody = targetItem.querySelector(".firstaid-body");
+    if (targetBody) targetBody.hidden = false;
+
+    // スクロール
+    targetItem.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
 function renderAll(data) {
   allData = data;
   renderList("pediatricsList", data.pediatrics || [], "pediatrics");
   renderList("entList", data.ent || [], "ent");
   renderList("dermaList", data.dermatology || [], "dermatology");
-  renderList("emergencyList", data.emergency || [], "emergency");
+  renderFirstAid(data.emergency || []);
+  renderList("nightEmergencyList", data.nightEmergency || [], "nightEmergency");
   renderTaxiList("taxiLaborList", data.taxiLabor || [], "taxiLabor");
   renderTaxiList("taxiGeneralList", data.taxiGeneral || [], "taxiGeneral");
   renderCareSupport("careSupportList", data.careSupport || []);
@@ -888,6 +1047,7 @@ const CATEGORY_LABELS = {
   ent: "耳鼻科",
   dermatology: "皮膚科",
   emergency: "困ったとき",
+  nightEmergency: "休日/夜間",
   taxiLabor: "陣痛タクシー",
   taxiGeneral: "通常タクシー",
   taxi: "タクシー",
@@ -1009,6 +1169,15 @@ function showTab(tabId) {
     if (panel) panel.hidden = id !== tabId;
   });
 
+  // Restore hospital sub-pane visibility after search
+  if (tabId === "hospital") {
+    const savedMode = localStorage.getItem("hospitalMode") || "pediatrics";
+    const hospitalPanes = { pediatrics: "pediatricsPane", ent: "entPane", derma: "dermaPane", night: "nightPane" };
+    Object.entries(hospitalPanes).forEach(([key, paneId]) => {
+      const pane = document.getElementById(paneId);
+      if (pane) pane.hidden = key !== savedMode;
+    });
+  }
 }
 
 function updateHeaderNav(activeNav) {
@@ -1122,6 +1291,7 @@ function setupHospitalToggle() {
     pediatrics: document.getElementById("pediatricsPane"),
     ent: document.getElementById("entPane"),
     derma: document.getElementById("dermaPane"),
+    night: document.getElementById("nightPane"),
   };
 
   // 保存された選択状態を復元
@@ -1229,6 +1399,207 @@ function setupScrollTop() {
   });
 }
 
+// ===== 応急手当データ =====
+const FIRST_AID_DATA = [
+  {
+    id: "fever",
+    icon: "🌡️",
+    title: "発熱（38℃以上）",
+    firstAction: "脇の下・首・太ももの付け根を冷やす。水分をこまめに少量ずつ与える",
+    checkpoints: [
+      { label: "🚑 救急車", text: "3か月未満で38℃以上 / 意識がもうろう / けいれんが5分以上続く" },
+      { label: "🏥 受診", text: "生後3〜6か月で38℃以上 / 水分が取れない / ぐったりしている / 高熱が3日以上続く" },
+      { label: "🏠 様子見", text: "機嫌がよく遊べる / 水分が取れる / 38.5℃未満で元気" }
+    ],
+    dontDo: ["厚着にさせない（熱がこもる）", "自己判断で解熱剤を使わない（医師の指示に従う）", "氷水や冷水で体全体を冷やさない"],
+    searchKeywords: "熱 発熱 高熱 38度 39度 40度 体温",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=fever"
+  },
+  {
+    id: "vomiting",
+    icon: "🤮",
+    title: "嘔吐",
+    firstAction: "横向き（回復体位）に寝かせて、吐いたもので窒息しないようにする",
+    checkpoints: [
+      { label: "🚑 救急車", text: "頭を打った後に嘔吐 / 意識がぼんやり / 緑色の嘔吐物" },
+      { label: "🏥 受診", text: "半日以上吐き続ける / おしっこが半日出ない / ぐったり / 血が混じる" },
+      { label: "🏠 様子見", text: "1〜2回吐いた後に元気 / 水分が少しずつ取れる" }
+    ],
+    dontDo: ["吐いた直後に水分を大量に飲ませない（少量ずつ）", "仰向けに寝かせない（窒息の危険）", "無理に食べさせない"],
+    searchKeywords: "嘔吐 吐く はく おうと 吐き気 もどす",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=vomiting"
+  },
+  {
+    id: "diarrhea",
+    icon: "💧",
+    title: "下痢",
+    firstAction: "経口補水液やお茶で水分をこまめに補給する。おしりかぶれに注意",
+    checkpoints: [
+      { label: "🚑 救急車", text: "血便が大量に出る / 意識がもうろう / ぐったりして反応が弱い" },
+      { label: "🏥 受診", text: "水様便が1日6回以上 / 血や粘液が混じる / おしっこが半日出ない / 高熱を伴う" },
+      { label: "🏠 様子見", text: "機嫌がよい / 水分が取れる / 食欲がある" }
+    ],
+    dontDo: ["市販の下痢止めを自己判断で使わない", "脂っこい食事やジュースを与えない", "おしりを強くこすらない（ぬるま湯で洗い流す）"],
+    searchKeywords: "下痢 げり おなか 腹痛 水便 軟便",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=diarrhea"
+  },
+  {
+    id: "seizure",
+    icon: "⚡",
+    title: "けいれん・ひきつけ",
+    firstAction: "平らな場所に寝かせ、横向きにする。時間を計る。体を押さえつけない",
+    checkpoints: [
+      { label: "🚑 救急車", text: "5分以上続く / 初めてのけいれん / 意識が戻らない / 左右非対称の動き" },
+      { label: "🏥 受診", text: "短時間で止まっても初回は必ず受診 / 24時間以内に繰り返す / 38℃未満でけいれん" },
+      { label: "🏠 様子見", text: "熱性けいれんの既往あり・医師の指示済みで、5分未満で意識が戻った場合" }
+    ],
+    dontDo: ["口に物を入れない（舌を噛むのを防ぐためは誤り）", "体を強く揺すらない・押さえつけない", "大声で名前を呼び続けない（静かに見守る）"],
+    searchKeywords: "けいれん ひきつけ 痙攣 てんかん 熱性けいれん ガクガク",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=convulsion"
+  },
+  {
+    id: "ingestion",
+    icon: "⚠️",
+    title: "誤飲・誤食",
+    firstAction: "口の中に残っていれば取り除く。何を・いつ・どのくらい飲んだか確認する",
+    checkpoints: [
+      { label: "🚑 救急車", text: "ボタン電池・磁石・灯油・漂白剤・除光液を飲んだ / 意識がない / 呼吸困難" },
+      { label: "🏥 受診", text: "タバコを食べた（2cm以上） / 医薬品を飲んだ / 尖ったものを飲み込んだ" },
+      { label: "📞 相談", text: "判断に迷ったら → 中毒110番（072-727-2499 / 24h: 029-852-9999）" }
+    ],
+    dontDo: ["むやみに吐かせない（灯油・漂白剤等は吐かせると危険）", "水や牛乳を慌てて飲ませない（物質による）", "様子見で済ませない（ボタン電池は特に緊急）"],
+    searchKeywords: "誤飲 誤食 飲み込んだ のみこんだ 異物 ボタン電池 タバコ 中毒",
+    refUrl: "https://www.j-poison-ic.jp/ippan/"
+  },
+  {
+    id: "burn",
+    icon: "🔥",
+    title: "やけど",
+    firstAction: "すぐに流水で20分以上冷やす。服の上からでもOK。無理に脱がさない",
+    checkpoints: [
+      { label: "🚑 救急車", text: "広範囲（手のひら以上）のやけど / 顔・関節・陰部 / 水ぶくれが多い" },
+      { label: "🏥 受診", text: "水ぶくれができた / 皮膚が白い・茶色い / 範囲が広い / 乳児のやけど" },
+      { label: "🏠 様子見", text: "赤みだけで水ぶくれなし / 小さい範囲で痛みが軽い" }
+    ],
+    dontDo: ["氷で直接冷やさない（凍傷の危険）", "水ぶくれを潰さない", "民間療法（味噌・アロエ等）を塗らない"],
+    searchKeywords: "やけど 火傷 熱湯 アイロン ストーブ 湯たんぽ 低温やけど",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=burn"
+  },
+  {
+    id: "injury",
+    icon: "🩹",
+    title: "けが・出血",
+    firstAction: "清潔なガーゼやタオルで傷口を直接押さえて止血する（圧迫止血）",
+    checkpoints: [
+      { label: "🚑 救急車", text: "出血が止まらない（15分以上） / 深い切り傷 / 頭を強打して意識がぼんやり" },
+      { label: "🏥 受診", text: "傷口がパックリ開いている / 汚れた物での傷 / 動物に噛まれた / 頭を打った" },
+      { label: "🏠 様子見", text: "小さなすり傷 / 出血がすぐ止まった / 元気に動いている" }
+    ],
+    dontDo: ["傷口を消毒液で繰り返し消毒しない（水道水で洗い流す）", "頭を打った直後に寝かせっぱなしにしない（48時間は注意して観察）", "止血帯を素人が巻かない"],
+    searchKeywords: "けが 怪我 出血 切り傷 すり傷 打撲 頭 打った 転んだ",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=injury"
+  },
+  {
+    id: "crying",
+    icon: "😢",
+    title: "泣き止まない",
+    firstAction: "おむつ・空腹・暑さ寒さ・体調をチェック。抱っこして優しく揺らす",
+    checkpoints: [
+      { label: "🚑 救急車", text: "顔色が悪い（青白い・紫） / ぐったりして泣き方が弱い / 嘔吐やけいれんを伴う" },
+      { label: "🏥 受診", text: "いつもと明らかに違う泣き方 / 3時間以上泣き止まない / 発熱を伴う / お腹が張っている" },
+      { label: "🏠 様子見", text: "抱っこやおくるみで落ち着く / 授乳で落ち着く / 機嫌にムラがあるだけ" }
+    ],
+    dontDo: ["絶対に揺さぶらない（揺さぶられっ子症候群の危険）", "イライラしたら赤ちゃんを安全な場所に置いて一度離れる", "泣くことを異常と決めつけない（泣くのは正常な表現）"],
+    searchKeywords: "泣き止まない 泣く 夜泣き ぐずる ギャン泣き 泣き続ける コリック",
+    refUrl: "https://kodomo-qq.jp/"
+  },
+  {
+    id: "rash",
+    icon: "🔴",
+    title: "発疹・じんましん",
+    firstAction: "全身の状態を観察。かゆみがあれば冷たいタオルで冷やす。爪を短く切る",
+    checkpoints: [
+      { label: "🚑 救急車", text: "呼吸が苦しい・顔が腫れる（アナフィラキシー） / 唇や舌が腫れる / ぐったり" },
+      { label: "🏥 受診", text: "全身に広がる発疹 / 高熱を伴う / 水ぶくれができる / 食事の後に出た" },
+      { label: "🏠 様子見", text: "一部分だけで全身状態がよい / 数時間で消える / かゆみが軽い" }
+    ],
+    dontDo: ["強く掻かせない（とびひになる）", "自己判断でステロイド軟膏を塗らない", "原因食物が疑われる場合は自己判断で除去しない（医師に相談）"],
+    searchKeywords: "発疹 じんましん 蕁麻疹 ぶつぶつ 湿疹 アレルギー かゆい アトピー 水疱瘡 手足口病",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=rash"
+  },
+  {
+    id: "breathing",
+    icon: "💨",
+    title: "咳・呼吸が苦しい",
+    firstAction: "上体を起こした姿勢にする。室内を適度に加湿する。落ち着かせる",
+    checkpoints: [
+      { label: "🚑 救急車", text: "呼吸が速い・肩で息 / 唇や顔色が紫（チアノーゼ） / ゼーゼーして苦しそう / 異物で喉が詰まった" },
+      { label: "🏥 受診", text: "犬が吠えるような咳（クループ） / 夜中に咳で眠れない / 喘息の発作 / 水分が取れない" },
+      { label: "🏠 様子見", text: "たまにコンコンする程度 / 元気で食欲あり / 鼻水程度" }
+    ],
+    dontDo: ["仰向けに寝かせない（咳がひどくなる）", "煙や強い匂いのある場所に置かない", "喉に詰まった異物を指で探らない（背部叩打法を）"],
+    searchKeywords: "咳 せき ゼーゼー 呼吸 息苦しい クループ 喘息 ぜんそく 窒息 喉 のど",
+    refUrl: "https://kodomo-qq.jp/index.php?pname=cough"
+  },
+  {
+    id: "feeding",
+    icon: "🍼",
+    title: "授乳・ミルクの悩み",
+    firstAction: "飲まないときは無理せず時間を空ける。体重の増え方を記録して確認する",
+    checkpoints: [
+      { label: "🏥 受診", text: "体重が減り続ける / おしっこが1日4回未満 / ぐったりして起きない / 嘔吐が続く" },
+      { label: "📞 相談", text: "母乳の出が心配 / ミルクの量がわからない → かかりつけ医・助産師に相談" },
+      { label: "🏠 様子見", text: "体重が順調に増えている / 機嫌がよい / おしっこ・うんちが出ている" }
+    ],
+    dontDo: ["1回の量や間隔を厳密に決めすぎない（個人差が大きい）", "ミルクを足すか迷ったら自己判断せず相談", "母乳が出ないと思い込まない（専門家に相談を）"],
+    searchKeywords: "授乳 ミルク 母乳 飲まない 乳腺炎 哺乳瓶 体重 おっぱい",
+    refUrl: "https://www.mhlw.go.jp/shingi/2007/03/dl/s0314-17.pdf"
+  },
+  {
+    id: "nosebleed",
+    icon: "👃",
+    title: "鼻血",
+    firstAction: "やや下を向かせて、小鼻（骨より下の柔らかい部分）を親指と人差し指で10分しっかりつまむ",
+    checkpoints: [
+      { label: "🚑 救急車", text: "30分以上止まらない / 大量出血 / 頭を打った後の鼻血 / 意識がぼんやり" },
+      { label: "🏥 受診", text: "15分押さえても止まらない / 週に何度も繰り返す / あざができやすい" },
+      { label: "🏠 様子見", text: "10分以内に止まった / 元気で他に症状がない" }
+    ],
+    dontDo: ["上を向かせない（血を飲み込んで吐き気の原因に）", "ティッシュを詰め込まない（抜くとき再出血する）", "首の後ろを叩かない（効果なし）"],
+    searchKeywords: "鼻血 はなぢ 鼻出血",
+    refUrl: "https://kodomo-qq.jp/"
+  },
+  {
+    id: "night",
+    icon: "🌙",
+    title: "休日・夜間の受診",
+    firstAction: "まず #7119 または #8000 に電話して相談。受診が必要か判断してもらう",
+    checkpoints: [
+      { label: "🚑 救急車", text: "意識がない / 呼吸していない / けいれん / 大量出血" },
+      { label: "🌙 夜間診療", text: "高熱＋ぐったり / 嘔吐が止まらない / 呼吸が苦しそう" },
+      { label: "⏰ 翌朝受診", text: "熱はあるが元気 / 軽い咳や鼻水 / 食欲がある" }
+    ],
+    dontDo: ["迷ったときに我慢して朝まで待たない（#7119/#8000に電話）", "夜間診療に行く前に電話確認を忘れない", "保険証・医療証・お薬手帳を忘れない"],
+    searchKeywords: "休日 夜間 救急 急患 夜中 深夜 日曜 祝日 年末年始",
+    linkToTab: "hospital",
+    refUrl: ""
+  },
+  {
+    id: "disaster",
+    icon: "🆘",
+    title: "災害時",
+    firstAction: "まず子どもの安全を確保。落下物から頭を守る。慌てず避難経路を確認",
+    checkpoints: [
+      { label: "📞 安否確認", text: "171（災害用伝言ダイヤル）→ 録音は「1」、再生は「2」→ 相手の電話番号を入力" },
+      { label: "📱 Web171", text: "https://www.web171.jp/ でテキストによる安否登録・確認も可能" },
+      { label: "🏠 備え", text: "おむつ・ミルク・離乳食・常備薬・母子手帳コピーを非常袋に入れておく" }
+    ],
+    dontDo: ["エレベーターを使って避難しない", "子どもを一人にしない", "デマ情報に惑わされない（公式情報を確認）"],
+    searchKeywords: "災害 地震 避難 171 伝言ダイヤル 防災 台風 津波",
+    refUrl: "https://www.bousai.go.jp/"
+  }
+];
+
 // ===== 検索 =====
 let currentTab = "home";
 const SEARCH_HISTORY_KEY = "familyGuide_searchHistory";
@@ -1333,6 +1704,25 @@ const SEARCH_SYNONYMS = {
   "園": ["保育園", "こども園", "認定"],
   "風邪": ["小児科", "急患", "救急"],
   "アレルギー": ["アレルギー", "皮膚科", "耳鼻科"],
+  "嘔吐": ["吐く", "はく", "おうと", "嘔吐", "もどす"],
+  "吐く": ["嘔吐", "おうと"],
+  "下痢": ["おなか", "げり", "水便"],
+  "けいれん": ["ひきつけ", "痙攣", "熱性けいれん"],
+  "ひきつけ": ["けいれん", "痙攣"],
+  "誤飲": ["飲み込んだ", "誤食", "のみこんだ", "ボタン電池"],
+  "やけど": ["火傷", "熱湯", "アイロン"],
+  "けが": ["出血", "怪我", "切り傷", "打撲"],
+  "泣き止まない": ["泣く", "夜泣き", "ぐずる", "ギャン泣き"],
+  "夜泣き": ["泣き止まない", "泣く", "ぐずる"],
+  "発疹": ["じんましん", "蕁麻疹", "ぶつぶつ", "湿疹"],
+  "じんましん": ["発疹", "蕁麻疹", "ぶつぶつ"],
+  "咳": ["せき", "ゼーゼー", "呼吸", "クループ", "喘息"],
+  "息苦しい": ["呼吸", "ゼーゼー", "喘息"],
+  "鼻血": ["はなぢ", "鼻出血"],
+  "災害": ["地震", "避難", "171", "伝言ダイヤル", "防災"],
+  "地震": ["災害", "避難", "171"],
+  "ミルク": ["授乳", "母乳", "哺乳瓶"],
+  "休日": ["夜間", "急患", "救急", "休日・夜間"],
 };
 
 function expandSearchKeywords(keyword) {
@@ -1467,8 +1857,20 @@ function setupSearch() {
           hasMatch = true;
           totalMatches++;
           highlightText(card, rawKeyword);
+          // 応急手当アコーディオンを自動展開
+          if (card.classList.contains("firstaid-item")) {
+            card.classList.add("open");
+            const body = card.querySelector(".firstaid-body");
+            if (body) body.hidden = false;
+          }
         } else {
           highlightText(card, "");
+          // 非マッチの応急手当アコーディオンを閉じる
+          if (card.classList.contains("firstaid-item")) {
+            card.classList.remove("open");
+            const body = card.querySelector(".firstaid-body");
+            if (body) body.hidden = true;
+          }
         }
       });
 
@@ -1492,6 +1894,13 @@ function setupSearch() {
           const visibleItems = period.querySelectorAll(".calendar-item[data-search]");
           const anyVisible = Array.from(visibleItems).some((item) => item.style.display !== "none");
           period.style.display = anyVisible ? "" : "none";
+        });
+      }
+
+      // Show all hospital sub-panes during search so matched items are visible
+      if (tabId === "hospital" && hasMatch) {
+        panel.querySelectorAll("#pediatricsPane, #entPane, #dermaPane, #nightPane").forEach((pane) => {
+          pane.hidden = false;
         });
       }
 
@@ -2401,6 +2810,65 @@ function addShoppingItem(catId, input) {
   input.value = "";
 }
 
+// ===== 在庫→買い物リスト連携 =====
+function promptAddToShoppingList(itemName) {
+  if (!confirm(`「${itemName}」を買い物リストに追加しますか？`)) return;
+
+  if (!shoppingDb) {
+    showToast("買い物リスト接続エラー");
+    return;
+  }
+
+  shoppingDb.ref("shopping/categories").once("value").then((snap) => {
+    const categories = snap.val() || {};
+    showShoppingCategoryModal(itemName, categories);
+  }).catch(() => {
+    showToast("カテゴリ取得エラー");
+  });
+}
+
+function showShoppingCategoryModal(itemName, categories) {
+  const modal = document.getElementById("shoppingAddModal");
+  const nameEl = document.getElementById("shoppingAddItemName");
+  const catContainer = document.getElementById("shoppingAddCategories");
+
+  nameEl.textContent = `「${itemName}」`;
+
+  const sorted = Object.entries(categories).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+
+  if (sorted.length === 0) {
+    catContainer.innerHTML = '<p class="shopping-add-loading">買い物リストにカテゴリがありません</p>';
+  } else {
+    catContainer.innerHTML = sorted.map(([catId, cat]) =>
+      `<button class="shopping-add-cat-btn" data-cat-id="${catId}" type="button">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</button>`
+    ).join("");
+
+    catContainer.querySelectorAll(".shopping-add-cat-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const catId = btn.dataset.catId;
+        const itemId = "item_" + Date.now();
+        shoppingDb.ref("shopping/items/" + catId + "/" + itemId).set({
+          name: itemName,
+          done: false,
+          addedAt: Date.now()
+        }).then(() => {
+          showToast("買い物リストに追加しました");
+        }).catch(() => {
+          showToast("追加エラー");
+        });
+        modal.hidden = true;
+      });
+    });
+  }
+
+  modal.hidden = false;
+
+  document.getElementById("shoppingAddCancelBtn").onclick = () => { modal.hidden = true; };
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.hidden = true;
+  }, { once: true });
+}
+
 function renderShoppingItems(catId, items) {
   const ul = document.getElementById("shopping-items-" + catId);
   if (!ul) return;
@@ -2954,9 +3422,15 @@ function changeSupplyQty(id, field, delta) {
   const item = list.find((s) => s.id === id);
   if (!item) return;
   const current = item[field] != null ? item[field] : (field === "qty" ? 1 : 0);
-  item[field] = Math.max(0, Math.min(999, current + delta));
+  const newVal = Math.max(0, Math.min(999, current + delta));
+  item[field] = newVal;
   saveSupplies(list);
   renderSupplies();
+
+  // 予備が0になったら買い物リストへの追加を提案
+  if (field === "spareQty" && current > 0 && newVal === 0) {
+    promptAddToShoppingList(item.name);
+  }
 }
 
 function renderSupplyItem(s) {
@@ -3201,6 +3675,8 @@ async function init() {
   setupFirebaseSync();
   setupNursery();
   setupKondateView();
+  setupFirstAidAccordion();
+  setupFirstAidNav();
   try {
     const data = await loadData();
     taxiLaborData = data.taxiLabor || [];
@@ -3213,7 +3689,7 @@ async function init() {
       navigateTo(savedTab);
     }
   } catch (error) {
-    renderAll({ pediatrics: [], ent: [], dermatology: [], emergency: [], taxiLabor: [], taxiGeneral: [], careSupport: [], governmentLinks: [], nurseries: [] });
+    renderAll({ pediatrics: [], ent: [], dermatology: [], emergency: [], nightEmergency: [], taxiLabor: [], taxiGeneral: [], careSupport: [], governmentLinks: [], nurseries: [] });
     setStatusMessage("データの読み込みに失敗しました。data.json を確認してください。");
     console.error(error);
   }

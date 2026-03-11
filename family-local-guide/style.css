@@ -418,12 +418,12 @@ a.home-card { text-decoration: none; color: inherit; position: relative; }
 
 .hospital-toggle-btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 6px;
   border: none;
   border-radius: 22px;
   background: transparent;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-light);
   cursor: pointer;
@@ -901,6 +901,280 @@ li:hover {
 .list-call-btn:hover {
   background: #fef2f2;
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
+}
+
+/* ===== 応急手当: 緊急バナー ===== */
+.emergency-banners {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.emergency-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.emergency-banner:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.emergency-banner--7119 {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid #f59e0b;
+  color: #92400e;
+}
+
+.emergency-banner--8000 {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border: 2px solid #3b82f6;
+  color: #1e40af;
+}
+
+.emergency-banner-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.emergency-banner-title {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.emergency-banner-note {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+.emergency-banner-call {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.emergency-banner--7119 .emergency-banner-call {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.emergency-banner--8000 .emergency-banner-call {
+  background: #3b82f6;
+  color: #fff;
+}
+
+/* ===== 応急手当: カテゴリナビ ===== */
+.firstaid-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.firstaid-nav-btn {
+  padding: 6px 12px;
+  border: 2px solid #fcd34d;
+  border-radius: 20px;
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #92400e;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.firstaid-nav-btn:hover,
+.firstaid-nav-btn:active {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+}
+
+/* ===== 応急手当: アコーディオン ===== */
+.firstaid-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.firstaid-item {
+  padding: 0;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fffbeb, var(--white));
+  border: 1.5px solid #fde68a;
+  scroll-margin-top: 140px;
+  transition: box-shadow 0.2s;
+}
+
+.firstaid-item:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.firstaid-item.open {
+  border-color: #f59e0b;
+  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.15);
+}
+
+.firstaid-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  color: #78350f;
+  transition: background 0.15s;
+}
+
+.firstaid-header:hover {
+  background: rgba(253, 230, 138, 0.3);
+}
+
+.firstaid-header-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.firstaid-header-title {
+  flex: 1;
+}
+
+.firstaid-chevron {
+  margin-left: auto;
+  font-size: 0.9rem;
+  transition: transform 0.25s;
+  color: #d97706;
+}
+
+.firstaid-item.open .firstaid-chevron {
+  transform: rotate(90deg);
+}
+
+.firstaid-body {
+  padding: 0 14px 14px;
+}
+
+.firstaid-first-action {
+  background: #fef9c3;
+  border-left: 4px solid #eab308;
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #713f12;
+}
+
+.firstaid-first-action-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #a16207;
+  margin-bottom: 4px;
+  letter-spacing: 0.05em;
+}
+
+.firstaid-checkpoints {
+  margin-bottom: 14px;
+}
+
+.firstaid-checkpoint {
+  padding: 8px 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(253, 230, 138, 0.5);
+}
+
+.firstaid-checkpoint:last-child {
+  border-bottom: none;
+}
+
+.firstaid-checkpoint-label {
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.firstaid-dont-section {
+  background: #fef2f2;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.firstaid-dont-title {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #dc2626;
+  margin-bottom: 6px;
+}
+
+.firstaid-dont-item {
+  font-size: 0.85rem;
+  color: #991b1b;
+  line-height: 1.6;
+}
+
+.firstaid-link-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: 2px solid #a78bfa;
+  border-radius: 12px;
+  background: #f5f3ff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #6d28d9;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.firstaid-link-btn:hover {
+  background: #ede9fe;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+}
+
+.firstaid-ref-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.firstaid-ref-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 /* ===== Taxi Finder ===== */
@@ -3584,4 +3858,35 @@ mark.search-highlight {
 
 .qty-modal-btn:hover {
   border-color: #0d9488;
+}
+
+/* ===== 買い物リスト追加モーダル（在庫連携） ===== */
+.shopping-add-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.shopping-add-cat-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #99e6d5;
+  border-radius: 10px;
+  background: #f0fdf9;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.shopping-add-cat-btn:hover,
+.shopping-add-cat-btn:active {
+  background: #d1fae5;
+  border-color: #0d9488;
+}
+.shopping-add-loading {
+  text-align: center;
+  padding: 20px;
+  color: #999;
 }
