@@ -412,7 +412,6 @@ body {
   flex: 1 1 0;
   min-width: 0;
   border: none;
-  border-bottom: 1px solid var(--border);
   font-family: inherit;
   font-size: 0.85rem;
   line-height: 1.5;
@@ -421,12 +420,11 @@ body {
   resize: none;
   outline: none;
   padding: 2px 0;
+  overflow: hidden;
 }
-.memo-input:focus { border-bottom-color: var(--primary); }
 
 .memo-input--free {
   width: 100%;
-  resize: vertical;
 }
 
 .memo-pick-btn {
@@ -806,40 +804,25 @@ body {
 
 .menulist-items {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.menulist-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  transition: box-shadow 0.2s;
-}
-.menulist-item:hover {
-  box-shadow: 0 2px 8px var(--shadow);
-}
-
-.menulist-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.menulist-item-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-
-.menulist-item-tags {
-  display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+}
+
+.menulist-chip {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border: 1.5px dashed var(--border);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.menulist-chip:hover,
+.menulist-chip:active {
+  background: var(--primary-light);
+  border-color: var(--primary);
 }
 
 .tag-chip {
@@ -850,28 +833,6 @@ body {
   color: var(--basil);
   font-weight: 700;
 }
-
-.menulist-item-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.menulist-action-btn {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background: var(--white);
-  cursor: pointer;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.menulist-action-btn:hover { background: var(--primary-light); }
-.menulist-action-btn--delete:hover { background: #fde8e4; }
 
 .menulist-empty {
   text-align: center;
@@ -1902,7 +1863,7 @@ body {
   .weekday--sat { color: #5a8a3c; }
 
   .calendar-grid {
-    grid-auto-rows: auto;
+    grid-auto-rows: minmax(14mm, auto);
   }
 
   .day-cell {

@@ -9,9 +9,9 @@ const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "�
 const STOCK_SUBCATEGORIES = {
   fridge: { staple: "常備品", vegetable: "野菜" },
   freezer: { meat_fish: "肉・魚", vegetable: "野菜" },
-  pantry: { room_temp: "常温", seasoning: "調味料" },
+  pantry: { room_temp: "常温", seasoning: "調味料", topping: "トッピング", canned: "缶" },
 };
-const SUBCAT_ORDER = { fridge: ["staple", "vegetable", ""], freezer: ["meat_fish", "vegetable", ""], pantry: ["room_temp", "seasoning", ""] };
+const SUBCAT_ORDER = { fridge: ["staple", "vegetable", ""], freezer: ["meat_fish", "vegetable", ""], pantry: ["room_temp", "seasoning", "topping", "canned", ""] };
 
 // ===== Firebase =====
 const FIREBASE_CONFIG = {
@@ -386,6 +386,7 @@ function loadCalendarMemo() {
   calendarMemoBody.classList.toggle("calendar-memo-body--open", hasContent);
   memoToggleArrow.classList.toggle("toggle-arrow--open", hasContent);
   updateMemoPrintVisibility();
+  autoResizeAllMemoInputs();
 }
 
 function collectMemoData() {
@@ -421,6 +422,15 @@ function updateMemoPrintVisibility() {
     sec.classList.toggle("memo-section--empty", !input || !input.value.trim());
   });
   memoFree.classList.toggle("memo-section--empty", !memoFree.value.trim());
+}
+
+function autoResizeMemoInput(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function autoResizeAllMemoInputs() {
+  [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].forEach(autoResizeMemoInput);
 }
 
 // ===== Stock Pin =====
@@ -1763,40 +1773,19 @@ function renderMenuList() {
 
   menulistEmpty.hidden = true;
   menulistItems.innerHTML = list
-    .map(
-      (m) => `
-    <div class="menulist-item" data-id="${m.id}">
-      <div class="menulist-item-info">
-        <div class="menulist-item-name">${escapeHtml(m.name)}</div>
-        <div class="menulist-item-tags">
-          ${(m.tags || []).map((t) => `<span class="tag-chip">${escapeHtml(t)}</span>`).join("")}
-        </div>
-      </div>
-      <div class="menulist-item-actions">
-        <button class="menulist-action-btn" data-action="edit" data-id="${m.id}" title="編集">✏️</button>
-        <button class="menulist-action-btn menulist-action-btn--delete" data-action="delete" data-id="${m.id}" title="削除">🗑️</button>
-      </div>
-    </div>`
-    )
+    .map((m) => `<button type="button" class="menulist-chip" data-id="${m.id}">${escapeHtml(m.name)}</button>`)
     .join("");
 
-  // Event delegation for edit/delete
-  menulistItems.querySelectorAll(".menulist-action-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      if (btn.dataset.action === "edit") {
-        openMenuEditModal(id);
-      } else if (btn.dataset.action === "delete") {
-        const item = getMenuList().find((m) => m.id === id);
-        if (item && confirm(`「${item.name}」を削除しますか？`)) {
-          deleteMenuItem(id);
-          renderMenuList();
-          showToast("削除しました");
-        }
-      }
+  const isPickMode = menuListPickMode || memoPickMode;
+
+  if (!isPickMode) {
+    // Chip click → open edit modal (only when not in pick mode)
+    menulistItems.querySelectorAll(".menulist-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        openMenuEditModal(btn.dataset.id);
+      });
     });
-  });
+  }
 
   // Pick mode: banner & item selection
   handleMenuListPickMode();
@@ -1825,9 +1814,8 @@ function handleMenuListPickMode() {
   banner.querySelector('.pick-mode-cancel-btn').addEventListener('click', cancelFn);
 
   // Make items selectable
-  menulistItems.querySelectorAll(".menulist-item").forEach((el) => {
+  menulistItems.querySelectorAll(".menulist-chip").forEach((el) => {
     el.addEventListener("click", (e) => {
-      if (e.target.closest('.menulist-action-btn')) return;
       const item = getMenuList().find(m => m.id === el.dataset.id);
       if (!item) return;
       if (memoPickMode) {
@@ -2357,7 +2345,7 @@ function init() {
   // Calendar memo
   calendarMemoToggle.addEventListener("click", toggleCalendarMemo);
   [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].forEach(el => {
-    el.addEventListener("input", saveCalendarMemo);
+    el.addEventListener("input", () => { saveCalendarMemo(); autoResizeMemoInput(el); });
   });
   memoPickBtn.addEventListener("click", startMemoPickMode);
 
