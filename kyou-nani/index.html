@@ -67,7 +67,6 @@
         <button id="addMenuBtn" class="menulist-add-btn" type="button">＋ 追加</button>
       </div>
       <div class="menulist-tags" id="menulistTags"></div>
-      <div id="untaggedSection" class="untagged-section" hidden></div>
       <div id="menulistItems" class="menulist-items"></div>
       <p class="menulist-empty" id="menulistEmpty" hidden>メニューがまだありません。「＋ 追加」で登録しましょう！</p>
     </main>
@@ -237,6 +236,34 @@
           <button id="stockEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
           <button id="stockEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
           <button id="stockEditCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 買い物リスト追加モーダル -->
+    <div id="shoppingAddModal" class="modal-overlay" hidden>
+      <div class="modal-content">
+        <h3>買い物リストに追加</h3>
+        <p id="shoppingAddItemName" style="font-weight:bold; margin:8px 0 12px;"></p>
+        <p class="menu-form-label">どこで買いますか？</p>
+        <div id="shoppingAddCategories" class="shopping-add-categories"></div>
+        <div class="modal-buttons" style="margin-top: 16px;">
+          <button id="shoppingAddCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- タグ編集モーダル -->
+    <div id="tagEditModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>🏷️ タグ編集</h3>
+        <div class="tag-edit-add-row">
+          <input type="text" id="tagEditInput" class="menu-form-input tag-edit-add-input" placeholder="新しいタグ名" maxlength="20" />
+          <button type="button" id="tagEditAddBtn" class="modal-btn modal-btn--primary tag-edit-add-submit">＋ 追加</button>
+        </div>
+        <div id="tagEditList" class="tag-edit-list"></div>
+        <div class="modal-buttons">
+          <button id="tagEditCloseBtn" class="modal-btn" type="button">閉じる</button>
         </div>
       </div>
     </div>

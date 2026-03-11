@@ -3,7 +3,7 @@ const MENU_LIST_KEY = "kondate_menu_list";
 const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
 const EVENTS_KEY = "kondate_events";
-const PRESET_TAGS = ["いつもの", "お気に入り", "和食", "洋食", "中華"];
+const PRESET_TAGS = ["いつもの", "お気に入り"];
 const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
 const STOCK_SUBCATEGORIES = {
@@ -32,6 +32,19 @@ const FIREBASE_PATHS = {
   events: "events",
 };
 
+// Family-local-guide Firebase (買い物リスト連携用)
+const FAMILY_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDmrT37_DwQUbYoY9d3jZmVCDahWlsjkU0",
+  authDomain: "family-local-guide.firebaseapp.com",
+  databaseURL: "https://family-local-guide-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "family-local-guide",
+  storageBucket: "family-local-guide.firebasestorage.app",
+  messagingSenderId: "903018887987",
+  appId: "1:903018887987:web:c6102e017c154753535c46"
+};
+
+let familyDb = null;
+
 let kondateDb = null;
 let _menusCache = null;
 let _menuListCache = null;
@@ -52,6 +65,7 @@ let editingMenuId = null; // null = add, string = edit
 let menuListFilterTag = null;
 let menuListSearchQuery = "";
 let modalFilterTag = null;
+let menuListPickMode = null; // { entryIdx, editingDate, menuEntries, eventValue }
 
 // Multi-entry modal state
 let menuEntries = []; // [{value: "", mode: "manual"}]
@@ -410,7 +424,7 @@ function renderPinnedStock() {
 function renderCalendarExpiryAlerts() {
   const el = $("calendarExpiryAlerts");
   if (!el) return;
-  const list = getStock();
+  const list = getStock().filter((item) => (item.qty != null ? item.qty : 1) > 0);
   const expired = [];
   const soon = [];
   const week = [];
@@ -480,7 +494,13 @@ function switchTab(tabName) {
   activeTab = tabName;
   localStorage.setItem("kondate_active_tab", tabName);
 
+  // Clear pick mode when leaving menulist
+  if (tabName !== "menulist") {
+    menuListPickMode = null;
+  }
+
   if (tabName === "calendar") {
+    renderCalendar();
     renderPinnedStock();
     renderCalendarExpiryAlerts();
   } else if (tabName === "menulist") {
@@ -581,29 +601,7 @@ function openMenuModal(dateStr) {
   }
   renderMenuEntries();
 
-  // Suggestions from menu list (sorted by usage)
-  const menuList = getMenuList();
-  const suggestions = [...menuList].sort((a, b) => b.usageCount - a.usageCount).slice(0, 10);
-  if (suggestions.length > 0) {
-    menuSuggestions.hidden = false;
-    menuSuggestionsList.innerHTML = suggestions
-      .map((s) => `<button type="button" class="menu-suggestion-tag">${escapeHtml(s.name)}</button>`)
-      .join("");
-    menuSuggestionsList.querySelectorAll(".menu-suggestion-tag").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        // Find the first empty entry, or add a new entry
-        const emptyIdx = menuEntries.findIndex((e) => !e.value.trim());
-        if (emptyIdx !== -1) {
-          menuEntries[emptyIdx].value = btn.textContent;
-        } else {
-          menuEntries.push({ value: btn.textContent, mode: "manual" });
-        }
-        renderMenuEntries();
-      });
-    });
-  } else {
-    menuSuggestions.hidden = true;
-  }
+  renderModalSuggestions();
 
   menuModal.classList.add("is-open");
   setTimeout(() => {
@@ -660,11 +658,21 @@ function renderMenuEntries() {
     });
   });
 
-  // Search button → go to menu list tab
+  // Search button → go to menu list tab (pick mode)
   menuEntriesEl.querySelectorAll(".entry-search-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
+      const idx = Number(btn.closest('.menu-entry').dataset.idx);
+      menuListPickMode = {
+        entryIdx: idx,
+        editingDate: editingDate,
+        menuEntries: menuEntries.map(e => ({...e})),
+        eventValue: $("menuEventInput").value,
+      };
       closeMenuModal();
       switchTab("menulist");
+      menulistSearch.value = "";
+      menuListSearchQuery = "";
+      renderMenuList();
       menulistSearch.focus();
     });
   });
@@ -840,6 +848,85 @@ function addMenuEntry() {
     const inputs = menuEntriesEl.querySelectorAll(".menu-entry-input");
     if (inputs.length > 0) inputs[inputs.length - 1].focus();
   }, 50);
+}
+
+// ===== Modal Suggestions (いつもの優先) =====
+function renderModalSuggestions() {
+  const menuList = getMenuList();
+  const itsumono = menuList.filter(m => (m.tags || []).includes("いつもの"));
+
+  let suggestions;
+  let label;
+  if (itsumono.length > 0) {
+    suggestions = itsumono.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+    label = "いつもの:";
+  } else {
+    suggestions = [...menuList].sort((a, b) => b.usageCount - a.usageCount).slice(0, 10);
+    label = "登録メニュー:";
+  }
+
+  if (suggestions.length > 0) {
+    menuSuggestions.hidden = false;
+    menuSuggestions.querySelector(".menu-suggestions-label").textContent = label;
+    menuSuggestionsList.innerHTML = suggestions
+      .map((s) => `<button type="button" class="menu-suggestion-tag">${escapeHtml(s.name)}</button>`)
+      .join("");
+    menuSuggestionsList.querySelectorAll(".menu-suggestion-tag").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const emptyIdx = menuEntries.findIndex((e) => !e.value.trim());
+        if (emptyIdx !== -1) {
+          menuEntries[emptyIdx].value = btn.textContent;
+        } else {
+          menuEntries.push({ value: btn.textContent, mode: "manual" });
+        }
+        renderMenuEntries();
+      });
+    });
+  } else {
+    menuSuggestions.hidden = true;
+  }
+}
+
+// ===== Pick Mode (さがす → 選択 → 戻る) =====
+function selectFromPickMode(name) {
+  const pick = menuListPickMode;
+  menuListPickMode = null;
+  removPickModeBanner();
+  pick.menuEntries[pick.entryIdx].value = name;
+  switchTab("calendar");
+  reopenMenuModalWithState(pick);
+}
+
+function cancelPickMode() {
+  const pick = menuListPickMode;
+  menuListPickMode = null;
+  removPickModeBanner();
+  switchTab("calendar");
+  reopenMenuModalWithState(pick);
+}
+
+function removPickModeBanner() {
+  const banner = $("tabMenuList").querySelector('.pick-mode-banner');
+  if (banner) banner.remove();
+}
+
+function reopenMenuModalWithState(state) {
+  editingDate = state.editingDate;
+  menuEntries = state.menuEntries;
+
+  const [y, m, d] = editingDate.split("-").map(Number);
+  const dow = ["日", "月", "火", "水", "木", "金", "土"][new Date(y, m - 1, d).getDay()];
+  menuModalTitle.textContent = `${m}月${d}日（${dow}）の夕飯`;
+
+  $("menuEventInput").value = state.eventValue;
+
+  const current = getMenuArray(editingDate);
+  menuDeleteBtn.hidden = current.length === 0 && !getEvent(editingDate);
+
+  renderMenuEntries();
+  renderModalSuggestions();
+
+  menuModal.classList.add("is-open");
 }
 
 function closeMenuModal() {
@@ -1206,7 +1293,7 @@ function switchStockCategory(cat) {
 }
 
 function renderStockAlerts() {
-  const list = getStock();
+  const list = getStock().filter((item) => (item.qty != null ? item.qty : 1) > 0);
   const expired = [];
   const soon = [];
 
@@ -1384,9 +1471,15 @@ function changeStockQty(id, field, delta) {
   const item = list.find((s) => s.id === id);
   if (!item) return;
   const current = item[field] != null ? item[field] : (field === "qty" ? 1 : 0);
-  item[field] = Math.max(0, Math.min(999, current + delta));
+  const newVal = Math.max(0, Math.min(999, current + delta));
+  item[field] = newVal;
   saveStock(list);
   renderStock();
+
+  // 個数が0になったら買い物リスト追加を提案
+  if (field === "qty" && newVal === 0 && current > 0) {
+    promptAddToShoppingList(item.name);
+  }
 }
 
 // ===== Stock Edit Modal =====
@@ -1489,10 +1582,21 @@ function deleteStockEditItem() {
 
 // ===== Menu List Tab =====
 function renderMenuListTags() {
-  menulistTags.innerHTML = getAllTags().map(
+  const allTags = getAllTags();
+  const hasUntagged = getMenuList().some((m) => !m.tags || m.tags.length === 0);
+
+  let html = allTags.map(
     (t) =>
       `<button type="button" class="tag-filter-btn${menuListFilterTag === t ? " tag-filter-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join("");
+
+  if (hasUntagged) {
+    html += `<button type="button" class="tag-filter-btn tag-filter-btn--untagged${menuListFilterTag === "__untagged__" ? " tag-filter-btn--active" : ""}" data-tag="__untagged__">タグ未設定</button>`;
+  }
+
+  html += `<button type="button" class="tag-edit-trigger-btn" id="tagEditTriggerBtn" title="タグ編集">🏷️ 編集</button>`;
+
+  menulistTags.innerHTML = html;
 
   menulistTags.querySelectorAll(".tag-filter-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1501,42 +1605,19 @@ function renderMenuListTags() {
       renderMenuList();
     });
   });
-}
 
-function renderUntaggedMenus() {
-  const section = $("untaggedSection");
-  if (!section) return;
-
-  const untagged = getMenuList().filter((m) => !m.tags || m.tags.length === 0);
-  if (untagged.length === 0) {
-    section.hidden = true;
-    return;
-  }
-
-  untagged.sort((a, b) => a.name.localeCompare(b.name, "ja"));
-
-  section.hidden = false;
-  section.innerHTML =
-    `<div class="untagged-title">タグ未設定（${untagged.length}）</div>` +
-    `<div class="untagged-chips">${untagged
-      .map((m) => `<button type="button" class="untagged-chip" data-id="${m.id}">${escapeHtml(m.name)}</button>`)
-      .join("")}</div>`;
-
-  section.querySelectorAll(".untagged-chip").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      openMenuEditModal(btn.dataset.id);
-    });
-  });
+  $("tagEditTriggerBtn").addEventListener("click", openTagEditModal);
 }
 
 function renderMenuList() {
   renderMenuListTags();
-  renderUntaggedMenus();
 
   let list = getMenuList();
 
   // Filter by tag
-  if (menuListFilterTag) {
+  if (menuListFilterTag === "__untagged__") {
+    list = list.filter((m) => !m.tags || m.tags.length === 0);
+  } else if (menuListFilterTag) {
     list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
   }
 
@@ -1552,6 +1633,7 @@ function renderMenuList() {
   if (list.length === 0) {
     menulistItems.innerHTML = "";
     menulistEmpty.hidden = false;
+    handleMenuListPickMode();
     return;
   }
 
@@ -1591,72 +1673,120 @@ function renderMenuList() {
       }
     });
   });
+
+  // Pick mode: banner & item selection
+  handleMenuListPickMode();
+}
+
+function handleMenuListPickMode() {
+  const tabEl = $("tabMenuList");
+  const existingBanner = tabEl.querySelector('.pick-mode-banner');
+
+  if (!menuListPickMode) {
+    if (existingBanner) existingBanner.remove();
+    return;
+  }
+
+  // Add pick mode banner
+  if (!existingBanner) {
+    const banner = document.createElement('div');
+    banner.className = 'pick-mode-banner';
+    tabEl.insertBefore(banner, tabEl.firstElementChild);
+  }
+  const banner = tabEl.querySelector('.pick-mode-banner');
+  banner.innerHTML = `<span>📋 メニューをタップして選択</span><button type="button" class="pick-mode-cancel-btn">戻る</button>`;
+  banner.querySelector('.pick-mode-cancel-btn').addEventListener('click', cancelPickMode);
+
+  // Make items selectable
+  menulistItems.querySelectorAll(".menulist-item").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest('.menulist-action-btn')) return;
+      const item = getMenuList().find(m => m.id === el.dataset.id);
+      if (item) selectFromPickMode(item.name);
+    });
+  });
 }
 
 // ===== Menu Edit Modal =====
 function renderMenuEditTags(selectedTags) {
   const allTags = getAllTags();
-  const customTags = getCustomTags();
 
   const tagsHtml = allTags.map((t) => {
-    const isCustom = customTags.includes(t);
     const isActive = selectedTags.includes(t);
-    return `<span class="tag-toggle-wrap">` +
-      `<button type="button" class="tag-toggle-btn${isActive ? " tag-toggle-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>` +
-      (isCustom ? `<button type="button" class="tag-delete-btn" data-tag="${escapeHtml(t)}" title="タグを削除">×</button>` : "") +
-      `</span>`;
+    return `<button type="button" class="tag-toggle-btn${isActive ? " tag-toggle-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`;
   }).join("");
 
-  const addTagHtml = `<span class="tag-add-wrap">` +
-    `<input type="text" class="tag-add-input" id="tagAddInput" placeholder="新しいタグ" maxlength="20" />` +
-    `<button type="button" class="tag-add-btn" id="tagAddBtn">＋</button>` +
-    `</span>`;
+  menuEditTagsList.innerHTML = tagsHtml || `<span style="font-size:0.8rem;color:var(--text-light);">タグがありません</span>`;
 
-  menuEditTagsList.innerHTML = tagsHtml + addTagHtml;
-
-  // Tag toggle
   menuEditTagsList.querySelectorAll(".tag-toggle-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("tag-toggle-btn--active");
     });
   });
+}
 
-  // Delete custom tag
-  menuEditTagsList.querySelectorAll(".tag-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
+// ===== Tag Edit Modal =====
+function openTagEditModal() {
+  const modal = $("tagEditModal");
+  renderTagEditList();
+  modal.classList.add("is-open");
+}
+
+function closeTagEditModal() {
+  $("tagEditModal").classList.remove("is-open");
+}
+
+function renderTagEditList() {
+  const container = $("tagEditList");
+  const allTags = getAllTags();
+  const customTags = getCustomTags();
+
+  let html = allTags.map((t) => {
+    const isCustom = customTags.includes(t);
+    return `<div class="tag-edit-row">` +
+      `<span class="tag-edit-name">${escapeHtml(t)}</span>` +
+      (isCustom
+        ? `<button type="button" class="tag-edit-delete-btn" data-tag="${escapeHtml(t)}">削除</button>`
+        : `<span class="tag-edit-preset">プリセット</span>`) +
+      `</div>`;
+  }).join("");
+
+  if (allTags.length === 0) {
+    html = `<p style="text-align:center;color:var(--text-light);font-size:0.85rem;padding:12px 0;">タグがありません</p>`;
+  }
+
+  container.innerHTML = html;
+
+  container.querySelectorAll(".tag-edit-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const tag = btn.dataset.tag;
-      if (confirm(`タグ「${tag}」を削除しますか？`)) {
+      if (confirm(`タグ「${tag}」を削除しますか？\nメニューからもこのタグが外れます。`)) {
         removeCustomTag(tag);
-        const currentSelected = [];
-        menuEditTagsList.querySelectorAll(".tag-toggle-btn--active").forEach((b) => currentSelected.push(b.dataset.tag));
-        renderMenuEditTags(currentSelected.filter((t) => t !== tag));
-        renderMenuList();
+        // Remove tag from all menu items
+        const menuList = getMenuList();
+        menuList.forEach((m) => {
+          if (m.tags && m.tags.includes(tag)) {
+            m.tags = m.tags.filter((t) => t !== tag);
+          }
+        });
+        saveMenuList(menuList);
+        renderTagEditList();
       }
     });
   });
+}
 
-  // Add new tag
-  const tagAddBtn = menuEditTagsList.querySelector("#tagAddBtn");
-  const tagAddInput = menuEditTagsList.querySelector("#tagAddInput");
-  const doAddTag = () => {
-    const name = tagAddInput.value.trim();
-    if (!name) return;
-    if (getAllTags().includes(name)) {
-      showToast("そのタグは既にあります");
-      return;
-    }
-    addCustomTag(name);
-    const currentSelected = [];
-    menuEditTagsList.querySelectorAll(".tag-toggle-btn--active").forEach((b) => currentSelected.push(b.dataset.tag));
-    currentSelected.push(name);
-    renderMenuEditTags(currentSelected);
-    renderMenuList();
-  };
-  tagAddBtn.addEventListener("click", doAddTag);
-  tagAddInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); doAddTag(); }
-  });
+function addTagFromEditModal() {
+  const input = $("tagEditInput");
+  const name = input.value.trim();
+  if (!name) return;
+  if (getAllTags().includes(name)) {
+    showToast("そのタグは既にあります");
+    return;
+  }
+  addCustomTag(name);
+  input.value = "";
+  renderTagEditList();
 }
 
 function openMenuEditModal(id) {
@@ -1804,6 +1934,85 @@ function setupKeyboard() {
       if (e.key === "ArrowRight") goMonth(1);
     }
   });
+}
+
+// ===== 買い物リスト連携 =====
+function initFamilyFirebase() {
+  if (typeof firebase === "undefined") return null;
+  const app = firebase.app().name === "[DEFAULT]"
+    ? firebase.initializeApp(FAMILY_FIREBASE_CONFIG, "family")
+    : firebase.app("family");
+  return app.database();
+}
+
+function ensureFamilyDb() {
+  if (!familyDb) {
+    try { familyDb = initFamilyFirebase(); } catch (e) {
+      // App already initialized
+      try { familyDb = firebase.app("family").database(); } catch { return null; }
+    }
+  }
+  return familyDb;
+}
+
+function promptAddToShoppingList(itemName) {
+  if (!confirm(`「${itemName}」を買い物リストに追加しますか？`)) return;
+
+  const db = ensureFamilyDb();
+  if (!db) {
+    showToast("買い物リスト接続エラー");
+    return;
+  }
+
+  // カテゴリを取得してモーダル表示
+  db.ref("shopping/categories").once("value").then((snap) => {
+    const categories = snap.val() || {};
+    showShoppingCategoryModal(itemName, categories, db);
+  }).catch(() => {
+    showToast("カテゴリ取得エラー");
+  });
+}
+
+function showShoppingCategoryModal(itemName, categories, db) {
+  const modal = $("shoppingAddModal");
+  const nameEl = $("shoppingAddItemName");
+  const catContainer = $("shoppingAddCategories");
+
+  nameEl.textContent = `「${itemName}」`;
+
+  const sorted = Object.entries(categories).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+
+  if (sorted.length === 0) {
+    catContainer.innerHTML = '<p class="shopping-add-loading">買い物リストにカテゴリがありません</p>';
+  } else {
+    catContainer.innerHTML = sorted.map(([catId, cat]) =>
+      `<button class="shopping-add-cat-btn" data-cat-id="${catId}" type="button">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</button>`
+    ).join("");
+
+    catContainer.querySelectorAll(".shopping-add-cat-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const catId = btn.dataset.catId;
+        const itemId = "item_" + Date.now();
+        db.ref("shopping/items/" + catId + "/" + itemId).set({
+          name: itemName,
+          done: false,
+          addedAt: Date.now()
+        }).then(() => {
+          showToast("買い物リストに追加しました");
+        }).catch(() => {
+          showToast("追加エラー");
+        });
+        modal.hidden = true;
+      });
+    });
+  }
+
+  modal.hidden = false;
+
+  $("shoppingAddCancelBtn").onclick = () => { modal.hidden = true; };
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.hidden = true;
+  }, { once: true });
 }
 
 // ===== Firebase =====
@@ -2015,6 +2224,22 @@ function init() {
   menuEditCancelBtn.addEventListener("click", closeMenuEditModal);
   menuEditModal.addEventListener("click", (e) => {
     if (e.target === menuEditModal) document.activeElement?.blur();
+  });
+
+  // Tag edit modal
+  $("tagEditCloseBtn").addEventListener("click", () => {
+    closeTagEditModal();
+    renderMenuList();
+  });
+  $("tagEditAddBtn").addEventListener("click", addTagFromEditModal);
+  $("tagEditInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addTagFromEditModal(); }
+  });
+  $("tagEditModal").addEventListener("click", (e) => {
+    if (e.target === $("tagEditModal")) {
+      closeTagEditModal();
+      renderMenuList();
+    }
   });
 
   // Stock tab - alerts toggle

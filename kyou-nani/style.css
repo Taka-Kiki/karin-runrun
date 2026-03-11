@@ -721,13 +721,11 @@ body {
 
 .menulist-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding-bottom: 8px;
   margin-bottom: 12px;
-  -webkit-overflow-scrolling: touch;
 }
-.menulist-tags::-webkit-scrollbar { display: none; }
 
 .tag-filter-btn {
   font-family: inherit;
@@ -858,110 +856,97 @@ body {
   color: var(--white);
 }
 
-/* ===== Untagged Menus Section ===== */
-.untagged-section {
-  margin: 10px 0;
+
+/* ===== Tag Edit Trigger Button ===== */
+.tag-edit-trigger-btn {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--text-light);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--text-light);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.tag-edit-trigger-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* ===== Tag Filter: Untagged style ===== */
+.tag-filter-btn--untagged {
+  border-style: dashed;
+  color: var(--text-light);
+}
+.tag-filter-btn--untagged.tag-filter-btn--active {
+  border-style: solid;
+}
+
+/* ===== Tag Edit Modal ===== */
+.tag-edit-add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag-edit-add-input {
+  flex: 1;
+  margin-top: 0;
+}
+
+.tag-edit-add-submit {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+
+.tag-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.tag-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
-  background: #fff8e1;
-  border: 1px solid #ffe082;
+  background: var(--accent-light);
+  border: 1.5px solid var(--border);
   border-radius: 10px;
 }
 
-.untagged-title {
-  font-size: 0.78rem;
-  color: #f57f17;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.untagged-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.untagged-chip {
-  font-family: inherit;
-  font-size: 0.78rem;
-  padding: 5px 12px;
-  border: 1.5px dashed #ffb74d;
-  border-radius: 20px;
-  background: var(--white);
+.tag-edit-name {
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--text);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
 }
 
-.untagged-chip:hover,
-.untagged-chip:active {
-  background: #fff3e0;
-  border-color: #ff9800;
+.tag-edit-preset {
+  font-size: 0.72rem;
+  color: var(--text-light);
 }
 
-.tag-toggle-wrap {
-  display: inline-flex;
-  align-items: center;
-  position: relative;
-}
-
-.tag-delete-btn {
-  font-family: inherit;
-  font-size: 0.75rem;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid #e74c3c;
-  border-radius: 50%;
-  background: var(--white);
-  color: #e74c3c;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 2px;
-  line-height: 1;
-}
-.tag-delete-btn:hover,
-.tag-delete-btn:active {
-  background: #e74c3c;
-  color: var(--white);
-}
-
-.tag-add-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tag-add-input {
+.tag-edit-delete-btn {
   font-family: inherit;
   font-size: 0.78rem;
-  padding: 4px 8px;
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
+  padding: 4px 12px;
+  border: 1.5px solid var(--primary-dark);
+  border-radius: 8px;
   background: var(--white);
-  color: var(--text);
-  width: 100px;
-  outline: none;
-}
-.tag-add-input:focus {
-  border-color: var(--basil);
-}
-
-.tag-add-btn {
-  font-family: inherit;
-  font-size: 0.78rem;
-  padding: 4px 10px;
-  border: 1.5px solid var(--basil);
-  border-radius: 20px;
-  background: var(--white);
-  color: var(--basil);
+  color: var(--primary-dark);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
-.tag-add-btn:hover {
-  background: var(--basil);
-  color: var(--white);
+.tag-edit-delete-btn:hover,
+.tag-edit-delete-btn:active {
+  background: #fde8e4;
 }
 
 /* ===== Event Input (予定) ===== */
@@ -1599,6 +1584,68 @@ body {
 }
 .scroll-top-btn:active {
   opacity: 0.7;
+}
+
+/* ===== Pick Mode Banner ===== */
+.pick-mode-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #e0f0ff;
+  border: 1.5px solid #2563a8;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2563a8;
+}
+
+.pick-mode-cancel-btn {
+  padding: 4px 12px;
+  border: 1.5px solid #2563a8;
+  border-radius: 8px;
+  background: var(--white);
+  color: #2563a8;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pick-mode-cancel-btn:hover {
+  background: #e0f0ff;
+}
+
+/* ===== Shopping Add Modal ===== */
+.shopping-add-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.shopping-add-cat-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e0cfc0;
+  border-radius: 10px;
+  background: #fffaf5;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.shopping-add-cat-btn:hover,
+.shopping-add-cat-btn:active {
+  background: #fff0e0;
+  border-color: var(--primary);
+}
+.shopping-add-loading {
+  text-align: center;
+  padding: 20px;
+  color: #999;
 }
 
 /* ===== Responsive ===== */
