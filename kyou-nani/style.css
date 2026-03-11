@@ -1774,6 +1774,8 @@ body {
   .month-label { font-size: 1rem; min-width: 120px; }
 }
 
+.print-footer { display: none; }
+
 /* ===== Print ===== */
 @media print {
   @page {
@@ -1951,7 +1953,7 @@ body {
     gap: 0 4px;
     margin-bottom: 0.5mm;
   }
-  .memo-section.memo-section--empty { display: none !important; }
+  /* 空セクションもラベル付きで印刷 */
   .memo-label {
     font-size: 7pt;
     padding: 0;
@@ -1973,7 +1975,7 @@ body {
     min-height: 0;
     color: #333;
   }
-  .memo-input--free.memo-section--empty { display: none !important; }
+  /* フリー欄も空でも表示 */
   .memo-pick-btn { display: none !important; }
   .memo-divider { display: none !important; }
 
@@ -2009,5 +2011,15 @@ body {
   }
   .cal-expiry-chip small {
     font-size: 5.5pt;
+  }
+
+  /* === 印刷日フッター === */
+  .print-footer {
+    display: block !important;
+    text-align: right;
+    font-size: 7pt;
+    color: #999;
+    margin-top: 2mm;
+    padding-top: 1mm;
   }
 }

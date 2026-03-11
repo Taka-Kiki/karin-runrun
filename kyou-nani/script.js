@@ -2343,7 +2343,16 @@ function init() {
   prevMonthBtn.addEventListener("click", () => goMonth(-1));
   nextMonthBtn.addEventListener("click", () => goMonth(1));
   todayBtn.addEventListener("click", goToday);
-  $("printBtn").addEventListener("click", () => window.print());
+  $("printBtn").addEventListener("click", () => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    const h = String(now.getHours()).padStart(2, "0");
+    const mi = String(now.getMinutes()).padStart(2, "0");
+    $("printFooter").textContent = `印刷日: ${y}/${m}/${d} ${h}:${mi}`;
+    window.print();
+  });
   // Calendar modal
   menuSaveBtn.addEventListener("click", saveMenu);
   menuCopyNextBtn.addEventListener("click", copyToNextDay);
