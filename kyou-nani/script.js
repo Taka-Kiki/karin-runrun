@@ -72,7 +72,7 @@ let menuListPickMode = null; // { entryIdx, editingDate, menuEntries, eventValue
 let menuEntries = []; // [{value: "", mode: "manual"}]
 
 // Stock state
-let stockCategory = "fridge";
+let stockCategory = localStorage.getItem("kondate_stock_cat") || "fridge";
 let stockSearchQuery = "";
 let editingStockId = null;
 
@@ -1289,6 +1289,7 @@ function formatExpiry(expiryStr) {
 
 function switchStockCategory(cat) {
   stockCategory = cat;
+  localStorage.setItem("kondate_stock_cat", cat);
   document.querySelectorAll(".stock-cat-btn").forEach((btn) => {
     btn.classList.toggle("stock-cat-btn--active", btn.dataset.cat === cat);
   });
@@ -1766,12 +1767,44 @@ function renderMenuEditTags(selectedTags) {
     return `<button type="button" class="tag-toggle-btn${isActive ? " tag-toggle-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`;
   }).join("");
 
-  menuEditTagsList.innerHTML = tagsHtml || `<span style="font-size:0.8rem;color:var(--text-light);">タグがありません</span>`;
+  const addBtnHtml = `<button type="button" class="tag-toggle-btn tag-inline-add-btn" id="menuEditTagAddBtn">＋</button>`;
+  const addInputHtml = `<span class="tag-inline-add-wrap" id="menuEditTagAddWrap" hidden>` +
+    `<input type="text" class="tag-inline-add-input" id="menuEditTagAddInput" placeholder="新しいタグ" maxlength="20" />` +
+    `<button type="button" class="tag-inline-add-ok" id="menuEditTagAddOk">追加</button>` +
+    `</span>`;
 
-  menuEditTagsList.querySelectorAll(".tag-toggle-btn").forEach((btn) => {
+  menuEditTagsList.innerHTML = tagsHtml + addBtnHtml + addInputHtml;
+
+  menuEditTagsList.querySelectorAll(".tag-toggle-btn:not(.tag-inline-add-btn)").forEach((btn) => {
     btn.addEventListener("click", () => {
       btn.classList.toggle("tag-toggle-btn--active");
     });
+  });
+
+  // + button: show inline input
+  $("menuEditTagAddBtn").addEventListener("click", () => {
+    $("menuEditTagAddBtn").hidden = true;
+    $("menuEditTagAddWrap").hidden = false;
+    $("menuEditTagAddInput").focus();
+  });
+
+  const doInlineAdd = () => {
+    const input = $("menuEditTagAddInput");
+    const name = input.value.trim();
+    if (!name) return;
+    if (getAllTags().includes(name)) {
+      showToast("そのタグは既にあります");
+      return;
+    }
+    addCustomTag(name);
+    const currentSelected = [];
+    menuEditTagsList.querySelectorAll(".tag-toggle-btn--active").forEach((b) => currentSelected.push(b.dataset.tag));
+    currentSelected.push(name);
+    renderMenuEditTags(currentSelected);
+  };
+  $("menuEditTagAddOk").addEventListener("click", doInlineAdd);
+  $("menuEditTagAddInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); doInlineAdd(); }
   });
 }
 
@@ -1849,6 +1882,9 @@ function openMenuEditModal(id) {
   const selectedTags = item ? [...(item.tags || [])] : [];
 
   renderMenuEditTags(selectedTags);
+
+  // Show delete button only when editing existing item
+  $("menuEditDeleteBtn").hidden = !item;
 
   menuEditModal.classList.add("is-open");
   setTimeout(() => menuEditName.focus(), 100);
@@ -2272,6 +2308,16 @@ function init() {
   // Menu edit modal
   menuEditSaveBtn.addEventListener("click", saveMenuListItem);
   menuEditCancelBtn.addEventListener("click", closeMenuEditModal);
+  $("menuEditDeleteBtn").addEventListener("click", () => {
+    if (!editingMenuId) return;
+    const item = getMenuList().find((m) => m.id === editingMenuId);
+    if (item && confirm(`「${item.name}」を削除しますか？`)) {
+      deleteMenuItem(editingMenuId);
+      closeMenuEditModal();
+      renderMenuList();
+      showToast("削除しました");
+    }
+  });
   menuEditModal.addEventListener("click", (e) => {
     if (e.target === menuEditModal) document.activeElement?.blur();
   });
@@ -2321,6 +2367,7 @@ function init() {
   $("stockSearchBtn").addEventListener("click", commitStockSearch);
   document.querySelectorAll(".stock-cat-btn").forEach((btn) => {
     btn.addEventListener("click", () => switchStockCategory(btn.dataset.cat));
+    btn.classList.toggle("stock-cat-btn--active", btn.dataset.cat === stockCategory);
   });
 
   // Stock edit modal

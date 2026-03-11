@@ -856,6 +856,55 @@ body {
   color: var(--white);
 }
 
+/* ===== Tag Inline Add (Menu Edit Modal) ===== */
+.tag-inline-add-btn {
+  border-style: dashed !important;
+  color: var(--text-light) !important;
+  border-color: var(--text-light) !important;
+  background: var(--white) !important;
+}
+.tag-inline-add-btn:hover {
+  border-color: var(--basil) !important;
+  color: var(--basil) !important;
+}
+
+.tag-inline-add-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-inline-add-input {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--text);
+  width: 100px;
+  outline: none;
+}
+.tag-inline-add-input:focus {
+  border-color: var(--basil);
+}
+
+.tag-inline-add-ok {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border: 1.5px solid var(--basil);
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--basil);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.tag-inline-add-ok:hover {
+  background: var(--basil);
+  color: var(--white);
+}
 
 /* ===== Tag Edit Trigger Button ===== */
 .tag-edit-trigger-btn {
