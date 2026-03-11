@@ -876,13 +876,44 @@ body {
   background: var(--primary-light);
 }
 
-/* ===== Tag Filter: Untagged style ===== */
-.tag-filter-btn--untagged {
-  border-style: dashed;
-  color: var(--text-light);
+/* ===== Untagged Menus Section ===== */
+.untagged-section {
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 10px;
 }
-.tag-filter-btn--untagged.tag-filter-btn--active {
-  border-style: solid;
+
+.untagged-title {
+  font-size: 0.78rem;
+  color: #f57f17;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.untagged-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.untagged-chip {
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border: 1.5px dashed #ffb74d;
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.untagged-chip:hover,
+.untagged-chip:active {
+  background: #fff3e0;
+  border-color: #ff9800;
 }
 
 /* ===== Tag Edit Modal ===== */
@@ -1424,6 +1455,28 @@ body {
 .stock-select {
   appearance: auto;
   cursor: pointer;
+}
+
+.stock-subcat-nav {
+  display: flex;
+  gap: 6px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+.stock-subcat-nav-btn {
+  padding: 4px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stock-subcat-nav-btn:active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .stock-subcat-header {

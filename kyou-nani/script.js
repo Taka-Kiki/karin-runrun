@@ -8,9 +8,10 @@ const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
 const STOCK_SUBCATEGORIES = {
   fridge: { staple: "常備品", vegetable: "野菜" },
+  freezer: { meat_fish: "肉・魚", vegetable: "野菜" },
   pantry: { room_temp: "常温", seasoning: "調味料" },
 };
-const SUBCAT_ORDER = { fridge: ["staple", "vegetable", ""], pantry: ["room_temp", "seasoning", ""] };
+const SUBCAT_ORDER = { fridge: ["staple", "vegetable", ""], freezer: ["meat_fish", "vegetable", ""], pantry: ["room_temp", "seasoning", ""] };
 
 // ===== Firebase =====
 const FIREBASE_CONFIG = {
@@ -151,6 +152,7 @@ function getMenus() {
 }
 
 function saveMenus(menus) {
+  _menusCache = menus;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(menus));
   kondateFirebaseSet(FIREBASE_PATHS.menus, menus);
 }
@@ -306,6 +308,7 @@ function getStock() {
 }
 
 function saveStock(list) {
+  _stockCache = list;
   localStorage.setItem(STOCK_KEY, JSON.stringify(list));
   kondateFirebaseSet(FIREBASE_PATHS.stock, list);
 }
@@ -1419,9 +1422,12 @@ function renderStock() {
 
   list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
 
+  const subcatNav = $("stockSubcatNav");
+
   if (list.length === 0) {
     stockItems.innerHTML = "";
     stockEmpty.hidden = false;
+    subcatNav.hidden = true;
     return;
   }
 
@@ -1432,16 +1438,36 @@ function renderStock() {
     // Group by subcategory
     const subDefs = STOCK_SUBCATEGORIES[stockCategory];
     let html = "";
+    const visibleSubs = [];
     subCats.forEach((sc) => {
       const group = list.filter((s) => (s.subCategory || "") === sc);
       if (group.length === 0) return;
       const label = sc ? subDefs[sc] : "その他";
-      html += `<div class="stock-subcat-header">${escapeHtml(label)}</div>`;
+      const scId = sc || "other";
+      visibleSubs.push({ key: scId, label });
+      html += `<div class="stock-subcat-header" id="stock-sc-${scId}">${escapeHtml(label)}</div>`;
       html += group.map(renderStockItem).join("");
     });
     stockItems.innerHTML = html;
+
+    // Render subcategory nav buttons
+    if (visibleSubs.length > 1) {
+      subcatNav.innerHTML = visibleSubs
+        .map((s) => `<button class="stock-subcat-nav-btn" data-sc="${s.key}" type="button">${escapeHtml(s.label)}</button>`)
+        .join("");
+      subcatNav.hidden = false;
+      subcatNav.querySelectorAll(".stock-subcat-nav-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = $("stock-sc-" + btn.dataset.sc);
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    } else {
+      subcatNav.hidden = true;
+    }
   } else {
     stockItems.innerHTML = list.map(renderStockItem).join("");
+    subcatNav.hidden = true;
   }
 
   // Pin buttons
@@ -1582,17 +1608,10 @@ function deleteStockEditItem() {
 
 // ===== Menu List Tab =====
 function renderMenuListTags() {
-  const allTags = getAllTags();
-  const hasUntagged = getMenuList().some((m) => !m.tags || m.tags.length === 0);
-
-  let html = allTags.map(
+  let html = getAllTags().map(
     (t) =>
       `<button type="button" class="tag-filter-btn${menuListFilterTag === t ? " tag-filter-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join("");
-
-  if (hasUntagged) {
-    html += `<button type="button" class="tag-filter-btn tag-filter-btn--untagged${menuListFilterTag === "__untagged__" ? " tag-filter-btn--active" : ""}" data-tag="__untagged__">タグ未設定</button>`;
-  }
 
   html += `<button type="button" class="tag-edit-trigger-btn" id="tagEditTriggerBtn" title="タグ編集">🏷️ 編集</button>`;
 
@@ -1609,16 +1628,48 @@ function renderMenuListTags() {
   $("tagEditTriggerBtn").addEventListener("click", openTagEditModal);
 }
 
+function renderUntaggedMenus() {
+  const section = $("untaggedSection");
+  if (!section) return;
+
+  const untagged = getMenuList().filter((m) => !m.tags || m.tags.length === 0);
+  if (untagged.length === 0) {
+    section.hidden = true;
+    return;
+  }
+
+  untagged.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+
+  section.hidden = false;
+  section.innerHTML =
+    `<div class="untagged-title">タグ未設定（${untagged.length}）</div>` +
+    `<div class="untagged-chips">${untagged
+      .map((m) => `<button type="button" class="untagged-chip" data-id="${m.id}">${escapeHtml(m.name)}</button>`)
+      .join("")}</div>`;
+
+  section.querySelectorAll(".untagged-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (menuListPickMode) {
+        selectFromPickMode(btn.textContent);
+      } else {
+        openMenuEditModal(btn.dataset.id);
+      }
+    });
+  });
+}
+
 function renderMenuList() {
   renderMenuListTags();
+  renderUntaggedMenus();
 
   let list = getMenuList();
 
   // Filter by tag
-  if (menuListFilterTag === "__untagged__") {
-    list = list.filter((m) => !m.tags || m.tags.length === 0);
-  } else if (menuListFilterTag) {
+  if (menuListFilterTag) {
     list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
+  } else {
+    // Hide untagged items from main list (they are shown in untagged section)
+    list = list.filter((m) => m.tags && m.tags.length > 0);
   }
 
   // Filter by search
@@ -2002,16 +2053,16 @@ function showShoppingCategoryModal(itemName, categories, db) {
         }).catch(() => {
           showToast("追加エラー");
         });
-        modal.hidden = true;
+        modal.classList.remove("is-open");
       });
     });
   }
 
-  modal.hidden = false;
+  modal.classList.add("is-open");
 
-  $("shoppingAddCancelBtn").onclick = () => { modal.hidden = true; };
+  $("shoppingAddCancelBtn").onclick = () => { modal.classList.remove("is-open"); };
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.hidden = true;
+    if (e.target === modal) modal.classList.remove("is-open");
   }, { once: true });
 }
 

@@ -67,6 +67,7 @@
         <button id="addMenuBtn" class="menulist-add-btn" type="button">＋ 追加</button>
       </div>
       <div class="menulist-tags" id="menulistTags"></div>
+      <div id="untaggedSection" class="untagged-section" hidden></div>
       <div id="menulistItems" class="menulist-items"></div>
       <p class="menulist-empty" id="menulistEmpty" hidden>メニューがまだありません。「＋ 追加」で登録しましょう！</p>
     </main>
@@ -99,6 +100,9 @@
           </div>
           <div class="stock-alerts-body" id="stockAlertsBody" hidden></div>
         </div>
+
+        <!-- 小カテゴリナビ -->
+        <div id="stockSubcatNav" class="stock-subcat-nav" hidden></div>
 
         <!-- 在庫リスト -->
         <div id="stockItems" class="stock-items"></div>
@@ -241,7 +245,7 @@
     </div>
 
     <!-- 買い物リスト追加モーダル -->
-    <div id="shoppingAddModal" class="modal-overlay" hidden>
+    <div id="shoppingAddModal" class="modal-overlay">
       <div class="modal-content">
         <h3>買い物リストに追加</h3>
         <p id="shoppingAddItemName" style="font-weight:bold; margin:8px 0 12px;"></p>
