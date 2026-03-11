@@ -226,15 +226,18 @@
         </div>
 
         <!-- ソート -->
-        <div class="nursery-sort">
+        <div class="nursery-sort-row">
           <label class="nursery-sort-label">
             並び替え:
             <select id="nurserySortSelect" class="nursery-sort-select">
               <option value="walk">距離順</option>
               <option value="name">名前順</option>
-              <option value="interest">気になる順</option>
             </select>
           </label>
+          <div class="nursery-list-filters">
+            <button class="nursery-list-filter-btn" data-list-filter="interest" type="button">🤍 気になるリスト</button>
+            <button class="nursery-list-filter-btn" data-list-filter="visited" type="button">👀 見学に行ったリスト</button>
+          </div>
         </div>
 
         <ul id="nurseryList"></ul>

@@ -3233,9 +3233,14 @@ function applyNurseryFilters() {
   const visits = getNurseryVisits();
   const memos = getNurseryMemos();
 
+  const listFilter = document.querySelector(".nursery-list-filter-btn.active");
+  const listFilterType = listFilter ? listFilter.dataset.listFilter : null;
+
   let filtered = nurseryData.filter((item) => {
     if (filterType !== "all" && item.type !== filterType) return false;
     if (item.walkMinutes > maxWalk) return false;
+    if (listFilterType === "interest" && !interests.includes(item.name)) return false;
+    if (listFilterType === "visited" && !visits.includes(item.name)) return false;
     return true;
   });
 
@@ -3243,13 +3248,16 @@ function applyNurseryFilters() {
   filtered.sort((a, b) => {
     if (sortBy === "walk") return a.walkMinutes - b.walkMinutes;
     if (sortBy === "name") return a.name.localeCompare(b.name, "ja");
-    if (sortBy === "interest") {
-      const ai = interests.includes(a.name) ? 0 : 1;
-      const bi = interests.includes(b.name) ? 0 : 1;
-      return ai - bi || a.walkMinutes - b.walkMinutes;
-    }
     return 0;
   });
+
+  if (filtered.length === 0 && listFilterType) {
+    const msg = listFilterType === "interest"
+      ? "💗 気になる保育園はまだありません。各園の「🤍 気になる」ボタンで追加できます。"
+      : "✅ 見学済みの保育園はまだありません。各園の「👀 見学に行った」ボタンで追加できます。";
+    target.innerHTML = `<li class="nursery-empty-msg">${msg}</li>`;
+    return;
+  }
 
   target.innerHTML = filtered
     .map((item) => {
@@ -3357,12 +3365,25 @@ function setupNursery() {
   const sortSelect = document.getElementById("nurserySortSelect");
   if (sortSelect) {
     const savedSort = localStorage.getItem("nurserySort");
-    if (savedSort) sortSelect.value = savedSort;
+    if (savedSort && savedSort !== "interest") sortSelect.value = savedSort;
     sortSelect.addEventListener("change", () => {
       localStorage.setItem("nurserySort", sortSelect.value);
       applyNurseryFilters();
     });
   }
+
+  // List filter (気になるリスト / 見学に行ったリスト)
+  document.querySelectorAll(".nursery-list-filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) {
+        btn.classList.remove("active");
+      } else {
+        document.querySelectorAll(".nursery-list-filter-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      applyNurseryFilters();
+    });
+  });
 
   // Help link — show all types in one modal
   const helpAllBtn = document.getElementById("nurseryHelpAllBtn");

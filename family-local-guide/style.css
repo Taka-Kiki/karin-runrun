@@ -3186,13 +3186,47 @@ mark.search-highlight {
   color: #1e40af;
 }
 
-.nursery-sort {
+.nursery-sort-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
   margin-bottom: 12px;
 }
 
 .nursery-sort-label {
   font-size: 0.8rem;
   color: var(--text-light);
+}
+
+.nursery-list-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.nursery-list-filter-btn {
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid #ddd;
+  background: var(--white);
+  color: var(--text-light);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.nursery-list-filter-btn[data-list-filter="interest"].active {
+  background: #fce7f3;
+  border-color: #ec4899;
+  color: #be123c;
+}
+
+.nursery-list-filter-btn[data-list-filter="visited"].active {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
 }
 
 .nursery-sort-select {
@@ -3203,6 +3237,15 @@ mark.search-highlight {
   border-radius: 8px;
   background: var(--white);
   color: var(--text);
+}
+
+.nursery-empty-msg {
+  text-align: center;
+  padding: 24px 16px !important;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  background: var(--white) !important;
+  border: 1px dashed #ddd !important;
 }
 
 /* 保育園リストアイテム */
