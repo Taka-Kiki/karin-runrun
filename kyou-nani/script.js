@@ -620,7 +620,9 @@ function renderCalendar() {
     html += '<div class="day-cell day-cell--empty"></div>';
   }
 
+  const scrollY = window.scrollY;
   calendarGrid.innerHTML = html;
+  window.scrollTo(0, scrollY);
   calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty)").forEach((cell) => {
     cell.addEventListener("click", (e) => {
       if (isDragging) return;
