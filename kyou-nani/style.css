@@ -1486,6 +1486,7 @@ body {
   padding: 8px 4px 4px;
   border-bottom: 1.5px solid var(--border);
   margin-bottom: 4px;
+  scroll-margin-top: calc(10vh + 100px);
 }
 
 .stock-subcat-header:first-child {

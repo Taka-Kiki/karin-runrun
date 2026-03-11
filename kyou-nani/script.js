@@ -1664,12 +1664,11 @@ function renderMenuList() {
 
   let list = getMenuList();
 
-  // Filter by tag
+  // Filter by tag (show list only when a tag is selected)
   if (menuListFilterTag) {
     list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
-  } else {
-    // Hide untagged items from main list (they are shown in untagged section)
-    list = list.filter((m) => m.tags && m.tags.length > 0);
+  } else if (!menuListSearchQuery) {
+    list = [];
   }
 
   // Filter by search
