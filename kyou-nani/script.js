@@ -382,9 +382,6 @@ function loadCalendarMemo() {
   memoReitou.value = data.reitou || "";
   memoTsukeawase.value = data.tsukeawase || "";
   memoFree.value = data.free || "";
-  const hasContent = MEMO_FIELDS.some(k => (data[k] || "").trim());
-  calendarMemoBody.classList.toggle("calendar-memo-body--open", hasContent);
-  memoToggleArrow.classList.toggle("toggle-arrow--open", hasContent);
   updateMemoPrintVisibility();
   autoResizeAllMemoInputs();
 }
@@ -410,9 +407,7 @@ function saveCalendarMemo() {
 }
 
 function toggleCalendarMemo() {
-  const isOpen = calendarMemoBody.classList.toggle("calendar-memo-body--open");
-  memoToggleArrow.classList.toggle("toggle-arrow--open", isOpen);
-  if (isOpen) memoTsukuritai.focus();
+  // Kept as no-op for backward compat
 }
 
 function updateMemoPrintVisibility() {
@@ -983,11 +978,6 @@ function selectFromMemoPickMode(name) {
   memoTsukuritai.value = cur ? cur + "、" + name : name;
   saveCalendarMemo();
   switchTab("calendar");
-  // Ensure memo is open
-  if (!calendarMemoBody.classList.contains("calendar-memo-body--open")) {
-    calendarMemoBody.classList.add("calendar-memo-body--open");
-    memoToggleArrow.classList.add("toggle-arrow--open");
-  }
 }
 
 function cancelMemoPickMode() {
