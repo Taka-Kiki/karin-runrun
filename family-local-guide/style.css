@@ -3624,6 +3624,85 @@ mark.search-highlight {
   background: #c84b31;
 }
 
+/* 献立セル タップ可能 */
+.kondate-cell:not(.kondate-cell--empty) {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.kondate-cell:not(.kondate-cell--empty):active {
+  opacity: 0.7;
+}
+
+/* 献立ポップアップモーダル */
+.kondate-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.kondate-modal-overlay[hidden] {
+  display: none;
+}
+.kondate-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+.kondate-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fff7ed, #fef3e0);
+  border-bottom: 1px solid #f5e6c8;
+}
+.kondate-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #c84b31;
+}
+.kondate-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+.kondate-modal-close:hover {
+  color: #c84b31;
+}
+.kondate-modal-body {
+  padding: 16px;
+}
+.kondate-modal-menu-item {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #fff;
+  background: #e8763a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.kondate-modal-menu-item:last-child {
+  margin-bottom: 0;
+}
+.kondate-modal-empty {
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 8px 0;
+}
+
 /* ===== 在庫管理 ===== */
 #supplies h2 { color: #0d9488; }
 #supplies h2::before { content: "🧴 "; }

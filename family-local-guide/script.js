@@ -3675,6 +3675,7 @@ async function init() {
   setupFirebaseSync();
   setupNursery();
   setupKondateView();
+  setupKondateModal();
   setupFirstAidAccordion();
   setupFirstAidNav();
   try {
@@ -3807,7 +3808,7 @@ function renderKondateCalendar() {
     if (dateStr === todayStr) classes += " kondate-cell--today";
     if (menuArr.length > 0) classes += " kondate-cell--filled";
 
-    html += `<div class="${classes}">`;
+    html += `<div class="${classes}" data-date="${dateStr}">`;
     html += `<span class="kondate-cell-num">${d}</span>`;
     if (menuArr.length > 0) {
       html += menuArr.map((m) => `<span class="kondate-cell-menu">${escapeHtml(m)}</span>`).join("");
@@ -3822,6 +3823,50 @@ function renderKondateCalendar() {
   }
 
   grid.innerHTML = html;
+}
+
+/* --- 献立ポップアップ --- */
+function setupKondateModal() {
+  const grid = document.getElementById("kondateGrid");
+  const modal = document.getElementById("kondateModal");
+  if (!grid || !modal) return;
+
+  const dowNames = ["日", "月", "火", "水", "木", "金", "土"];
+
+  grid.addEventListener("click", (e) => {
+    const cell = e.target.closest(".kondate-cell:not(.kondate-cell--empty)");
+    if (!cell) return;
+    const dateStr = cell.dataset.date;
+    if (!dateStr) return;
+
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const dow = dowNames[date.getDay()];
+    document.getElementById("kondateModalTitle").textContent = `${m}月${d}日（${dow}）`;
+
+    const raw = kondateMenus[dateStr];
+    let menuArr = [];
+    if (raw) {
+      if (typeof raw === "string") menuArr = raw.trim() ? [raw.trim()] : [];
+      else if (Array.isArray(raw)) menuArr = raw.filter((s) => s && s.trim());
+    }
+
+    const body = document.getElementById("kondateModalBody");
+    if (menuArr.length > 0) {
+      body.innerHTML = menuArr.map((m) => `<span class="kondate-modal-menu-item">${escapeHtml(m)}</span>`).join("");
+    } else {
+      body.innerHTML = '<p class="kondate-modal-empty">献立が登録されていません</p>';
+    }
+
+    modal.hidden = false;
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.hidden = true;
+  });
+  modal.querySelector(".kondate-modal-close").addEventListener("click", () => {
+    modal.hidden = true;
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
