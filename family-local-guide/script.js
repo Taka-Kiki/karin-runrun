@@ -3140,7 +3140,7 @@ function showMapBackToast(map) {
   setTimeout(() => {
     toast.style.opacity = "0";
     setTimeout(() => toast.remove(), 400);
-  }, 2500);
+  }, 5000);
 }
 
 const NURSERY_TYPE_COLORS = {
@@ -4081,7 +4081,6 @@ function renderKondateCalendar() {
     if (dow === 0) classes += " kondate-cell--sun";
     if (dow === 6) classes += " kondate-cell--sat";
     if (dateStr === todayStr) classes += " kondate-cell--today";
-    if (menuArr.length > 0) classes += " kondate-cell--filled";
 
     html += `<div class="${classes}" data-date="${dateStr}">`;
     html += `<span class="kondate-cell-num">${d}</span>`;

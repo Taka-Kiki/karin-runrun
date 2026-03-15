@@ -3164,7 +3164,7 @@ mark.search-highlight {
 
 .map-back-toast {
   position: absolute;
-  bottom: 12px;
+  top: 46px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.75);
@@ -3706,12 +3706,8 @@ mark.search-highlight {
   background: #fafaf5;
 }
 .kondate-cell--today {
-  background: #fff7ed;
-  border: 2px solid #e8763a;
+  border: 3px solid #e8763a;
   border-radius: 4px;
-}
-.kondate-cell--filled {
-  background: #fef3e0;
 }
 .kondate-cell--sun .kondate-cell-num { color: #c84b31; }
 .kondate-cell--sat .kondate-cell-num { color: #5a8a3c; }
