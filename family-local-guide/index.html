@@ -8,13 +8,18 @@
       name="description"
       content="家庭内用の近所の小児科・保育園・緊急連絡先をまとめるサイト"
     />
-    <link rel="stylesheet" href="./style.css?v=2" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="./style.css?v=3" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
   </head>
   <body>
     <div class="sticky-top">
       <header class="site-header">
-        <img src="./images/char-bunny.png" alt="" class="header-char header-char-left" />
+        <img src="./images/char-bunny.webp" alt="" class="header-char header-char-left" />
         <div class="header-center">
           <h1>Family Local Guide</h1>
           <div class="header-search">
@@ -34,7 +39,7 @@
           </div>
           <div id="searchResultInfo" class="search-result-info" hidden></div>
         </div>
-        <img src="./images/char-puppy.png" alt="" class="header-char header-char-right" />
+        <img src="./images/char-puppy.webp" alt="" class="header-char header-char-right" />
         <div class="header-menu-wrapper">
           <button id="headerMenuBtn" class="header-menu-btn" type="button" aria-label="メニュー">⋮</button>
           <div id="headerMenuDropdown" class="header-menu-dropdown" hidden>
@@ -77,46 +82,46 @@
       </section>
       <div class="home-grid">
         <button class="home-card home-card--pink" data-tab="hospital">
-          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">病院</span>
         </button>
         <button class="home-card home-card--yellow" data-tab="emergency">
-          <img src="./images/char-star.png" alt="" class="home-card-icon" />
+          <img src="./images/char-star.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">困ったとき</span>
         </button>
         <button class="home-card home-card--purple" data-tab="taxi">
-          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">タクシー</span>
         </button>
         <button class="home-card home-card--peach" data-tab="nursery">
-          <img src="./images/char-star.png" alt="" class="home-card-icon" />
+          <img src="./images/char-star.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">保育園</span>
         </button>
         <button class="home-card home-card--green" data-tab="caresupport">
-          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">預け先</span>
         </button>
         <button class="home-card home-card--blue" data-tab="govlinks">
-          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">情報サイト</span>
         </button>
         <button class="home-card home-card--rose" data-tab="calendar">
-          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">カレンダー</span>
         </button>
 
         <button class="home-card home-card--mint" data-tab="shopping">
-          <img src="./images/char-puppy.png" alt="" class="home-card-icon" />
+          <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">買い物リスト</span>
         </button>
 
         <button class="home-card home-card--teal" data-tab="supplies">
-          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">在庫</span>
         </button>
 
         <button class="home-card home-card--orange" data-tab="kondate">
-          <img src="./images/char-bunny.png" alt="" class="home-card-icon" />
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">献立</span>
         </button>
       </div>
@@ -130,7 +135,7 @@
         <div class="panel-header">
           <h2>病院リスト</h2>
           <button id="hospitalMapToggle" class="nursery-map-icon-btn" type="button" title="地図で見る">🗺️ 地図で見る</button>
-          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+          <img src="./images/char-bunny.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <div id="hospitalMapContainer" class="nursery-map-container" hidden>
           <div id="hospitalMap" class="nursery-map"></div>
@@ -160,7 +165,7 @@
       <section class="panel" id="emergency" hidden>
         <div class="panel-header">
           <h2>困ったとき</h2>
-          <img src="./images/char-star.png" alt="" class="panel-char" />
+          <img src="./images/char-star.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <!-- 緊急電話バナー -->
         <div id="emergencyBanners" class="emergency-banners"></div>
@@ -173,7 +178,7 @@
       <section class="panel" id="taxi" hidden>
         <div class="panel-header">
           <h2>タクシー</h2>
-          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+          <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <!-- 通常 / 陣痛 切替トグル -->
         <div class="taxi-toggle">
@@ -200,7 +205,7 @@
         <div class="panel-header">
           <h2>保育園リスト</h2>
           <button id="nurseryMapToggle" class="nursery-map-icon-btn" type="button" title="地図で見る">🗺️ 地図で見る</button>
-          <img src="./images/char-star.png" alt="" class="panel-char" />
+          <img src="./images/char-star.webp" alt="" class="panel-char" loading="lazy" />
         </div>
 
         <div id="nurseryMapContainer" class="nursery-map-container" hidden>
@@ -272,7 +277,7 @@
       <section class="panel" id="caresupport" hidden>
         <div class="panel-header">
           <h2>預け先・サポート</h2>
-          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+          <img src="./images/char-bunny.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <div class="care-filter">
           <button class="care-filter-btn active" data-care-filter="all" type="button">すべて</button>
@@ -289,7 +294,7 @@
       <section class="panel" id="govlinks" hidden>
         <div class="panel-header">
           <h2>子育て情報サイト</h2>
-          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+          <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <ul id="govlinksList"></ul>
       </section>
@@ -297,7 +302,7 @@
       <section class="panel" id="calendar" hidden>
         <div class="panel-header">
           <h2>こどもカレンダー</h2>
-          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+          <img src="./images/char-bunny.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <p class="calendar-intro">お子さまの成長に合わせた行事・予防接種・健診の目安をまとめました。</p>
         <div class="calendar-filter">
@@ -785,7 +790,7 @@
       <section class="panel" id="shopping" hidden>
         <div class="panel-header">
           <h2>買い物リスト</h2>
-          <img src="./images/char-puppy.png" alt="" class="panel-char" />
+          <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <p class="shopping-sync-status" id="shoppingSyncStatus"></p>
         <div class="shopping-filter" id="shoppingFilter"></div>
@@ -800,7 +805,7 @@
       <section class="panel" id="supplies" hidden>
         <div class="panel-header">
           <h2>在庫管理</h2>
-          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+          <img src="./images/char-bunny.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <p class="supplies-sync-status" id="suppliesSyncStatus"></p>
         <div class="supplies-cat-bar">
@@ -825,7 +830,7 @@
       <section class="panel" id="kondate" hidden>
         <div class="panel-header">
           <h2>献立カレンダー</h2>
-          <img src="./images/char-bunny.png" alt="" class="panel-char" />
+          <img src="./images/char-bunny.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <p class="kondate-sync-status" id="kondateSyncStatus"></p>
         <div class="kondate-month-nav">
@@ -1094,10 +1099,10 @@
       <p id="favoritesEmpty" class="favorites-empty" hidden>お気に入りがまだありません。各リストの項目をタップして追加しましょう。</p>
     </aside>
 
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
-    <script src="./script.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+    <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <script defer src="./script.js"></script>
   </body>
 </html>
