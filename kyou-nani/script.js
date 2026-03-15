@@ -5,6 +5,7 @@ const MEMO_KEY = "kondate_calendar_memo";
 const EVENTS_KEY = "kondate_events";
 const PRESET_TAGS = ["いつもの", "お気に入り"];
 const CUSTOM_TAGS_KEY = "kondate_custom_tags";
+const TAG_ORDER_KEY = "kondate_tag_order";
 const STOCK_CATEGORIES = { fridge: "冷蔵庫", freezer: "冷凍庫", pantry: "常温・調味料" };
 const STOCK_SUBCATEGORIES = {
   fridge: { staple: "常備品", vegetable: "野菜" },
@@ -31,6 +32,7 @@ const FIREBASE_PATHS = {
   memo: "memo",
   customTags: "customTags",
   events: "events",
+  tagOrder: "tagOrder",
 };
 
 // Family-local-guide Firebase (買い物リスト連携用)
@@ -52,6 +54,7 @@ let _menuListCache = null;
 let _stockCache = null;
 let _memoCache = null;
 let _customTagsCache = null;
+let _tagOrderCache = null;
 let _eventsCache = null;
 let _localMenusSnapshot = {};
 
@@ -192,10 +195,37 @@ function addCustomTag(name) {
 function removeCustomTag(name) {
   const tags = getCustomTags().filter((t) => t !== name);
   saveCustomTags(tags);
+  // Also remove from tag order
+  const order = getTagOrder();
+  if (order) {
+    saveTagOrder(order.filter((t) => t !== name));
+  }
+}
+
+// ===== Storage: Tag Order =====
+function getTagOrder() {
+  if (_tagOrderCache !== null) return _tagOrderCache;
+  try {
+    return JSON.parse(localStorage.getItem(TAG_ORDER_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveTagOrder(order) {
+  _tagOrderCache = order;
+  localStorage.setItem(TAG_ORDER_KEY, JSON.stringify(order));
+  kondateFirebaseSet(FIREBASE_PATHS.tagOrder, order);
 }
 
 function getAllTags() {
-  return [...PRESET_TAGS, ...getCustomTags()];
+  const allDefault = [...PRESET_TAGS, ...getCustomTags()];
+  const order = getTagOrder();
+  if (!order) return allDefault;
+  // Return tags in saved order, appending any new tags not yet in order
+  const ordered = order.filter((t) => allDefault.includes(t));
+  const missing = allDefault.filter((t) => !order.includes(t));
+  return [...ordered, ...missing];
 }
 
 // ===== Storage: Events (予定) =====
@@ -451,7 +481,7 @@ function unpinStock(id) {
 }
 
 function renderPinnedStock() {
-  const pinned = getStock().filter((s) => s.pinned);
+  const pinned = getStock().filter((s) => s.pinned && (s.qty != null ? s.qty : 1) > 0);
   if (pinned.length === 0) {
     pinnedStockEl.hidden = true;
     return;
@@ -755,16 +785,25 @@ function setupEntryDragAndDrop() {
   if (entries.length < 2) return;
 
   let dragSrcIdx = null;
+  let isDragFromHandle = false;
+
+  // Track mousedown on handle to allow drag only from handle
+  entries.forEach((el) => {
+    const handle = el.querySelector(".entry-drag-handle");
+    if (handle) {
+      handle.addEventListener("mousedown", () => { isDragFromHandle = true; });
+    }
+  });
+  document.addEventListener("mouseup", () => { isDragFromHandle = false; });
 
   // --- PC: HTML5 Drag and Drop ---
   entries.forEach((el) => {
     el.addEventListener("dragstart", (e) => {
-      // Only allow drag from the handle
-      const handle = el.querySelector(".entry-drag-handle");
-      if (!handle || !handle.contains(e.target)) {
+      if (!isDragFromHandle) {
         e.preventDefault();
         return;
       }
+      isDragFromHandle = false;
       dragSrcIdx = Number(el.dataset.idx);
       el.classList.add("menu-entry--dragging");
       e.dataTransfer.effectAllowed = "move";
@@ -1582,6 +1621,11 @@ function changeStockQty(id, field, delta) {
   if (field === "qty" && newVal === 0 && current > 0) {
     promptAddToShoppingList(item.name);
   }
+
+  // 予備が0になったら買い物リスト追加を提案（常温・調味料のみ）
+  if (field === "spareQty" && newVal === 0 && current > 0 && item.category === "pantry") {
+    promptAddToShoppingList(item.name);
+  }
 }
 
 // ===== Stock Edit Modal =====
@@ -1684,12 +1728,14 @@ function deleteStockEditItem() {
 
 // ===== Menu List Tab =====
 function renderMenuListTags() {
-  let html = getAllTags().map(
+  let html = `<div class="tag-list-header"><span class="tag-list-title">タグリスト</span><button type="button" class="tag-edit-trigger-btn" id="tagEditTriggerBtn" title="タグ編集">🏷️ 編集</button></div>`;
+
+  html += `<div class="tag-list-chips">`;
+  html += getAllTags().map(
     (t) =>
       `<button type="button" class="tag-filter-btn${menuListFilterTag === t ? " tag-filter-btn--active" : ""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
   ).join("");
-
-  html += `<button type="button" class="tag-edit-trigger-btn" id="tagEditTriggerBtn" title="タグ編集">🏷️ 編集</button>`;
+  html += `</div>`;
 
   menulistTags.innerHTML = html;
 
@@ -1885,9 +1931,13 @@ function renderTagEditList() {
   const allTags = getAllTags();
   const customTags = getCustomTags();
 
-  let html = allTags.map((t) => {
+  let html = allTags.map((t, idx) => {
     const isCustom = customTags.includes(t);
-    return `<div class="tag-edit-row">` +
+    const dragHandle = allTags.length > 1
+      ? `<span class="tag-edit-drag-handle" data-idx="${idx}" title="ドラッグで並べ替え">☰</span>`
+      : "";
+    return `<div class="tag-edit-row" data-idx="${idx}" draggable="${allTags.length > 1}">` +
+      dragHandle +
       `<span class="tag-edit-name">${escapeHtml(t)}</span>` +
       (isCustom
         ? `<button type="button" class="tag-edit-delete-btn" data-tag="${escapeHtml(t)}">削除</button>`
@@ -1917,6 +1967,136 @@ function renderTagEditList() {
         renderTagEditList();
       }
     });
+  });
+
+  setupTagEditDragAndDrop();
+}
+
+function setupTagEditDragAndDrop() {
+  const container = $("tagEditList");
+  const rows = container.querySelectorAll(".tag-edit-row");
+  if (rows.length < 2) return;
+
+  let dragSrcIdx = null;
+  let isDragFromHandle = false;
+
+  // Track mousedown on handle
+  rows.forEach((row) => {
+    const handle = row.querySelector(".tag-edit-drag-handle");
+    if (handle) {
+      handle.addEventListener("mousedown", () => { isDragFromHandle = true; });
+    }
+  });
+  document.addEventListener("mouseup", () => { isDragFromHandle = false; });
+
+  // --- PC: HTML5 Drag and Drop ---
+  rows.forEach((row) => {
+    row.addEventListener("dragstart", (e) => {
+      if (!isDragFromHandle) { e.preventDefault(); return; }
+      isDragFromHandle = false;
+      dragSrcIdx = Number(row.dataset.idx);
+      row.classList.add("tag-edit-row--dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", dragSrcIdx);
+    });
+
+    row.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      row.classList.add("tag-edit-row--drag-over");
+    });
+
+    row.addEventListener("dragleave", () => {
+      row.classList.remove("tag-edit-row--drag-over");
+    });
+
+    row.addEventListener("dragend", () => {
+      row.classList.remove("tag-edit-row--dragging");
+      rows.forEach((r) => r.classList.remove("tag-edit-row--drag-over"));
+    });
+
+    row.addEventListener("drop", (e) => {
+      e.preventDefault();
+      row.classList.remove("tag-edit-row--drag-over");
+      const dropIdx = Number(row.dataset.idx);
+      if (dragSrcIdx !== null && dragSrcIdx !== dropIdx) {
+        const allTags = getAllTags();
+        const [moved] = allTags.splice(dragSrcIdx, 1);
+        allTags.splice(dropIdx, 0, moved);
+        saveTagOrder(allTags);
+        renderTagEditList();
+        renderMenuListTags();
+      }
+      dragSrcIdx = null;
+    });
+  });
+
+  // --- Mobile: Touch-based drag ---
+  const handles = container.querySelectorAll(".tag-edit-drag-handle");
+
+  handles.forEach((handle) => {
+    handle.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const row = handle.closest(".tag-edit-row");
+      const touchDragIdx = Number(row.dataset.idx);
+      const touchStartY = e.touches[0].clientY;
+
+      row.classList.add("tag-edit-row--dragging");
+
+      // Create floating clone
+      const touchClone = row.cloneNode(true);
+      touchClone.classList.add("tag-edit-row-clone");
+      const rect = row.getBoundingClientRect();
+      touchClone.style.width = rect.width + "px";
+      touchClone.style.left = rect.left + "px";
+      touchClone.style.top = rect.top + "px";
+      document.body.appendChild(touchClone);
+
+      function onTouchMove(ev) {
+        const touch = ev.touches[0];
+        const dy = touch.clientY - touchStartY;
+        touchClone.style.top = (rect.top + dy) + "px";
+
+        rows.forEach((r) => r.classList.remove("tag-edit-row--drag-over"));
+        touchClone.style.display = "none";
+        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+        touchClone.style.display = "";
+        if (target) {
+          const targetRow = target.closest(".tag-edit-row");
+          if (targetRow && targetRow.parentElement === container) {
+            targetRow.classList.add("tag-edit-row--drag-over");
+          }
+        }
+      }
+
+      function onTouchEnd() {
+        document.removeEventListener("touchmove", onTouchMove);
+        document.removeEventListener("touchend", onTouchEnd);
+
+        const overEl = container.querySelector(".tag-edit-row--drag-over");
+        if (overEl) {
+          const dropIdx = Number(overEl.dataset.idx);
+          if (touchDragIdx !== dropIdx) {
+            const allTags = getAllTags();
+            const [moved] = allTags.splice(touchDragIdx, 1);
+            allTags.splice(dropIdx, 0, moved);
+            saveTagOrder(allTags);
+          }
+        }
+
+        touchClone.remove();
+        rows.forEach((r) => {
+          r.classList.remove("tag-edit-row--dragging");
+          r.classList.remove("tag-edit-row--drag-over");
+        });
+
+        renderTagEditList();
+        renderMenuListTags();
+      }
+
+      document.addEventListener("touchmove", onTouchMove, { passive: true });
+      document.addEventListener("touchend", onTouchEnd, { once: true });
+    }, { passive: false });
   });
 }
 
@@ -2253,6 +2433,14 @@ function setupKondateSync() {
     localStorage.setItem(CUSTOM_TAGS_KEY, JSON.stringify(_customTagsCache));
     if (activeTab === "menulist") renderMenuList();
   });
+
+  // Tag order listener
+  kondateDb.ref(FIREBASE_PATHS.tagOrder).on("value", (snap) => {
+    const val = snap.val();
+    _tagOrderCache = val ? (Array.isArray(val) ? val : Object.values(val)) : null;
+    localStorage.setItem(TAG_ORDER_KEY, JSON.stringify(_tagOrderCache));
+    if (activeTab === "menulist") renderMenuList();
+  });
 }
 
 function migrateKondateToFirebase() {
@@ -2266,6 +2454,7 @@ function migrateKondateToFirebase() {
     { key: MEMO_KEY, path: FIREBASE_PATHS.memo },
     { key: CUSTOM_TAGS_KEY, path: FIREBASE_PATHS.customTags },
     { key: EVENTS_KEY, path: FIREBASE_PATHS.events },
+    { key: TAG_ORDER_KEY, path: FIREBASE_PATHS.tagOrder },
   ];
 
   const promises = [];

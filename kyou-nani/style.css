@@ -773,11 +773,28 @@ body {
 .menulist-add-btn:active { opacity: 0.7; }
 
 .menulist-tags {
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.tag-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tag-list-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--basil);
+  letter-spacing: 0.04em;
+}
+
+.tag-list-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
 }
 
 .tag-filter-btn {
@@ -1011,17 +1028,53 @@ body {
 .tag-edit-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   padding: 10px 12px;
   background: var(--accent-light);
   border: 1.5px solid var(--border);
   border-radius: 10px;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.tag-edit-row--dragging {
+  opacity: 0.4;
+}
+.tag-edit-row--drag-over {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--accent-light));
+}
+.tag-edit-row-clone {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.85;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  border-radius: 10px;
+  background: var(--accent-light);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.tag-edit-drag-handle {
+  cursor: grab;
+  font-size: 1rem;
+  color: var(--text-light);
+  user-select: none;
+  touch-action: none;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+.tag-edit-drag-handle:active {
+  cursor: grabbing;
 }
 
 .tag-edit-name {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text);
+  flex: 1;
 }
 
 .tag-edit-preset {
