@@ -1354,6 +1354,28 @@ li:hover {
   transform: translateY(0);
 }
 
+.shopping-filter-handle {
+  cursor: grab;
+  opacity: 0.4;
+  margin-right: 4px;
+  font-size: 0.75rem;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.shopping-filter-handle:hover {
+  opacity: 0.8;
+}
+
+.shopping-filter-btn.sortable-chosen {
+  opacity: 0.7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.shopping-filter-btn.sortable-ghost {
+  opacity: 0.3;
+}
+
 .shopping-categories {
   display: flex;
   flex-direction: column;
@@ -3138,6 +3160,24 @@ mark.search-highlight {
 }
 .map-reset-btn:hover {
   background: #f0f0f0;
+}
+
+.map-back-toast {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 12px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.4s;
 }
 
 .nursery-filter {

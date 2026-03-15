@@ -2782,16 +2782,20 @@ function addCategory(input) {
   input.value = "";
 }
 
+let shoppingFilterSortable = null;
+
 function renderShoppingFilter(sortedCategories) {
   const filterContainer = document.getElementById("shoppingFilter");
   if (!filterContainer) return;
 
   filterContainer.innerHTML = sortedCategories.map(([catId, cat]) =>
-    `<button class="shopping-filter-btn" data-jump-cat="${catId}" type="button">${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</button>`
+    `<button class="shopping-filter-btn" data-jump-cat="${catId}" type="button"><span class="shopping-filter-handle" title="ドラッグで並び替え">☰</span>${cat.icon ? cat.icon + " " : ""}${escapeHtml(cat.name)}</button>`
   ).join("");
 
   filterContainer.querySelectorAll(".shopping-filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", (e) => {
+      // ハンドル部分のクリックではジャンプしない
+      if (e.target.classList.contains("shopping-filter-handle")) return;
       const target = document.getElementById("shopping-cat-" + btn.dataset.jumpCat);
       if (!target) return;
       const headerHeight = document.querySelector(".sticky-top")?.offsetHeight || 0;
@@ -2802,6 +2806,23 @@ function renderShoppingFilter(sortedCategories) {
       setTimeout(() => target.classList.remove("shopping-category--highlight"), 1500);
     });
   });
+
+  // SortableJS でドラッグ並び替え
+  if (shoppingFilterSortable) shoppingFilterSortable.destroy();
+  if (typeof Sortable !== "undefined") {
+    shoppingFilterSortable = Sortable.create(filterContainer, {
+      handle: ".shopping-filter-handle",
+      animation: 150,
+      onEnd: () => {
+        const btns = filterContainer.querySelectorAll(".shopping-filter-btn");
+        const updates = {};
+        btns.forEach((btn, i) => {
+          updates["shopping/categories/" + btn.dataset.jumpCat + "/order"] = i;
+        });
+        shoppingDb.ref().update(updates);
+      },
+    });
+  }
 }
 
 function renderShoppingCategories(categories) {
@@ -3079,8 +3100,48 @@ let nurseryMapMarkers = [];
 let hospitalMap = null;
 let hospitalMapMarkers = [];
 let hospitalData = {};
-const HOME_LAT = 35.424469;
-const HOME_LNG = 139.597641;
+const HOME_LAT = 35.427675;
+const HOME_LNG = 139.598586;
+
+// --- Map back-button support ---
+// Push history state when map is zoomed/moved so browser back resets the map
+let mapHistoryDepth = 0;
+
+function setupMapBackButton(map, defaultZoom, mapName) {
+  let isResetting = false;
+  map.on("zoomend moveend", function () {
+    if (isResetting) return;
+    const center = map.getCenter();
+    const zoom = map.getZoom();
+    // Don't push if already at default view
+    if (Math.abs(center.lat - HOME_LAT) < 0.0001 && Math.abs(center.lng - HOME_LNG) < 0.0001 && zoom === defaultZoom) return;
+    history.pushState({ mapBack: mapName }, "");
+    mapHistoryDepth++;
+    showMapBackToast(map);
+  });
+
+  window.addEventListener("popstate", function (e) {
+    if (e.state && e.state.mapBack === mapName) {
+      mapHistoryDepth = Math.max(0, mapHistoryDepth - 1);
+      isResetting = true;
+      map.setView([HOME_LAT, HOME_LNG], defaultZoom);
+      setTimeout(() => { isResetting = false; }, 300);
+    }
+  });
+}
+
+function showMapBackToast(map) {
+  const container = map.getContainer();
+  if (container.querySelector(".map-back-toast")) return;
+  const toast = document.createElement("div");
+  toast.className = "map-back-toast";
+  toast.textContent = "← 戻るボタンまたは「🏠 全体」で元に戻れます";
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 400);
+  }, 2500);
+}
 
 const NURSERY_TYPE_COLORS = {
   "認可": "#22c55e",
@@ -3111,6 +3172,11 @@ function createMapResetControl(defaultZoom) {
       btn.onclick = function (e) {
         e.stopPropagation();
         e.preventDefault();
+        // Clear map history states before resetting
+        if (mapHistoryDepth > 0) {
+          history.go(-mapHistoryDepth);
+          mapHistoryDepth = 0;
+        }
         map.setView([HOME_LAT, HOME_LNG], defaultZoom);
       };
       L.DomEvent.disableClickPropagation(btn);
@@ -3143,6 +3209,7 @@ function initNurseryMap() {
     .bindPopup("<strong>自宅</strong>");
 
   createMapResetControl(15).addTo(nurseryMap);
+  setupMapBackButton(nurseryMap, 15, "nursery");
 
   updateNurseryMapMarkers();
 }
@@ -3231,6 +3298,7 @@ function initHospitalMap() {
     .bindPopup("<strong>自宅</strong>");
 
   createMapResetControl(14).addTo(hospitalMap);
+  setupMapBackButton(hospitalMap, 14, "hospital");
 
   updateHospitalMapMarkers();
 }
