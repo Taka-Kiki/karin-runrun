@@ -772,7 +772,7 @@ body {
 
 .menulist-tags {
   background: var(--accent-light);
-  border: 1.5px solid var(--border);
+  border: 2.5px solid var(--basil);
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 14px;
