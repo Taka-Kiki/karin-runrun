@@ -2649,6 +2649,10 @@ mark.search-highlight {
   padding-top: 6px;
 }
 
+.child-suggestions.collapsed {
+  display: none;
+}
+
 @media (max-width: 480px) {
   .child-suggestions {
     flex-direction: column;

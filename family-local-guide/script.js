@@ -478,7 +478,7 @@ function applyFamilyToggleState() {
   const btn = document.getElementById("childrenToggleBtn");
   if (btn) btn.textContent = collapsed ? "▶" : "▼";
   document.querySelectorAll(".child-suggestions").forEach((el) => {
-    el.hidden = collapsed;
+    el.classList.toggle("collapsed", collapsed);
   });
 }
 
@@ -552,6 +552,13 @@ function setupChildManagement() {
       return;
     }
 
+    // タスクのナビゲーションボタン（child-suggestion-item の内部にあるため先にチェック）
+    const navBtn = e.target.closest(".birth-task-nav-btn");
+    if (navBtn) {
+      navigateTo(navBtn.dataset.nav);
+      return;
+    }
+
     const suggestionBtn = e.target.closest(".child-suggestion-item");
     if (suggestionBtn) {
       const periodId = suggestionBtn.dataset.jumpPeriod;
@@ -573,13 +580,6 @@ function setupChildManagement() {
     const bornBtn = e.target.closest(".child-born-btn");
     if (bornBtn) {
       openBirthConvertModal(bornBtn.dataset.childId);
-      return;
-    }
-
-    // タスクのナビゲーションボタン
-    const navBtn = e.target.closest(".birth-task-nav-btn");
-    if (navBtn) {
-      navigateTo(navBtn.dataset.nav);
       return;
     }
   });
@@ -3070,8 +3070,8 @@ let nurseryMapMarkers = [];
 let hospitalMap = null;
 let hospitalMapMarkers = [];
 let hospitalData = {};
-const HOME_LAT = 35.4200;
-const HOME_LNG = 139.6095;
+const HOME_LAT = 35.424469;
+const HOME_LNG = 139.597641;
 
 const NURSERY_TYPE_COLORS = {
   "認可": "#22c55e",
@@ -3090,6 +3090,25 @@ function createNurseryMapIcon(type) {
     iconAnchor: [7, 7],
     popupAnchor: [0, -10],
   });
+}
+
+function createMapResetControl(defaultZoom) {
+  const ResetControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function (map) {
+      const btn = L.DomUtil.create("button", "map-reset-btn");
+      btn.innerHTML = "🏠 全体";
+      btn.title = "初期表示に戻す";
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        map.setView([HOME_LAT, HOME_LNG], defaultZoom);
+      };
+      L.DomEvent.disableClickPropagation(btn);
+      return btn;
+    },
+  });
+  return new ResetControl();
 }
 
 function initNurseryMap() {
@@ -3113,6 +3132,8 @@ function initNurseryMap() {
   L.marker([HOME_LAT, HOME_LNG], { icon: homeIcon })
     .addTo(nurseryMap)
     .bindPopup("<strong>自宅</strong>");
+
+  createMapResetControl(15).addTo(nurseryMap);
 
   updateNurseryMapMarkers();
 }
@@ -3199,6 +3220,8 @@ function initHospitalMap() {
   L.marker([HOME_LAT, HOME_LNG], { icon: homeIcon })
     .addTo(hospitalMap)
     .bindPopup("<strong>自宅</strong>");
+
+  createMapResetControl(14).addTo(hospitalMap);
 
   updateHospitalMapMarkers();
 }
