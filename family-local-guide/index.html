@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://unpkg.com" crossorigin />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="./style.css?v=3" />
+    <link rel="stylesheet" href="./style.css?v=4" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" media="print" onload="this.media='all'" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
   </head>
@@ -50,20 +50,23 @@
         </div>
       </header>
 
-      <!-- ===== ヘッダー下ナビ ===== -->
+      <!-- ===== ヘッダー下ナビ（2行） ===== -->
       <nav class="header-nav" id="headerNav">
-        <button class="header-nav-item active" data-nav="home" type="button">🏠 ホーム</button>
-        <button class="header-nav-item" data-nav="hospital" type="button">🏥 病院</button>
-        <button class="header-nav-item" data-nav="emergency" type="button">⭐ 緊急</button>
-        <button class="header-nav-item" data-nav="taxi" type="button">🚕 タクシー</button>
-        <button class="header-nav-item" data-nav="nursery" type="button">🏫 保育園</button>
-        <button class="header-nav-item" data-nav="caresupport" type="button">👶 預け先</button>
-        <button class="header-nav-item" data-nav="govlinks" type="button">🌐 情報サイト</button>
-        <button class="header-nav-item" data-nav="calendar" type="button">📅 カレンダー</button>
-
-        <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
-        <button class="header-nav-item" data-nav="supplies" type="button">🧴 在庫</button>
-        <button class="header-nav-item" data-nav="kondate" type="button">🍽️ 献立</button>
+        <div class="header-nav-row">
+          <button class="header-nav-item active" data-nav="home" type="button">🏠 ホーム</button>
+          <button class="header-nav-item" data-nav="emergency" type="button">⭐ 緊急</button>
+          <button class="header-nav-item" data-nav="taxi" type="button">🚕 タクシー</button>
+          <button class="header-nav-item" data-nav="hospital" type="button">🏥 病院</button>
+          <button class="header-nav-item" data-nav="nursery" type="button">🏫 保育園</button>
+          <button class="header-nav-item" data-nav="caresupport" type="button">👶 預け先</button>
+        </div>
+        <div class="header-nav-row">
+          <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
+          <button class="header-nav-item" data-nav="supplies" type="button">🧴 在庫</button>
+          <button class="header-nav-item" data-nav="kondate" type="button">🍽️ 献立</button>
+          <button class="header-nav-item" data-nav="calendar" type="button">📅 カレンダー</button>
+          <button class="header-nav-item" data-nav="govlinks" type="button">🌐 情報サイト</button>
+        </div>
       </nav>
     </div>
 
@@ -81,10 +84,6 @@
         <p class="children-empty" id="childrenEmpty">こどもを登録すると、年齢が自動で表示されます。</p>
       </section>
       <div class="home-grid">
-        <button class="home-card home-card--pink" data-tab="hospital">
-          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">病院</span>
-        </button>
         <button class="home-card home-card--yellow" data-tab="emergency">
           <img src="./images/char-star.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">困ったとき</span>
@@ -92,6 +91,10 @@
         <button class="home-card home-card--purple" data-tab="taxi">
           <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">タクシー</span>
+        </button>
+        <button class="home-card home-card--pink" data-tab="hospital">
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
+          <span class="home-card-label">病院</span>
         </button>
         <button class="home-card home-card--peach" data-tab="nursery">
           <img src="./images/char-star.webp" alt="" class="home-card-icon" loading="lazy" />
@@ -101,28 +104,25 @@
           <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">預け先</span>
         </button>
-        <button class="home-card home-card--blue" data-tab="govlinks">
+        <button class="home-card home-card--mint" data-tab="shopping">
           <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">情報サイト</span>
+          <span class="home-card-label">買い物リスト</span>
+        </button>
+        <button class="home-card home-card--teal" data-tab="supplies">
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
+          <span class="home-card-label">在庫</span>
+        </button>
+        <button class="home-card home-card--orange" data-tab="kondate">
+          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
+          <span class="home-card-label">献立</span>
         </button>
         <button class="home-card home-card--rose" data-tab="calendar">
           <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">カレンダー</span>
         </button>
-
-        <button class="home-card home-card--mint" data-tab="shopping">
+        <button class="home-card home-card--blue" data-tab="govlinks">
           <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">買い物リスト</span>
-        </button>
-
-        <button class="home-card home-card--teal" data-tab="supplies">
-          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">在庫</span>
-        </button>
-
-        <button class="home-card home-card--orange" data-tab="kondate">
-          <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">献立</span>
+          <span class="home-card-label">情報サイト</span>
         </button>
       </div>
     </main>

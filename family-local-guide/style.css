@@ -2294,28 +2294,34 @@ li:hover {
 /* ===== Header Navigation (scroll nav) ===== */
 .header-nav {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 8px 12px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 12px 8px;
   background: linear-gradient(180deg, #fff0f6 0%, rgba(255, 240, 246, 0.95) 100%);
   border-bottom: 1.5px solid rgba(249, 168, 212, 0.3);
   box-shadow: 0 2px 8px rgba(244, 164, 196, 0.1);
+}
+
+.header-nav-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
-.header-nav::-webkit-scrollbar {
+.header-nav-row::-webkit-scrollbar {
   display: none;
 }
 
 .header-nav-item {
   flex-shrink: 0;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border: 1.5px solid rgba(216, 93, 143, 0.2);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.8);
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-light);
   cursor: pointer;
@@ -2338,7 +2344,7 @@ li:hover {
 }
 
 @media (min-width: 600px) {
-  .header-nav {
+  .header-nav-row {
     justify-content: center;
   }
 }
