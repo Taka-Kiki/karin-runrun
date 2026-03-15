@@ -17,7 +17,9 @@
   --border: #e8d5b8;
   --sun: #c84b31;            /* トマトレッド */
   --sat: #5a8a3c;            /* バジルグリーン */
+  --today-bg: #faf3e0;
   --today-border: #e8763a;
+  --filled: #f0d9a0;         /* 麦わら色 */
 }
 
 * { box-sizing: border-box; }
@@ -188,7 +190,6 @@ body {
   transition: background 0.15s;
   display: flex;
   flex-direction: column;
-  background: var(--white);
 }
 .day-cell:nth-child(7n) { border-right: none; }
 
@@ -202,7 +203,8 @@ body {
 .day-cell--empty:hover { background: #fafafa; }
 
 .day-cell--today {
-  border: 3px solid var(--today-border);
+  background: var(--today-bg);
+  border: 2px solid var(--today-border);
   border-radius: 4px;
 }
 
@@ -1134,6 +1136,29 @@ body {
   border-color: var(--basil);
 }
 
+.event-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.event-history-chip {
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: #e8f5e0;
+  border: 1px solid #c5e4b5;
+  border-radius: 16px;
+  color: var(--basil);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.event-history-chip:hover,
+.event-history-chip:active {
+  background: #d0ecc0;
+}
+
 /* ===== Multi-Entry Modal ===== */
 .menu-entries {
   display: flex;
@@ -1931,7 +1956,10 @@ body {
     background: #fafafa !important;
   }
   .day-cell--today {
-    border: 3px solid #333;
+    border: 2px solid #333;
+  }
+  .day-cell--filled {
+    background: #f5f5e8 !important;
   }
   .day-cell:hover {
     background: inherit !important;

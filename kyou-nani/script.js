@@ -259,6 +259,37 @@ function setEvent(dateStr, text) {
   saveEvents(events);
 }
 
+function getEventHistory(max = 5) {
+  const events = getEvents();
+  const freq = {};
+  for (const v of Object.values(events)) {
+    const t = v.trim();
+    if (t) freq[t] = (freq[t] || 0) + 1;
+  }
+  return Object.entries(freq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, max)
+    .map(([name]) => name);
+}
+
+function renderEventHistory() {
+  const container = $("eventHistory");
+  const history = getEventHistory();
+  if (history.length === 0) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  container.innerHTML = history
+    .map((name) => `<button type="button" class="event-history-chip">${escapeHtml(name)}</button>`)
+    .join("");
+  container.querySelectorAll(".event-history-chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $("menuEventInput").value = btn.textContent;
+    });
+  });
+}
+
 function getMenuArray(dateStr) {
   const raw = getMenus()[dateStr];
   if (!raw) return [];
@@ -675,6 +706,7 @@ function openMenuModal(dateStr) {
   // Load event
   const eventInput = $("menuEventInput");
   eventInput.value = getEvent(dateStr);
+  renderEventHistory();
 
   const current = getMenuArray(dateStr);
   menuDeleteBtn.hidden = current.length === 0 && !getEvent(dateStr);
