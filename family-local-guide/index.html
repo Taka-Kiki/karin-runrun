@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://unpkg.com" crossorigin />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="./style.css?v=4" />
+    <link rel="stylesheet" href="./style.css?v=5" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" media="print" onload="this.media='all'" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
   </head>
@@ -76,7 +76,7 @@
         <div class="children-section-header">
           <h2>👨‍👩‍👧‍👦 ファミリー</h2>
           <div class="children-section-header-actions">
-            <button class="children-toggle-btn" id="childrenToggleBtn" type="button" title="詳細の開閉">▼</button>
+            <button class="children-toggle-btn" id="childrenToggleBtn" type="button" title="詳細の開閉" aria-label="詳細の開閉">▼</button>
             <button class="children-add-btn" id="addChildBtn" type="button">＋ 登録</button>
           </div>
         </div>
@@ -86,7 +86,7 @@
       <div class="home-grid">
         <button class="home-card home-card--yellow" data-tab="emergency">
           <img src="./images/char-star.webp" alt="" class="home-card-icon" loading="lazy" />
-          <span class="home-card-label">困ったとき</span>
+          <span class="home-card-label">緊急</span>
         </button>
         <button class="home-card home-card--purple" data-tab="taxi">
           <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
@@ -164,7 +164,7 @@
 
       <section class="panel" id="emergency" hidden>
         <div class="panel-header">
-          <h2>困ったとき</h2>
+          <h2>緊急</h2>
           <img src="./images/char-star.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <!-- 緊急電話バナー -->
@@ -326,15 +326,15 @@
           <button class="calendar-jump-btn" data-jump="cal-3y" type="button">3歳</button>
           <button class="calendar-jump-btn" data-jump="cal-4y" type="button">4歳</button>
           <button class="calendar-jump-btn" data-jump="cal-5y" type="button">5〜6歳</button>
-          <button class="calendar-add-btn" id="calendarAddBtn" type="button" title="項目を追加">＋</button>
+          <button class="calendar-add-btn" id="calendarAddBtn" type="button" title="項目を追加" aria-label="項目を追加">＋</button>
         </div>
 
         <!-- カスタム項目追加モーダル -->
-        <div class="calendar-modal-overlay" id="calendarModal" hidden>
+        <div class="calendar-modal-overlay" id="calendarModal" role="dialog" aria-modal="true" aria-labelledby="calendarModalLabel" hidden>
           <div class="calendar-modal">
             <div class="calendar-modal-header">
-              <h3>項目を追加</h3>
-              <button class="calendar-modal-close" id="calendarModalClose" type="button">&times;</button>
+              <h3 id="calendarModalLabel">項目を追加</h3>
+              <button class="calendar-modal-close" id="calendarModalClose" type="button" aria-label="閉じる">&times;</button>
             </div>
             <form id="calendarAddForm" class="calendar-modal-form">
               <label class="calendar-modal-label">
@@ -855,11 +855,11 @@
           <a href="../kyou-nani/" class="kondate-link-btn">🍽️ 献立を編集する ↗</a>
         </div>
 
-        <div id="kondateModal" class="kondate-modal-overlay" hidden>
+        <div id="kondateModal" class="kondate-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="kondateModalTitle" hidden>
           <div class="kondate-modal">
             <div class="kondate-modal-header">
               <h3 id="kondateModalTitle"></h3>
-              <button class="kondate-modal-close" type="button">&times;</button>
+              <button class="kondate-modal-close" type="button" aria-label="閉じる">&times;</button>
             </div>
             <div id="kondateModalBody" class="kondate-modal-body"></div>
           </div>
@@ -874,9 +874,9 @@
 
 
     <!-- 共有モーダル -->
-    <div id="shareModal" class="modal-overlay" hidden>
+    <div id="shareModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="shareModalLabel" hidden>
       <div class="modal-content">
-        <h3>お気に入りを共有</h3>
+        <h3 id="shareModalLabel">お気に入りを共有</h3>
         <p>このリンクを家族に送ると、お気に入りが共有されます。</p>
         <textarea id="shareUrl" class="share-url" readonly rows="3"></textarea>
         <div class="modal-buttons">
@@ -887,9 +887,9 @@
     </div>
 
     <!-- インポート確認 -->
-    <div id="importModal" class="modal-overlay" hidden>
+    <div id="importModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="importModalLabel" hidden>
       <div class="modal-content">
-        <h3>お気に入りを受け取りました</h3>
+        <h3 id="importModalLabel">お気に入りを受け取りました</h3>
         <p id="importMessage"></p>
         <div class="modal-buttons">
           <button id="importMergeBtn" class="modal-btn modal-btn--primary" type="button">追加する</button>
@@ -900,7 +900,7 @@
     </div>
 
     <!-- こども登録・編集モーダル -->
-    <div id="childModal" class="modal-overlay" hidden>
+    <div id="childModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="childModalTitle" hidden>
       <div class="modal-content">
         <h3 id="childModalTitle">こどもを登録</h3>
         <div class="child-form">
@@ -937,9 +937,9 @@
     </div>
 
     <!-- 出産変換モーダル -->
-    <div id="birthConvertModal" class="modal-overlay" hidden>
+    <div id="birthConvertModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="birthConvertLabel" hidden>
       <div class="modal-content">
-        <h3>🎉 おめでとうございます！</h3>
+        <h3 id="birthConvertLabel">🎉 おめでとうございます！</h3>
         <p>赤ちゃんの情報を登録しましょう。</p>
         <div class="child-form">
           <label class="child-form-label">
@@ -959,10 +959,10 @@
     </div>
 
     <!-- こども一覧モーダル -->
-    <div id="childListModal" class="modal-overlay" hidden>
+    <div id="childListModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="childListLabel" hidden>
       <div class="modal-content">
         <div class="child-list-modal-header">
-          <h3>📋 こども一覧</h3>
+          <h3 id="childListLabel">📋 こども一覧</h3>
           <button id="childListAddBtn" class="children-add-btn" type="button">＋ 登録</button>
         </div>
         <div id="childListModalBody" class="child-list-modal-body"></div>
@@ -973,9 +973,9 @@
     </div>
 
     <!-- こども削除確認モーダル -->
-    <div id="childDeleteModal" class="modal-overlay" hidden>
+    <div id="childDeleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="childDeleteLabel" hidden>
       <div class="modal-content">
-        <h3>こどもの情報を削除</h3>
+        <h3 id="childDeleteLabel">こどもの情報を削除</h3>
         <p id="childDeleteMessage"></p>
         <div class="modal-buttons">
           <button id="childDeleteConfirmBtn" class="modal-btn modal-btn--warn" type="button">削除する</button>
@@ -985,7 +985,7 @@
     </div>
 
     <!-- 保育園種別ヘルプモーダル -->
-    <div id="nurseryHelpModal" class="modal-overlay" hidden>
+    <div id="nurseryHelpModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nurseryHelpTitle" hidden>
       <div class="modal-content nursery-help-modal">
         <div class="modal-header">
           <h3 id="nurseryHelpTitle"></h3>
@@ -996,7 +996,7 @@
     </div>
 
     <!-- 保育園口コミ・メモモーダル -->
-    <div id="nurseryMemoModal" class="modal-overlay" hidden>
+    <div id="nurseryMemoModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nurseryMemoTitle" hidden>
       <div class="modal-content">
         <h3 id="nurseryMemoTitle">メモ・口コミ</h3>
         <div class="child-form">
@@ -1017,7 +1017,7 @@
     </div>
 
     <!-- 在庫編集モーダル -->
-    <div id="suppliesEditModal" class="modal-overlay" hidden>
+    <div id="suppliesEditModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="suppliesEditTitle" hidden>
       <div class="modal-content">
         <h3 id="suppliesEditTitle">在庫追加</h3>
         <div class="child-form">
@@ -1039,17 +1039,17 @@
             <label class="child-form-label supplies-qty-label">
               個数
               <div class="supplies-qty-control">
-                <button id="suppliesQtyMinus" class="qty-modal-btn" type="button">−</button>
+                <button id="suppliesQtyMinus" class="qty-modal-btn" type="button" aria-label="個数を減らす">−</button>
                 <input id="suppliesEditQty" type="number" class="child-form-input supplies-qty-input" value="1" min="0" max="999" />
-                <button id="suppliesQtyPlus" class="qty-modal-btn" type="button">＋</button>
+                <button id="suppliesQtyPlus" class="qty-modal-btn" type="button" aria-label="個数を増やす">＋</button>
               </div>
             </label>
             <label class="child-form-label supplies-qty-label">
               予備
               <div class="supplies-qty-control">
-                <button id="suppliesSpareQtyMinus" class="qty-modal-btn" type="button">−</button>
+                <button id="suppliesSpareQtyMinus" class="qty-modal-btn" type="button" aria-label="予備を減らす">−</button>
                 <input id="suppliesEditSpareQty" type="number" class="child-form-input supplies-qty-input" value="0" min="0" max="999" />
-                <button id="suppliesSpareQtyPlus" class="qty-modal-btn" type="button">＋</button>
+                <button id="suppliesSpareQtyPlus" class="qty-modal-btn" type="button" aria-label="予備を増やす">＋</button>
               </div>
             </label>
           </div>
@@ -1067,9 +1067,9 @@
     </div>
 
     <!-- 買い物リスト追加モーダル（在庫→買い物連携） -->
-    <div id="shoppingAddModal" class="modal-overlay" hidden>
+    <div id="shoppingAddModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="shoppingAddLabel" hidden>
       <div class="modal-content">
-        <h3>買い物リストに追加</h3>
+        <h3 id="shoppingAddLabel">買い物リストに追加</h3>
         <p id="shoppingAddItemName" style="font-weight:bold; margin:8px 0 12px;"></p>
         <p style="color:#888; margin-bottom:12px;">どこで買いますか？</p>
         <div id="shoppingAddCategories" class="shopping-add-categories"></div>
@@ -1080,17 +1080,17 @@
     </div>
 
     <!-- トースト -->
-    <div id="toast" class="toast" hidden></div>
+    <div id="toast" class="toast" hidden aria-live="polite"></div>
 
     <!-- トップに戻るボタン -->
     <button id="scrollTopBtn" class="scroll-top-btn" type="button" hidden aria-label="トップに戻る">▲</button>
 
     <!-- お気に入りポップアップ -->
     <div class="fav-overlay" id="favOverlay" hidden></div>
-    <aside class="fav-popup" id="favPopup" hidden>
+    <aside class="fav-popup" id="favPopup" role="dialog" aria-modal="true" aria-labelledby="favPopupLabel" hidden>
       <div class="fav-popup-header">
-        <h2>お気に入り</h2>
-        <button class="fav-popup-close" id="favPopupClose" type="button">&times;</button>
+        <h2 id="favPopupLabel">お気に入り</h2>
+        <button class="fav-popup-close" id="favPopupClose" type="button" aria-label="閉じる">&times;</button>
       </div>
       <div class="favorites-actions">
         <button id="shareFavBtn" class="share-btn" type="button">共有リンクを作成</button>

@@ -135,11 +135,6 @@ h1::before {
   content: "🏠 ";
 }
 
-.subtitle {
-  margin: 2px 0 0;
-  color: var(--text-light);
-  font-size: 0.85rem;
-}
 
 /* ===== Header Search ===== */
 .header-search {
@@ -337,14 +332,6 @@ h1::before {
 .home-card--orange { border-color: var(--orange); background: linear-gradient(180deg, var(--orange-light) 0%, var(--white) 60%); }
 
 a.home-card { text-decoration: none; color: inherit; position: relative; }
-.home-card-external {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  font-size: 0.7rem;
-  color: var(--text-light);
-  opacity: 0.6;
-}
 
 .home-card-icon {
   width: 72px;
@@ -362,25 +349,6 @@ a.home-card { text-decoration: none; color: inherit; position: relative; }
 
 /* (Tab bar removed - navigation via bottom nav) */
 
-/* ===== Back Button ===== */
-.back-btn {
-  display: block;
-  margin: 0 auto;
-  padding: 10px 28px;
-  border: 2px solid var(--pink);
-  border-radius: 25px;
-  background: var(--white);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #d85d8f;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.back-btn:hover {
-  background: var(--pink-light);
-}
 
 /* ===== Panels ===== */
 .panel {
@@ -869,15 +837,6 @@ li:hover {
   background: #fef2f2;
 }
 
-.taxi-call-btn-app {
-  background: #fff;
-  color: #047857;
-  border: 1.5px solid #86efac;
-}
-
-.taxi-call-btn-app:hover {
-  background: #f0fdf4;
-}
 
 /* Hospital / Emergency call button */
 .list-call-btn {
@@ -1248,23 +1207,6 @@ li:hover {
   font-weight: 700;
 }
 
-/* ===== Home card count badge ===== */
-.home-card-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 11px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-}
 
 .home-card--peach {
   position: relative;
@@ -3074,12 +3016,6 @@ mark.search-highlight {
 }
 
 /* ===== 保育園セクション ===== */
-.nursery-intro {
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-light);
-  margin: 0 0 12px;
-}
 
 /* 保育園マップ */
 .nursery-map-icon-btn {
@@ -3126,14 +3062,6 @@ mark.search-highlight {
   margin: 6px 0 0;
 }
 
-.map-legend {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 2px;
-  vertical-align: middle;
-}
 
 /* マップ上の園名ラベル */
 .nursery-map-label {

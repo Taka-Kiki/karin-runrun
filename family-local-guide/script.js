@@ -1077,7 +1077,7 @@ const CATEGORY_LABELS = {
   pediatrics: "小児科",
   ent: "耳鼻科",
   dermatology: "皮膚科",
-  emergency: "困ったとき",
+  emergency: "緊急",
   nightEmergency: "休日/夜間",
   taxiLabor: "陣痛タクシー",
   taxiGeneral: "通常タクシー",
@@ -1484,7 +1484,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["厚着にさせない（熱がこもる）", "自己判断で解熱剤を使わない（医師の指示に従う）", "氷水や冷水で体全体を冷やさない"],
     searchKeywords: "熱 発熱 高熱 38度 39度 40度 体温",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=fever"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=hatsunetsu"
   },
   {
     id: "vomiting",
@@ -1498,7 +1498,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["吐いた直後に水分を大量に飲ませない（少量ずつ）", "仰向けに寝かせない（窒息の危険）", "無理に食べさせない"],
     searchKeywords: "嘔吐 吐く はく おうと 吐き気 もどす",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=vomiting"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=hakike"
   },
   {
     id: "diarrhea",
@@ -1512,7 +1512,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["市販の下痢止めを自己判断で使わない", "脂っこい食事やジュースを与えない", "おしりを強くこすらない（ぬるま湯で洗い流す）"],
     searchKeywords: "下痢 げり おなか 腹痛 水便 軟便",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=diarrhea"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=geri"
   },
   {
     id: "seizure",
@@ -1526,7 +1526,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["口に物を入れない（舌を噛むのを防ぐためは誤り）", "体を強く揺すらない・押さえつけない", "大声で名前を呼び続けない（静かに見守る）"],
     searchKeywords: "けいれん ひきつけ 痙攣 てんかん 熱性けいれん ガクガク",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=convulsion"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=keiren"
   },
   {
     id: "ingestion",
@@ -1540,7 +1540,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["むやみに吐かせない（灯油・漂白剤等は吐かせると危険）", "水や牛乳を慌てて飲ませない（物質による）", "様子見で済ませない（ボタン電池は特に緊急）"],
     searchKeywords: "誤飲 誤食 飲み込んだ のみこんだ 異物 ボタン電池 タバコ 中毒",
-    refUrl: "https://www.j-poison-ic.jp/ippan/"
+    refUrl: "https://www.j-poison-ic.jp/general-public/"
   },
   {
     id: "burn",
@@ -1554,7 +1554,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["氷で直接冷やさない（凍傷の危険）", "水ぶくれを潰さない", "民間療法（味噌・アロエ等）を塗らない"],
     searchKeywords: "やけど 火傷 熱湯 アイロン ストーブ 湯たんぽ 低温やけど",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=burn"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=yakedo"
   },
   {
     id: "injury",
@@ -1568,7 +1568,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["傷口を消毒液で繰り返し消毒しない（水道水で洗い流す）", "頭を打った直後に寝かせっぱなしにしない（48時間は注意して観察）", "止血帯を素人が巻かない"],
     searchKeywords: "けが 怪我 出血 切り傷 すり傷 打撲 頭 打った 転んだ",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=injury"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=atamabutsuketa"
   },
   {
     id: "crying",
@@ -1596,7 +1596,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["強く掻かせない（とびひになる）", "自己判断でステロイド軟膏を塗らない", "原因食物が疑われる場合は自己判断で除去しない（医師に相談）"],
     searchKeywords: "発疹 じんましん 蕁麻疹 ぶつぶつ 湿疹 アレルギー かゆい アトピー 水疱瘡 手足口病",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=rash"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=butsubutsu"
   },
   {
     id: "breathing",
@@ -1610,7 +1610,7 @@ const FIRST_AID_DATA = [
     ],
     dontDo: ["仰向けに寝かせない（咳がひどくなる）", "煙や強い匂いのある場所に置かない", "喉に詰まった異物を指で探らない（背部叩打法を）"],
     searchKeywords: "咳 せき ゼーゼー 呼吸 息苦しい クループ 喘息 ぜんそく 窒息 喉 のど",
-    refUrl: "https://kodomo-qq.jp/index.php?pname=cough"
+    refUrl: "https://kodomo-qq.jp/index.php?pname=seki"
   },
   {
     id: "feeding",
@@ -2566,11 +2566,18 @@ let _nurseryVisitsCache = null;
 let _nurseryMemosCache = null;
 let _customCalendarCache = null;
 
-function firebaseSet(path, data) {
+function firebaseWrite(method, path, data) {
   if (!shoppingDb) return;
-  shoppingDb.ref(path).set(data).catch((err) => {
-    console.error("Firebase write error:", path, err.message || err);
+  const ref = shoppingDb.ref(path);
+  const promise = method === "remove" ? ref.remove() : method === "update" ? ref.update(data) : ref.set(data);
+  promise.catch((err) => {
+    console.error("Firebase write error:", method, path, err.message || err);
+    showToast("データの保存に失敗しました");
   });
+}
+
+function firebaseSet(path, data) {
+  firebaseWrite("set", path, data);
 }
 
 function arrayToFirebaseObj(arr, keyFn) {
@@ -2611,7 +2618,7 @@ function setupShoppingList() {
       DEFAULT_CATEGORIES.forEach((cat) => {
         updates[cat.id] = { name: cat.name, icon: cat.icon, order: DEFAULT_CATEGORIES.indexOf(cat) };
       });
-      categoriesRef.set(updates);
+      categoriesRef.set(updates).catch((err) => { console.error("Firebase init categories:", err.message || err); });
     }
   });
 
@@ -2774,7 +2781,7 @@ function addCategory(input) {
   const name = input.value.trim();
   if (!name || !shoppingDb) return;
   const id = "cat_" + Date.now();
-  shoppingDb.ref("shopping/categories/" + id).set({
+  firebaseWrite("set", "shopping/categories/" + id, {
     name: name,
     icon: "",
     order: Date.now()
@@ -2819,7 +2826,7 @@ function renderShoppingFilter(sortedCategories) {
         btns.forEach((btn, i) => {
           updates["shopping/categories/" + btn.dataset.jumpCat + "/order"] = i;
         });
-        shoppingDb.ref().update(updates);
+        firebaseWrite("update", "/", updates);
       },
     });
   }
@@ -2875,7 +2882,7 @@ function renderShoppingCategories(categories) {
     editCatBtn.addEventListener("click", () => {
       const newName = prompt("カテゴリ名を入力", cat.name);
       if (newName !== null && newName.trim() && newName.trim() !== cat.name) {
-        shoppingDb.ref("shopping/categories/" + catId + "/name").set(newName.trim());
+        firebaseWrite("set", "shopping/categories/" + catId + "/name", newName.trim());
       }
     });
 
@@ -2883,8 +2890,8 @@ function renderShoppingCategories(categories) {
     const deleteCatBtn = section.querySelector(".shopping-delete-cat-btn");
     deleteCatBtn.addEventListener("click", () => {
       if (confirm(`「${cat.name}」カテゴリを削除しますか？中のアイテムもすべて削除されます。`)) {
-        shoppingDb.ref("shopping/categories/" + catId).remove();
-        shoppingDb.ref("shopping/items/" + catId).remove();
+        firebaseWrite("remove", "shopping/categories/" + catId);
+        firebaseWrite("remove", "shopping/items/" + catId);
       }
     });
   });
@@ -2894,7 +2901,7 @@ function addShoppingItem(catId, input) {
   const name = input.value.trim();
   if (!name || !shoppingDb) return;
   const itemId = "item_" + Date.now();
-  shoppingDb.ref("shopping/items/" + catId + "/" + itemId).set({
+  firebaseWrite("set", "shopping/items/" + catId + "/" + itemId, {
     name: name,
     done: false,
     addedAt: Date.now()
@@ -2986,20 +2993,20 @@ function renderShoppingItems(catId, items) {
 
     const checkbox = li.querySelector(".shopping-checkbox");
     checkbox.addEventListener("change", () => {
-      shoppingDb.ref("shopping/items/" + catId + "/" + itemId + "/done").set(checkbox.checked);
+      firebaseWrite("set", "shopping/items/" + catId + "/" + itemId + "/done", checkbox.checked);
     });
 
     const editBtn = li.querySelector(".shopping-edit-btn");
     editBtn.addEventListener("click", () => {
       const newName = prompt("名前を編集", item.name);
       if (newName && newName.trim() && newName.trim() !== item.name) {
-        shoppingDb.ref("shopping/items/" + catId + "/" + itemId + "/name").set(newName.trim());
+        firebaseWrite("set", "shopping/items/" + catId + "/" + itemId + "/name", newName.trim());
       }
     });
 
     const deleteBtn = li.querySelector(".shopping-delete-btn");
     deleteBtn.addEventListener("click", () => {
-      shoppingDb.ref("shopping/items/" + catId + "/" + itemId).remove();
+      firebaseWrite("remove", "shopping/items/" + catId + "/" + itemId);
     });
 
     ul.appendChild(li);
@@ -3657,7 +3664,7 @@ function saveSupplies(list) {
   _suppliesCache = list;
   localStorage.setItem(SUPPLIES_KEY, JSON.stringify(list));
   if (shoppingDb) {
-    shoppingDb.ref("shared/supplies").set(list);
+    firebaseWrite("set", "shared/supplies", list);
   }
 }
 
