@@ -17,9 +17,7 @@
   --border: #e8d5b8;
   --sun: #c84b31;            /* トマトレッド */
   --sat: #5a8a3c;            /* バジルグリーン */
-  --today-bg: #faf3e0;
   --today-border: #e8763a;
-  --filled: #f0d9a0;         /* 麦わら色 */
 }
 
 * { box-sizing: border-box; }
@@ -190,6 +188,7 @@ body {
   transition: background 0.15s;
   display: flex;
   flex-direction: column;
+  background: var(--white);
 }
 .day-cell:nth-child(7n) { border-right: none; }
 
@@ -203,8 +202,7 @@ body {
 .day-cell--empty:hover { background: #fafafa; }
 
 .day-cell--today {
-  background: var(--today-bg);
-  border: 2px solid var(--today-border);
+  border: 3px solid var(--today-border);
   border-radius: 4px;
 }
 
@@ -773,8 +771,11 @@ body {
 .menulist-add-btn:active { opacity: 0.7; }
 
 .menulist-tags {
-  padding-bottom: 8px;
-  margin-bottom: 12px;
+  background: var(--accent-light);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
 }
 
 .tag-list-header {
@@ -1930,10 +1931,7 @@ body {
     background: #fafafa !important;
   }
   .day-cell--today {
-    border: 2px solid #333;
-  }
-  .day-cell--filled {
-    background: #f5f5e8 !important;
+    border: 3px solid #333;
   }
   .day-cell:hover {
     background: inherit !important;
