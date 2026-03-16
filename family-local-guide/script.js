@@ -1159,7 +1159,7 @@ function setupFavoriteClicks() {
 }
 
 // ===== タブ・ナビゲーション =====
-const TAB_IDS = ["hospital", "emergency", "taxi", "nursery", "caresupport", "govlinks", "calendar", "shopping", "supplies", "kondate"];
+const TAB_IDS = ["emergency", "taxi", "hospital", "nursery", "caresupport", "shopping", "supplies", "kondate", "calendar", "govlinks"];
 
 function closeAllMaps() {
   const nurseryMapContainer = document.getElementById("nurseryMapContainer");
@@ -1278,10 +1278,10 @@ function setupSwipeNavigation() {
     const dx = endX - startX;
     const currentIndex = ALL_TABS.indexOf(currentTab);
     if (currentIndex === -1) return;
-    if (dx < 0 && currentIndex < ALL_TABS.length - 1) {
-      navigateTo(ALL_TABS[currentIndex + 1]);
-    } else if (dx > 0 && currentIndex > 0) {
-      navigateTo(ALL_TABS[currentIndex - 1]);
+    if (dx < 0) {
+      navigateTo(ALL_TABS[(currentIndex + 1) % ALL_TABS.length]);
+    } else if (dx > 0) {
+      navigateTo(ALL_TABS[(currentIndex - 1 + ALL_TABS.length) % ALL_TABS.length]);
     }
   }
 
