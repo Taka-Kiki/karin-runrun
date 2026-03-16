@@ -2276,8 +2276,11 @@ function setupTaxiFinder() {
               const callAction = t.phone
                 ? `<a href="tel:${t.phone}" class="taxi-call-btn taxi-call-btn-tel">📞 ${t.phone}</a>`
                 : "";
+              const nameHtml = t.url
+                ? `<a href="${t.url}" target="_blank" rel="noopener noreferrer">${t.name}</a>`
+                : t.name;
               return `<li>
-                <div class="name">${t.name}</div>
+                <div class="name">${nameHtml}</div>
                 <div class="meta">${t.note}</div>
                 <div>${callAction}</div>
               </li>`;
