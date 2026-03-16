@@ -706,7 +706,17 @@ function openMenuModal(dateStr) {
   // Load event
   const eventInput = $("menuEventInput");
   eventInput.value = getEvent(dateStr);
-  renderEventHistory();
+  // Event history: show on focus, hide on blur
+  const eventHistoryEl = $("eventHistory");
+  eventHistoryEl.hidden = true;
+  const onFocus = () => renderEventHistory();
+  const onBlur = () => { setTimeout(() => { eventHistoryEl.hidden = true; }, 200); };
+  eventInput.removeEventListener("focus", eventInput._onFocus);
+  eventInput.removeEventListener("blur", eventInput._onBlur);
+  eventInput._onFocus = onFocus;
+  eventInput._onBlur = onBlur;
+  eventInput.addEventListener("focus", onFocus);
+  eventInput.addEventListener("blur", onBlur);
 
   const current = getMenuArray(dateStr);
   menuDeleteBtn.hidden = current.length === 0 && !getEvent(dateStr);
@@ -2741,7 +2751,6 @@ function init() {
   setupStockSwipe();
 
   // Scroll-to-top button
-  setupAutoFill();
   setupScrollTopBtn();
 
   // Firebase sync
@@ -2811,226 +2820,6 @@ function setupStockSwipe() {
       switchStockCategory(catOrder[idx - 1]);
     }
   }, { passive: true });
-}
-
-// ===== Auto-Fill Menu =====
-let autoFillRange = "week"; // "week" or "month"
-let autoFillSelectedTags = []; // selected tag names
-let autoFillResult = []; // [{ dateStr, menuName }]
-
-function openAutoFillModal() {
-  autoFillRange = "week";
-  autoFillSelectedTags = [];
-  autoFillResult = [];
-
-  // Range buttons
-  document.querySelectorAll(".autofill-range-btn").forEach((btn) => {
-    btn.classList.toggle("autofill-range-btn--active", btn.dataset.range === autoFillRange);
-    btn.onclick = () => {
-      autoFillRange = btn.dataset.range;
-      document.querySelectorAll(".autofill-range-btn").forEach((b) => {
-        b.classList.toggle("autofill-range-btn--active", b.dataset.range === autoFillRange);
-      });
-      hideAutoFillPreview();
-    };
-  });
-
-  // Tag buttons
-  const tagsEl = $("autoFillTags");
-  const allTags = getAllTags();
-  const menuList = getMenuList();
-  const usedTags = allTags.filter((t) => menuList.some((m) => (m.tags || []).includes(t)));
-
-  tagsEl.innerHTML = usedTags
-    .map((t) => `<button type="button" class="autofill-tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`)
-    .join("");
-
-  tagsEl.querySelectorAll(".autofill-tag").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tag = btn.dataset.tag;
-      if (autoFillSelectedTags.includes(tag)) {
-        autoFillSelectedTags = autoFillSelectedTags.filter((t) => t !== tag);
-        btn.classList.remove("autofill-tag--active");
-      } else {
-        autoFillSelectedTags.push(tag);
-        btn.classList.add("autofill-tag--active");
-      }
-      hideAutoFillPreview();
-    });
-  });
-
-  hideAutoFillPreview();
-  $("autoFillModal").classList.add("is-open");
-}
-
-function hideAutoFillPreview() {
-  $("autoFillPreview").hidden = true;
-  $("autoFillExecBtn").hidden = true;
-  $("autoFillPreviewBtn").hidden = false;
-}
-
-function generateAutoFillPlan() {
-  const menus = getMenus();
-  const menuList = getMenuList();
-  const memo = parseMemoData(_memoCache !== null ? _memoCache : (() => { try { return JSON.parse(localStorage.getItem(MEMO_KEY)); } catch { return {}; } })());
-
-  // Determine date range
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startDate = new Date(today);
-  let endDate;
-  if (autoFillRange === "week") {
-    endDate = new Date(today);
-    endDate.setDate(endDate.getDate() + 6);
-  } else {
-    // Fill rest of current month
-    endDate = new Date(currentYear, currentMonth + 1, 0);
-  }
-
-  // Collect empty dates
-  const emptyDates = [];
-  const d = new Date(startDate);
-  while (d <= endDate) {
-    const ds = formatDateStr(d.getFullYear(), d.getMonth(), d.getDate());
-    if (getMenuArray(ds).length === 0) {
-      emptyDates.push(ds);
-    }
-    d.setDate(d.getDate() + 1);
-  }
-
-  if (emptyDates.length === 0) return [];
-
-  // Build candidate pool
-  let candidates = [];
-
-  // 1. "作りたい" memo items (highest priority)
-  const tsukuritaiItems = (memo.tsukuritai || "")
-    .split(/[、,\n]/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  // 2. Filter by selected tags (or all if no tags selected)
-  let tagFiltered;
-  if (autoFillSelectedTags.length > 0) {
-    tagFiltered = menuList.filter((m) => (m.tags || []).some((t) => autoFillSelectedTags.includes(t)));
-  } else {
-    tagFiltered = [...menuList];
-  }
-
-  // Sort by usage count (less used first for variety)
-  tagFiltered.sort((a, b) => (a.usageCount || 0) - (b.usageCount || 0));
-
-  // Build priority list: tsukuritai → tag filtered
-  const priorityNames = [];
-
-  // Add tsukuritai items first
-  tsukuritaiItems.forEach((name) => {
-    if (!priorityNames.includes(name)) priorityNames.push(name);
-  });
-
-  // Add tag-filtered menus
-  tagFiltered.forEach((m) => {
-    if (!priorityNames.includes(m.name)) priorityNames.push(m.name);
-  });
-
-  if (priorityNames.length === 0) return [];
-
-  // Assign menus to empty dates, avoiding consecutive duplicates
-  const result = [];
-  let lastAssigned = "";
-  // Check what was assigned the day before the first empty date
-  if (emptyDates.length > 0) {
-    const firstEmpty = new Date(emptyDates[0] + "T00:00:00");
-    const prevDay = new Date(firstEmpty);
-    prevDay.setDate(prevDay.getDate() - 1);
-    const prevStr = formatDateStr(prevDay.getFullYear(), prevDay.getMonth(), prevDay.getDate());
-    const prevMenu = getMenuArray(prevStr);
-    if (prevMenu.length > 0) lastAssigned = prevMenu[0];
-  }
-
-  let poolIdx = 0;
-  for (const dateStr of emptyDates) {
-    // Pick next menu that isn't the same as last
-    let chosen = null;
-    for (let attempt = 0; attempt < priorityNames.length; attempt++) {
-      const candidate = priorityNames[(poolIdx + attempt) % priorityNames.length];
-      if (candidate !== lastAssigned || priorityNames.length === 1) {
-        chosen = candidate;
-        poolIdx = (poolIdx + attempt + 1) % priorityNames.length;
-        break;
-      }
-    }
-    if (!chosen) {
-      chosen = priorityNames[poolIdx % priorityNames.length];
-      poolIdx = (poolIdx + 1) % priorityNames.length;
-    }
-    result.push({ dateStr, menuName: chosen });
-    lastAssigned = chosen;
-  }
-
-  return result;
-}
-
-function showAutoFillPreview() {
-  autoFillResult = generateAutoFillPlan();
-  const previewEl = $("autoFillPreview");
-  const listEl = $("autoFillPreviewList");
-
-  if (autoFillResult.length === 0) {
-    previewEl.hidden = false;
-    listEl.innerHTML = `<p style="font-size:0.82rem; color:var(--text-light); padding:8px;">空いている日がないか、メニューが登録されていません。</p>`;
-    $("autoFillExecBtn").hidden = true;
-    return;
-  }
-
-  const dow = ["日", "月", "火", "水", "木", "金", "土"];
-  listEl.innerHTML = autoFillResult
-    .map((r) => {
-      const [y, m, d] = r.dateStr.split("-").map(Number);
-      const dayOfWeek = dow[new Date(y, m - 1, d).getDay()];
-      return `<div class="autofill-preview-item"><span class="autofill-preview-date">${m}/${d}（${dayOfWeek}）</span><span class="autofill-preview-menu">${escapeHtml(r.menuName)}</span></div>`;
-    })
-    .join("");
-
-  previewEl.hidden = false;
-  $("autoFillExecBtn").hidden = false;
-  $("autoFillPreviewBtn").hidden = true;
-}
-
-function executeAutoFill() {
-  if (autoFillResult.length === 0) return;
-
-  const menuList = getMenuList();
-  let listChanged = false;
-
-  autoFillResult.forEach((r) => {
-    setMenuArray(r.dateStr, [r.menuName]);
-
-    // Increment usage count
-    const match = menuList.find((m) => m.name === r.menuName);
-    if (match) {
-      match.usageCount = (match.usageCount || 0) + 1;
-      listChanged = true;
-    }
-  });
-
-  if (listChanged) {
-    saveMenuList(menuList);
-  }
-
-  renderCalendar();
-  $("autoFillModal").classList.remove("is-open");
-  showToast(`${autoFillResult.length}日分の献立を入れました`);
-  autoFillResult = [];
-}
-
-function setupAutoFill() {
-  $("autoFillBtn").addEventListener("click", openAutoFillModal);
-  $("autoFillPreviewBtn").addEventListener("click", showAutoFillPreview);
-  $("autoFillExecBtn").addEventListener("click", executeAutoFill);
-  $("autoFillCancelBtn").addEventListener("click", () => {
-    $("autoFillModal").classList.remove("is-open");
-  });
 }
 
 // ===== Scroll to Top Button =====

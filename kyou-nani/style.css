@@ -625,112 +625,6 @@ body {
   color: #7d6608;
 }
 
-/* ===== Auto-fill Button & Modal ===== */
-.autofill-btn {
-  font-family: inherit;
-  font-size: 0.8rem;
-  padding: 4px 10px;
-  border: 1.5px solid var(--primary);
-  border-radius: 12px;
-  background: var(--white);
-  color: var(--primary-dark);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.autofill-btn:hover { background: var(--primary-light); }
-
-.autofill-desc {
-  font-size: 0.82rem;
-  color: var(--text-light);
-  margin: 0 0 4px;
-}
-
-.autofill-range-btns {
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
-.autofill-range-btn {
-  font-family: inherit;
-  font-size: 0.82rem;
-  padding: 6px 16px;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  background: var(--white);
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-.autofill-range-btn--active {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  font-weight: 700;
-}
-
-.autofill-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-.autofill-tag {
-  font-family: inherit;
-  font-size: 0.78rem;
-  padding: 4px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  background: var(--white);
-  color: var(--text);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-.autofill-tag--active {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  font-weight: 700;
-}
-
-.autofill-preview {
-  margin-top: 8px;
-}
-.autofill-preview-list {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-top: 6px;
-}
-.autofill-preview-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
-  font-size: 0.82rem;
-  border-bottom: 1px solid var(--border);
-}
-.autofill-preview-item:last-child { border-bottom: none; }
-.autofill-preview-date {
-  font-weight: 700;
-  color: var(--primary-dark);
-  min-width: 80px;
-}
-.autofill-preview-menu {
-  color: var(--text);
-  text-align: right;
-}
-.modal-btn--secondary {
-  font-family: inherit;
-  font-size: 0.9rem;
-  padding: 10px 18px;
-  border: 2px solid var(--primary);
-  border-radius: 14px;
-  background: var(--white);
-  color: var(--primary-dark);
-  cursor: pointer;
-  font-weight: 700;
-  transition: background 0.2s;
-}
-.modal-btn--secondary:hover { background: var(--primary-light); }
-
 .menu-form-label {
   display: block;
   font-size: 0.85rem;
@@ -2027,7 +1921,6 @@ body {
   .month-nav-btn,
   .today-btn,
   .print-btn,
-  .autofill-btn,
   .modal-overlay,
   .toast,
   .sync-status,

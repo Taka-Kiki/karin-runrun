@@ -21,7 +21,6 @@
         <button id="nextMonth" class="month-nav-btn" type="button">▶</button>
         <button id="todayBtn" class="today-btn" type="button">今月</button>
         <button id="printBtn" class="print-btn" type="button">🖨️ 印刷</button>
-        <button id="autoFillBtn" class="autofill-btn" type="button">🪄 自動</button>
       </div>
 
       <!-- カレンダー -->
@@ -153,7 +152,6 @@
     <div id="menuModal" class="modal-overlay">
       <div class="modal-content">
         <h3 id="menuModalTitle"></h3>
-        <div id="modalExpirySuggest" class="modal-expiry-suggest" hidden></div>
         <div class="menu-form">
           <div class="event-input-row">
             <label class="event-input-label">📌 予定</label>
@@ -162,6 +160,7 @@
           <div id="eventHistory" class="event-history" hidden></div>
           <div id="menuEntries" class="menu-entries"></div>
           <button id="addEntryBtn" class="add-entry-btn" type="button">＋ メニューを追加</button>
+          <div id="modalExpirySuggest" class="modal-expiry-suggest" hidden></div>
           <div class="menu-suggestions" id="menuSuggestions" hidden>
             <p class="menu-suggestions-label">登録メニュー:</p>
             <div id="menuSuggestionsList" class="menu-suggestions-list"></div>
@@ -291,35 +290,6 @@
         <div id="tagEditList" class="tag-edit-list"></div>
         <div class="modal-buttons">
           <button id="tagEditCloseBtn" class="modal-btn" type="button">閉じる</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 自動献立モーダル -->
-    <div id="autoFillModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>🪄 自動で献立を埋める</h3>
-        <div class="menu-form">
-          <p class="autofill-desc">空いている日にメニューを自動で入れます。</p>
-
-          <div class="menu-form-label" style="margin-top: 8px;">範囲</div>
-          <div class="autofill-range-btns">
-            <button type="button" class="autofill-range-btn autofill-range-btn--active" data-range="week">1週間</button>
-            <button type="button" class="autofill-range-btn" data-range="month">1ヶ月</button>
-          </div>
-
-          <div class="menu-form-label" style="margin-top: 14px;">使うタグ（複数OK・未選択で全メニュー）</div>
-          <div id="autoFillTags" class="autofill-tags"></div>
-
-          <div id="autoFillPreview" class="autofill-preview" hidden>
-            <div class="menu-form-label" style="margin-top: 14px;">プレビュー</div>
-            <div id="autoFillPreviewList" class="autofill-preview-list"></div>
-          </div>
-        </div>
-        <div class="modal-buttons">
-          <button id="autoFillPreviewBtn" class="modal-btn modal-btn--secondary" type="button">プレビュー</button>
-          <button id="autoFillExecBtn" class="modal-btn modal-btn--primary" type="button" hidden>この内容で埋める</button>
-          <button id="autoFillCancelBtn" class="modal-btn" type="button">閉じる</button>
         </div>
       </div>
     </div>
