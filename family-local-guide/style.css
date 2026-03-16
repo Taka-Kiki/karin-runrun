@@ -373,9 +373,6 @@ a.home-card { text-decoration: none; color: inherit; position: relative; }
   background: linear-gradient(180deg, var(--pink-light) 0%, var(--white) 40%);
 }
 
-#hospital::before {
-  background: linear-gradient(90deg, var(--pink), var(--mint), var(--pink));
-}
 
 #hospital h2 { color: #d85d8f; }
 #hospital h2::before { content: "🏥 "; }
@@ -549,22 +546,7 @@ li:hover {
   font-size: 0.8rem;
 }
 
-/* ===== Decorative top bar ===== */
-.panel::before {
-  content: "";
-  display: block;
-  height: 4px;
-  margin: -16px -16px 12px -16px;
-  border-radius: 18px 18px 0 0;
-}
 
-#emergency::before {
-  background: linear-gradient(90deg, var(--yellow), var(--peach), var(--yellow));
-}
-
-#taxi::before {
-  background: linear-gradient(90deg, var(--purple), var(--pink), var(--purple));
-}
 
 /* ===== Government Links panel ===== */
 #govlinks {
@@ -572,9 +554,6 @@ li:hover {
   background: linear-gradient(180deg, var(--blue-light) 0%, var(--white) 40%);
 }
 
-#govlinks::before {
-  background: linear-gradient(90deg, var(--blue), var(--mint), var(--blue));
-}
 
 #govlinks h2 { color: #1d4ed8; }
 #govlinks h2::before { content: "🌐 "; }
@@ -656,9 +635,6 @@ li:hover {
   background: linear-gradient(180deg, var(--green-light) 0%, var(--white) 40%);
 }
 
-#caresupport::before {
-  background: linear-gradient(90deg, var(--green), var(--mint), var(--green));
-}
 
 #caresupport h2 { color: #15803d; }
 #caresupport h2::before { content: "👶 "; }
@@ -1227,9 +1203,6 @@ li:hover {
   background: linear-gradient(180deg, var(--peach-light) 0%, var(--white) 40%);
 }
 
-#favorites::before {
-  background: linear-gradient(90deg, var(--peach), var(--yellow), var(--peach));
-}
 
 #favorites h2 { color: #c2410c; }
 #favorites h2::before { content: "⭐ "; }
@@ -1254,9 +1227,6 @@ li:hover {
   background: linear-gradient(180deg, var(--mint-light) 0%, var(--white) 40%);
 }
 
-#shopping::before {
-  background: linear-gradient(90deg, var(--mint), var(--blue), var(--mint));
-}
 
 #shopping h2 { color: #059669; }
 #shopping h2::before { content: "🛒 "; }
@@ -1796,9 +1766,6 @@ li:hover {
   background: linear-gradient(180deg, var(--rose-light) 0%, var(--white) 40%);
 }
 
-#calendar::before {
-  background: linear-gradient(90deg, var(--rose), var(--pink), var(--rose));
-}
 
 #calendar h2 { color: #e11d48; }
 #calendar h2::before { content: "📅 "; }
