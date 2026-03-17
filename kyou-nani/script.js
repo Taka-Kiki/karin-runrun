@@ -645,8 +645,25 @@ function renderCalendar() {
   let filledCount = 0;
   let html = "";
 
+  // Leading days from previous month
+  const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const prevDaysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   for (let i = 0; i < firstDay; i++) {
-    html += '<div class="day-cell day-cell--empty"></div>';
+    const d = prevDaysInMonth - firstDay + 1 + i;
+    const dateStr = formatDateStr(prevYear, prevMonth, d);
+    const dow = i;
+    const menuArr = getMenuArray(dateStr);
+    const eventText = (events[dateStr] || "").trim();
+    let classes = "day-cell day-cell--other";
+    if (dow === 0) classes += " day-cell--sun";
+    if (dow === 6) classes += " day-cell--sat";
+    html += `<div class="${classes}">`;
+    html += `<div class="day-header"><span class="day-number">${d}</span>`;
+    if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
+    html += `</div>`;
+    if (menuArr.length > 0) html += menuArr.map((m) => `<span class="day-menu">${escapeHtml(m)}</span>`).join("");
+    html += "</div>";
   }
 
   for (let d = 1; d <= daysInMonth; d++) {
@@ -675,16 +692,32 @@ function renderCalendar() {
     html += "</div>";
   }
 
+  // Trailing days from next month
   const totalCells = firstDay + daysInMonth;
   const trailing = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+  const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
   for (let i = 0; i < trailing; i++) {
-    html += '<div class="day-cell day-cell--empty"></div>';
+    const d = i + 1;
+    const dateStr = formatDateStr(nextYear, nextMonth, d);
+    const dow = (totalCells + i) % 7;
+    const menuArr = getMenuArray(dateStr);
+    const eventText = (events[dateStr] || "").trim();
+    let classes = "day-cell day-cell--other";
+    if (dow === 0) classes += " day-cell--sun";
+    if (dow === 6) classes += " day-cell--sat";
+    html += `<div class="${classes}">`;
+    html += `<div class="day-header"><span class="day-number">${d}</span>`;
+    if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
+    html += `</div>`;
+    if (menuArr.length > 0) html += menuArr.map((m) => `<span class="day-menu">${escapeHtml(m)}</span>`).join("");
+    html += "</div>";
   }
 
   const scrollY = window.scrollY;
   calendarGrid.innerHTML = html;
   window.scrollTo(0, scrollY);
-  calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty)").forEach((cell) => {
+  calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty):not(.day-cell--other)").forEach((cell) => {
     cell.addEventListener("click", (e) => {
       if (isDragging) return;
       // Clicking on a menu item or the day cell itself opens the modal for that date
@@ -1617,11 +1650,13 @@ function renderStockItem(s) {
 function renderStock() {
   renderStockAlerts();
 
-  let list = getStock().filter((s) => s.category === stockCategory);
-
-  if (stockSearchQuery) {
+  const isSearching = !!stockSearchQuery;
+  let list;
+  if (isSearching) {
     const q = stockSearchQuery.toLowerCase();
-    list = list.filter((s) => s.name.toLowerCase().includes(q));
+    list = getStock().filter((s) => s.name.toLowerCase().includes(q));
+  } else {
+    list = getStock().filter((s) => s.category === stockCategory);
   }
 
   list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
@@ -1637,41 +1672,54 @@ function renderStock() {
 
   stockEmpty.hidden = true;
 
-  const subCats = SUBCAT_ORDER[stockCategory];
-  if (subCats) {
-    // Group by subcategory
-    const subDefs = STOCK_SUBCATEGORIES[stockCategory];
+  if (isSearching) {
+    // Search mode: group by category
     let html = "";
-    const visibleSubs = [];
-    subCats.forEach((sc) => {
-      const group = list.filter((s) => (s.subCategory || "") === sc);
+    ["fridge", "freezer", "pantry"].forEach((cat) => {
+      const group = list.filter((s) => s.category === cat);
       if (group.length === 0) return;
-      const label = sc ? subDefs[sc] : "その他";
-      const scId = sc || "other";
-      visibleSubs.push({ key: scId, label });
-      html += `<div class="stock-subcat-header" id="stock-sc-${scId}">${escapeHtml(label)}</div>`;
+      html += `<div class="stock-subcat-header">${escapeHtml(STOCK_CATEGORIES[cat])}</div>`;
       html += group.map(renderStockItem).join("");
     });
     stockItems.innerHTML = html;
-
-    // Render subcategory nav buttons
-    if (visibleSubs.length > 1) {
-      subcatNav.innerHTML = visibleSubs
-        .map((s) => `<button class="stock-subcat-nav-btn" data-sc="${s.key}" type="button">${escapeHtml(s.label)}</button>`)
-        .join("");
-      subcatNav.hidden = false;
-      subcatNav.querySelectorAll(".stock-subcat-nav-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const target = $("stock-sc-" + btn.dataset.sc);
-          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
+    subcatNav.hidden = true;
+  } else {
+    const subCats = SUBCAT_ORDER[stockCategory];
+    if (subCats) {
+      // Group by subcategory
+      const subDefs = STOCK_SUBCATEGORIES[stockCategory];
+      let html = "";
+      const visibleSubs = [];
+      subCats.forEach((sc) => {
+        const group = list.filter((s) => (s.subCategory || "") === sc);
+        if (group.length === 0) return;
+        const label = sc ? subDefs[sc] : "その他";
+        const scId = sc || "other";
+        visibleSubs.push({ key: scId, label });
+        html += `<div class="stock-subcat-header" id="stock-sc-${scId}">${escapeHtml(label)}</div>`;
+        html += group.map(renderStockItem).join("");
       });
+      stockItems.innerHTML = html;
+
+      // Render subcategory nav buttons
+      if (visibleSubs.length > 1) {
+        subcatNav.innerHTML = visibleSubs
+          .map((s) => `<button class="stock-subcat-nav-btn" data-sc="${s.key}" type="button">${escapeHtml(s.label)}</button>`)
+          .join("");
+        subcatNav.hidden = false;
+        subcatNav.querySelectorAll(".stock-subcat-nav-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const target = $("stock-sc-" + btn.dataset.sc);
+            if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        });
+      } else {
+        subcatNav.hidden = true;
+      }
     } else {
+      stockItems.innerHTML = list.map(renderStockItem).join("");
       subcatNav.hidden = true;
     }
-  } else {
-    stockItems.innerHTML = list.map(renderStockItem).join("");
-    subcatNav.hidden = true;
   }
 
   // Pin buttons
@@ -1843,6 +1891,12 @@ function renderUntaggedMenus() {
   const section = $("untaggedSection");
   if (!section) return;
 
+  // Hide untagged section during search
+  if (menuListSearchQuery) {
+    section.hidden = true;
+    return;
+  }
+
   const untagged = getMenuList().filter((m) => !m.tags || m.tags.length === 0);
   if (untagged.length === 0) {
     section.hidden = true;
@@ -1875,17 +1929,14 @@ function renderMenuList() {
 
   let list = getMenuList();
 
-  // Filter by tag (show list only when a tag is selected)
-  if (menuListFilterTag) {
-    list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
-  } else if (!menuListSearchQuery) {
-    list = [];
-  }
-
-  // Filter by search
+  // Filter by search (cross-tag) or by tag
   if (menuListSearchQuery) {
     const q = menuListSearchQuery.toLowerCase();
     list = list.filter((m) => m.name.toLowerCase().includes(q));
+  } else if (menuListFilterTag) {
+    list = list.filter((m) => (m.tags || []).includes(menuListFilterTag));
+  } else {
+    list = [];
   }
 
   // Sort alphabetically
@@ -2655,6 +2706,17 @@ function init() {
   // Menu list tab
   addMenuBtn.addEventListener("click", () => openMenuEditModal());
   menulistSearch.addEventListener("input", () => {
+    menuListSearchQuery = menulistSearch.value;
+    renderMenuList();
+  });
+  menulistSearch.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      menuListSearchQuery = menulistSearch.value;
+      renderMenuList();
+    }
+  });
+  $("menulistSearchBtn").addEventListener("click", () => {
     menuListSearchQuery = menulistSearch.value;
     renderMenuList();
   });

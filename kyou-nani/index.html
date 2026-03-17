@@ -82,7 +82,10 @@
     <!-- メニューリストタブ -->
     <main class="container tab-content" id="tabMenuList" hidden>
       <div class="menulist-header">
-        <input type="text" id="menulistSearch" class="menulist-search" placeholder="メニュー検索..." />
+        <div class="stock-search-wrap">
+          <input type="text" id="menulistSearch" class="menulist-search" placeholder="メニュー検索..." />
+          <button id="menulistSearchBtn" class="stock-search-btn" type="button">🔍</button>
+        </div>
         <button id="addMenuBtn" class="menulist-add-btn" type="button">＋ 追加</button>
       </div>
       <div class="menulist-tags" id="menulistTags"></div>
