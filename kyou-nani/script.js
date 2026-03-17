@@ -729,6 +729,48 @@ function renderCalendar() {
   initDragAndDrop();
 }
 
+// ===== Modal Back-Button Support =====
+let _modalHistoryPushed = false;
+let _closingFromPopstate = false;
+
+function getOpenModal() {
+  const ids = ["menuModal", "menuEditModal", "stockEditModal", "tagEditModal", "shoppingAddModal"];
+  for (const id of ids) {
+    const el = $(id);
+    if (el && el.classList.contains("is-open")) return el;
+  }
+  return null;
+}
+
+function modalPushState() {
+  _modalHistoryPushed = true;
+  history.pushState({ modal: true }, "");
+}
+
+function modalCloseWithBack() {
+  if (_closingFromPopstate) return;
+  if (_modalHistoryPushed) {
+    _modalHistoryPushed = false;
+    history.back();
+  }
+}
+
+window.addEventListener("popstate", () => {
+  if (!_modalHistoryPushed) return;
+  _modalHistoryPushed = false;
+  _closingFromPopstate = true;
+  const modal = getOpenModal();
+  if (modal) {
+    const id = modal.id;
+    if (id === "menuModal") closeMenuModal();
+    else if (id === "menuEditModal") closeMenuEditModal();
+    else if (id === "stockEditModal") closeStockEditModal();
+    else if (id === "tagEditModal") closeTagEditModal();
+    else if (id === "shoppingAddModal") modal.classList.remove("is-open");
+  }
+  _closingFromPopstate = false;
+});
+
 // ===== Calendar Modal =====
 function openMenuModal(dateStr) {
   editingDate = dateStr;
@@ -766,6 +808,7 @@ function openMenuModal(dateStr) {
   renderModalSuggestions();
 
   menuModal.classList.add("is-open");
+  modalPushState();
   setTimeout(() => {
     const firstInput = menuEntriesEl.querySelector(".menu-entry-input");
     if (firstInput) firstInput.focus();
@@ -1166,10 +1209,12 @@ function reopenMenuModalWithState(state) {
   renderModalSuggestions();
 
   menuModal.classList.add("is-open");
+  modalPushState();
 }
 
 function closeMenuModal() {
   menuModal.classList.remove("is-open");
+  modalCloseWithBack();
   editingDate = null;
   menuEntries = [];
 }
@@ -1808,11 +1853,13 @@ function openStockEditModal(id) {
   }
 
   stockEditModal.classList.add("is-open");
+  modalPushState();
   setTimeout(() => stockEditName.focus(), 100);
 }
 
 function closeStockEditModal() {
   stockEditModal.classList.remove("is-open");
+  modalCloseWithBack();
   editingStockId = null;
 }
 
@@ -2060,10 +2107,12 @@ function openTagEditModal() {
   const modal = $("tagEditModal");
   renderTagEditList();
   modal.classList.add("is-open");
+  modalPushState();
 }
 
 function closeTagEditModal() {
   $("tagEditModal").classList.remove("is-open");
+  modalCloseWithBack();
 }
 
 function renderTagEditList() {
@@ -2268,11 +2317,13 @@ function openMenuEditModal(id) {
   $("menuEditDeleteBtn").hidden = !item;
 
   menuEditModal.classList.add("is-open");
+  modalPushState();
   setTimeout(() => menuEditName.focus(), 100);
 }
 
 function closeMenuEditModal() {
   menuEditModal.classList.remove("is-open");
+  modalCloseWithBack();
   editingMenuId = null;
 }
 
@@ -2470,15 +2521,17 @@ function showShoppingCategoryModal(itemName, categories, db) {
           showToast("追加エラー");
         });
         modal.classList.remove("is-open");
+        modalCloseWithBack();
       });
     });
   }
 
   modal.classList.add("is-open");
+  modalPushState();
 
-  $("shoppingAddCancelBtn").onclick = () => { modal.classList.remove("is-open"); };
+  $("shoppingAddCancelBtn").onclick = () => { modal.classList.remove("is-open"); modalCloseWithBack(); };
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.classList.remove("is-open");
+    if (e.target === modal) { modal.classList.remove("is-open"); modalCloseWithBack(); }
   }, { once: true });
 }
 
