@@ -618,6 +618,7 @@ function switchTab(tabName) {
     renderCalendar();
     renderPinnedStock();
     renderCalendarExpiryAlerts();
+    autoResizeAllMemoInputs();
   } else if (tabName === "menulist") {
     renderMenuList();
   } else if (tabName === "stock") {
