@@ -204,11 +204,10 @@ body {
 
 .day-cell--other {
   background: #fafafa;
-  cursor: default;
+  cursor: pointer;
   opacity: 0.45;
-  pointer-events: none;
 }
-.day-cell--other:hover { background: #fafafa; }
+.day-cell--other:hover { background: #f3f0eb; }
 
 .day-cell--today {
   background: var(--today-bg);
@@ -547,6 +546,37 @@ body {
 .pin-btn--active {
   background: #fff3e0;
   border-color: var(--primary);
+}
+
+/* ===== Pin Button in Edit Modal ===== */
+.stock-edit-pin-row {
+  display: flex;
+  justify-content: center;
+}
+.stock-edit-pin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  background: #f9f9f9;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  color: #666;
+}
+.stock-edit-pin-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.stock-edit-pin-btn--active {
+  background: #fff3e0;
+  border-color: var(--primary);
+  color: #333;
+}
+.stock-edit-pin-icon {
+  font-size: 1.1rem;
 }
 
 /* ===== Modal ===== */

@@ -382,7 +382,7 @@ function saveStock(list) {
   kondateFirebaseSet(FIREBASE_PATHS.stock, list);
 }
 
-function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType) {
+function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType, pinned) {
   const list = getStock();
   list.push({
     id: "s_" + Date.now(),
@@ -395,11 +395,12 @@ function addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, 
     memo: memo ? memo.trim() : "",
     qty: qty != null ? qty : 1,
     spareQty: spareQty || 0,
+    pinned: !!pinned,
   });
   saveStock(list);
 }
 
-function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType) {
+function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType, pinned) {
   const list = getStock();
   const item = list.find((s) => s.id === id);
   if (item) {
@@ -412,6 +413,7 @@ function updateStockItem(id, name, category, expiry, memo, qty, spareQty, subCat
     item.memo = memo ? memo.trim() : "";
     item.qty = qty != null ? qty : 1;
     item.spareQty = spareQty || 0;
+    if (pinned != null) item.pinned = !!pinned;
     saveStock(list);
   }
 }
@@ -659,11 +661,11 @@ function renderCalendar() {
     let classes = "day-cell day-cell--other";
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
-    html += `<div class="${classes}">`;
+    html += `<div class="${classes}" data-date="${dateStr}">`;
     html += `<div class="day-header"><span class="day-number">${d}</span>`;
     if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
     html += `</div>`;
-    if (menuArr.length > 0) html += menuArr.map((m) => `<span class="day-menu">${escapeHtml(m)}</span>`).join("");
+    if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
 
@@ -707,18 +709,18 @@ function renderCalendar() {
     let classes = "day-cell day-cell--other";
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
-    html += `<div class="${classes}">`;
+    html += `<div class="${classes}" data-date="${dateStr}">`;
     html += `<div class="day-header"><span class="day-number">${d}</span>`;
     if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
     html += `</div>`;
-    if (menuArr.length > 0) html += menuArr.map((m) => `<span class="day-menu">${escapeHtml(m)}</span>`).join("");
+    if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
 
   const scrollY = window.scrollY;
   calendarGrid.innerHTML = html;
   window.scrollTo(0, scrollY);
-  calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty):not(.day-cell--other)").forEach((cell) => {
+  calendarGrid.querySelectorAll(".day-cell:not(.day-cell--empty)").forEach((cell) => {
     cell.addEventListener("click", (e) => {
       if (isDragging) return;
       // Clicking on a menu item or the day cell itself opens the modal for that date
@@ -1838,7 +1840,7 @@ function openStockEditModal(id) {
   const item = id ? getStock().find((s) => s.id === id) : null;
 
   stockEditTitle.textContent = item ? "在庫編集" : "在庫追加";
-  stockEditName.value = item ? item.name : "";
+  stockEditName.value = item ? item.name : (stockSearchQuery || "");
   stockEditCategory.value = item ? item.category : stockCategory;
   stockEditQty.value = item ? (item.qty != null ? item.qty : 1) : 1;
   stockEditSpareQty.value = item ? (item.spareQty || 0) : 0;
@@ -1851,6 +1853,18 @@ function openStockEditModal(id) {
   updateStockSubCatOptions();
   if (item && item.subCategory) {
     $("stockEditSubCategory").value = item.subCategory;
+  }
+
+  // ピン止め状態
+  const pinBtn = $("stockEditPinBtn");
+  const pinLabel = $("stockEditPinLabel");
+  pinBtn._pinned = item ? !!item.pinned : false;
+  if (pinBtn._pinned) {
+    pinBtn.classList.add("stock-edit-pin-btn--active");
+    pinLabel.textContent = "献立に表示中";
+  } else {
+    pinBtn.classList.remove("stock-edit-pin-btn--active");
+    pinLabel.textContent = "献立に表示する";
   }
 
   stockEditModal.classList.add("is-open");
@@ -1880,12 +1894,13 @@ function saveStockEditItem() {
   const subCategory = $("stockEditSubCategory").value;
   const frozenDate = $("stockEditFrozenDate").value;
   const dateType = $("stockEditDateType").value;
+  const pinned = !!$("stockEditPinBtn")._pinned;
 
   if (editingStockId) {
-    updateStockItem(editingStockId, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType);
+    updateStockItem(editingStockId, name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType, pinned);
     showToast("更新しました");
   } else {
-    addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType);
+    addStockItem(name, category, expiry, memo, qty, spareQty, subCategory, frozenDate, dateType, pinned);
     showToast("追加しました");
   }
 
@@ -1895,6 +1910,7 @@ function saveStockEditItem() {
 
   closeStockEditModal();
   renderStock();
+  renderPinnedStock();
 }
 
 function deleteStockEditItem() {
@@ -2845,6 +2861,18 @@ function init() {
   stockEditDeleteBtn.addEventListener("click", deleteStockEditItem);
   stockEditCancelBtn.addEventListener("click", closeStockEditModal);
   stockEditCategory.addEventListener("change", updateStockSubCatOptions);
+
+  // ピン止めトグル
+  $("stockEditPinBtn").addEventListener("click", function () {
+    this._pinned = !this._pinned;
+    if (this._pinned) {
+      this.classList.add("stock-edit-pin-btn--active");
+      $("stockEditPinLabel").textContent = "献立に表示中";
+    } else {
+      this.classList.remove("stock-edit-pin-btn--active");
+      $("stockEditPinLabel").textContent = "献立に表示する";
+    }
+  });
 
   // Qty +/- buttons
   $("stockQtyMinus").addEventListener("click", () => {
