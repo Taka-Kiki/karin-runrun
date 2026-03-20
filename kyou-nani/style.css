@@ -237,10 +237,11 @@ body {
   font-size: 0.55rem;
   font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.5px;
   color: var(--white);
   background: var(--basil);
   border-radius: 3px;
-  padding: 1px 3px;
+  padding: 1px 1px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -250,10 +251,11 @@ body {
 .day-menu {
   font-size: 0.6rem;
   line-height: 1.2;
+  letter-spacing: -0.5px;
   color: var(--white);
   background: var(--primary);
   border-radius: 4px;
-  padding: 1px 4px;
+  padding: 1px 1px;
   margin-top: 2px;
   overflow: hidden;
   display: -webkit-box;
