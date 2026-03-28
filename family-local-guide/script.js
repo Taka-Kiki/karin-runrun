@@ -2,6 +2,7 @@ const DATA_FILE_PATH = "./data.json";
 const FAV_STORAGE_KEY = "familyGuide_favorites";
 const CHILDREN_STORAGE_KEY = "familyGuide_children";
 const CUSTOM_CALENDAR_KEY = "familyGuide_customCalendar";
+const STATIC_CALENDAR_OVERRIDES_KEY = "familyGuide_calendarOverrides";
 
 // カレンダー期間と月齢の対応表
 const CALENDAR_PERIOD_MAP = [
@@ -63,6 +64,8 @@ function saveChildren(children) {
   renderChildrenList();
   firebaseSet("shared/children",
     arrayToFirebaseObj(children, c => c.id));
+  // SW にも子どもデータを同期（通知用）
+  if (typeof syncChildrenToSW === "function") syncChildrenToSW();
 }
 
 function addChild(name, birthdate, icon, status, dueDate) {
@@ -131,6 +134,15 @@ function toggleBirthTask(childId, taskId) {
   saveChildren(children);
 }
 
+function toggleCalendarTask(childId, taskId) {
+  const children = getChildren();
+  const child = children.find((c) => c.id === childId);
+  if (!child) return;
+  if (!child.calendarTasks) child.calendarTasks = {};
+  child.calendarTasks[taskId] = child.calendarTasks[taskId] ? null : new Date().toISOString();
+  saveChildren(children);
+}
+
 function convertToBorn(childId, birthdate, name) {
   const children = getChildren();
   const child = children.find((c) => c.id === childId);
@@ -193,7 +205,10 @@ function getCalendarItemsFromPeriod(periodId) {
     const type = getItemTypeFromClasses(el.classList);
     const strong = el.querySelector("strong");
     if (strong && type) {
-      items.push({ title: strong.textContent, type, periodId });
+      const id = el.dataset.customId
+        ? "custom:" + el.dataset.customId
+        : periodId + ":" + strong.textContent;
+      items.push({ id, title: strong.textContent, type, periodId });
     }
   });
   return items;
@@ -218,15 +233,18 @@ function getCalendarSuggestionsForChild(birthdate) {
   return { now, soon };
 }
 
-function renderSuggestionGroup(items, labelText, labelClass, groupClass) {
+function renderSuggestionGroup(items, labelText, labelClass, groupClass, childId, calendarTasks) {
   if (items.length === 0) return "";
+  const tasks = calendarTasks || {};
   const itemsHtml = items
     .map((item) => {
       const style = SUGGESTION_TAG_STYLES[item.type] || SUGGESTION_TAG_STYLES.todo;
-      return `<button class="child-suggestion-item" data-jump-period="${item.periodId}" type="button">
+      const checked = tasks[item.id] ? "checked" : "";
+      return `<label class="child-suggestion-item calendar-task-item ${checked ? "birth-task-item--done" : ""}" data-jump-period="${item.periodId}">
+        <input type="checkbox" ${checked} data-child-id="${childId}" data-task-id="${escapeHtml(item.id)}" class="calendar-task-checkbox birth-task-checkbox--sm" />
         <span class="child-suggestion-tag" style="background:${style.bg};color:${style.color}">${style.label}</span>
         <span class="child-suggestion-title">${escapeHtml(item.title)}</span>
-      </button>`;
+      </label>`;
     })
     .join("");
   return `<div class="child-suggestion-group ${groupClass}">
@@ -312,11 +330,12 @@ function renderChildrenList() {
 
       // 通常の出生済みこども
       const suggestions = getCalendarSuggestionsForChild(child.birthdate);
+      const cTasks = child.calendarTasks || {};
       const nowHtml = renderSuggestionGroup(
-        suggestions.now, "📌 いま", "child-suggestion-label--now", "child-suggestion-group--now"
+        suggestions.now, "📌 いま", "child-suggestion-label--now", "child-suggestion-group--now", child.id, cTasks
       );
       const soonHtml = renderSuggestionGroup(
-        suggestions.soon, "🔜 もうすぐ", "child-suggestion-label--soon", "child-suggestion-group--soon"
+        suggestions.soon, "🔜 もうすぐ", "child-suggestion-label--soon", "child-suggestion-group--soon", child.id, cTasks
       );
       const suggestionsHtml = (nowHtml || soonHtml)
         ? `<div class="child-suggestions">${nowHtml}${soonHtml}</div>`
@@ -560,7 +579,7 @@ function setupChildManagement() {
     }
 
     const suggestionBtn = e.target.closest(".child-suggestion-item");
-    if (suggestionBtn) {
+    if (suggestionBtn && !suggestionBtn.classList.contains("calendar-task-item")) {
       const periodId = suggestionBtn.dataset.jumpPeriod;
       if (periodId) {
         navigateTo("calendar");
@@ -586,6 +605,10 @@ function setupChildManagement() {
 
   // タスクチェックボックス
   document.addEventListener("change", (e) => {
+    if (e.target.classList.contains("calendar-task-checkbox")) {
+      toggleCalendarTask(e.target.dataset.childId, e.target.dataset.taskId);
+      return;
+    }
     if (e.target.classList.contains("birth-task-checkbox")) {
       toggleBirthTask(e.target.dataset.childId, e.target.dataset.taskId);
     }
@@ -773,11 +796,15 @@ function sortWithFavoritesFirst(items, category) {
   });
 }
 
+// 編集可能カテゴリ（病院系 + 緊急）
+const EDITABLE_CATEGORIES = new Set(["pediatrics", "ent", "dermatology", "obstetrics", "nightEmergency", "emergency"]);
+
 function renderList(targetId, items, category) {
   const target = document.getElementById(targetId);
   if (!target) return;
 
   const sorted = sortWithFavoritesFirst(items, category);
+  const editable = EDITABLE_CATEGORIES.has(category);
 
   target.innerHTML = sorted
     .map(
@@ -787,6 +814,7 @@ function renderList(targetId, items, category) {
           ${createFavButton(category, item)}
           ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.name}</a>` : item.name}
           ${createReviewBadge(item)}
+          ${editable ? `<button class="item-edit-btn" data-edit-category="${category}" data-edit-name="${escapeHtml(item.name)}" type="button" title="編集">✏️</button>` : ""}
         </div>
         <div class="meta">地域: ${item.area}</div>
         <div class="meta">電話: ${item.phone}</div>
@@ -795,7 +823,7 @@ function renderList(targetId, items, category) {
       </li>
     `
     )
-    .join("");
+    .join("") + (editable ? `<li class="item-add-row"><button class="item-add-btn" data-add-category="${category}" type="button">＋ 追加</button></li>` : "");
 }
 
 function renderTaxiList(targetId, items, category) {
@@ -899,10 +927,15 @@ function renderFirstAid(emergencyData) {
   const bannerContainer = document.getElementById("emergencyBanners");
   if (bannerContainer) {
     const bannerItems = (emergencyData || []).filter((item) =>
-      item.phone === "#7119" || item.phone === "#8000"
+      item.banner || item.phone === "#7119" || item.phone === "#8000"
     );
     bannerContainer.innerHTML = bannerItems.map((item) => {
-      const cls = item.phone === "#7119" ? "emergency-banner--7119" : "emergency-banner--8000";
+      let cls;
+      if (item.banner && item.phone !== "#7119" && item.phone !== "#8000") {
+        cls = "emergency-banner--hospital";
+      } else {
+        cls = item.phone === "#7119" ? "emergency-banner--7119" : "emergency-banner--8000";
+      }
       return `
         <a href="tel:${item.phone}" class="emergency-banner ${cls}">
           <div class="emergency-banner-info">
@@ -970,6 +1003,235 @@ function renderFirstAid(emergencyData) {
       `;
     }).join("");
   }
+}
+
+// ===== 産婦人科リスト（送迎ボタン付き） =====
+function renderObstetricsList(items) {
+  const target = document.getElementById("obstetricsList");
+  if (!target) return;
+  const sorted = sortWithFavoritesFirst(items, "obstetrics");
+  target.innerHTML = sorted.map((item) => `
+    <li data-search="${[item.name, item.area, item.phone, item.note].join(" ").toLowerCase()}">
+      <div class="name">
+        ${createFavButton("obstetrics", item)}
+        ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.name}</a>` : item.name}
+        ${createReviewBadge(item)}
+        <button class="item-edit-btn" data-edit-category="obstetrics" data-edit-name="${escapeHtml(item.name)}" type="button" title="編集">✏️</button>
+      </div>
+      <div class="meta">地域: ${item.area}</div>
+      <div class="meta">電話: ${item.phone}</div>
+      <div class="meta">${item.note}</div>
+      <div class="obstetrics-actions">
+        ${item.phone ? `<a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a>` : ""}
+        ${item.shuttleUrl ? `<a href="${item.shuttleUrl}" target="_blank" rel="noopener noreferrer" class="shuttle-btn">🚐 送迎ページ</a>` : ""}
+        ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer" class="site-btn">🌐 サイトを見る</a>` : ""}
+      </div>
+    </li>
+  `).join("") + `<li class="item-add-row"><button class="item-add-btn" data-add-category="obstetrics" type="button">＋ 追加</button></li>`;
+}
+
+// ===== 緊急リスト（バナー以外の全項目を表示・編集可） =====
+function renderEmergencyList(emergencyData) {
+  const container = document.getElementById("emergencyItemsList");
+  if (!container) return;
+  // バナー以外の全項目（バナー含む）をリスト表示
+  container.innerHTML = (emergencyData || []).map((item) => `
+    <li data-search="${[item.name, item.area, item.phone, item.note].join(" ").toLowerCase()}">
+      <div class="name">
+        ${createFavButton("emergency", item)}
+        ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.name}</a>` : item.name}
+        <button class="item-edit-btn" data-edit-category="emergency" data-edit-name="${escapeHtml(item.name)}" type="button" title="編集">✏️</button>
+      </div>
+      <div class="meta">地域: ${item.area || ""}</div>
+      <div class="meta">電話: ${item.phone}</div>
+      <div class="meta">${item.note}</div>
+      ${item.phone ? `<div><a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a></div>` : ""}
+    </li>
+  `).join("") + `<li class="item-add-row"><button class="item-add-btn" data-add-category="emergency" type="button">＋ 追加</button></li>`;
+}
+
+// ===== ユーザー編集データ管理 (localStorage) =====
+const USER_EDITS_KEY = "flg-userEdits";
+
+function getUserEdits() {
+  try { return JSON.parse(localStorage.getItem(USER_EDITS_KEY)) || {}; } catch { return {}; }
+}
+
+function saveUserEdits(edits) {
+  localStorage.setItem(USER_EDITS_KEY, JSON.stringify(edits));
+}
+
+function applyUserEdits(hospitalDataObj) {
+  const edits = getUserEdits();
+  for (const cat of Object.keys(hospitalDataObj)) {
+    if (edits[cat]) hospitalDataObj[cat] = edits[cat];
+  }
+}
+
+function applyUserEditsForCategory(category, defaultItems) {
+  const edits = getUserEdits();
+  return edits[category] || defaultItems;
+}
+
+function saveEditedCategory(category, items) {
+  const edits = getUserEdits();
+  edits[category] = items;
+  saveUserEdits(edits);
+}
+
+function getEffectiveItems(category) {
+  if (category === "emergency") {
+    return applyUserEditsForCategory("emergency", allData.emergency || []);
+  }
+  return hospitalData[category] || [];
+}
+
+// ===== 項目編集モーダル =====
+let editingItemCategory = null;
+let editingItemIndex = -1;
+
+function openItemEditModal(category, itemName) {
+  const items = getEffectiveItems(category);
+  const idx = items.findIndex((i) => i.name === itemName);
+  if (idx < 0) return;
+
+  editingItemCategory = category;
+  editingItemIndex = idx;
+  const item = items[idx];
+
+  document.getElementById("itemEditTitle").textContent = "項目を編集";
+  document.getElementById("itemEditName").value = item.name || "";
+  document.getElementById("itemEditArea").value = item.area || "";
+  document.getElementById("itemEditPhone").value = item.phone || "";
+  document.getElementById("itemEditUrl").value = item.url || "";
+  document.getElementById("itemEditNote").value = item.note || "";
+  document.getElementById("itemEditDeleteBtn").hidden = false;
+  document.getElementById("itemEditModal").hidden = false;
+  document.getElementById("itemEditName").focus();
+}
+
+function openItemAddModal(category) {
+  editingItemCategory = category;
+  editingItemIndex = -1;
+
+  document.getElementById("itemEditTitle").textContent = "項目を追加";
+  document.getElementById("itemEditName").value = "";
+  document.getElementById("itemEditArea").value = "";
+  document.getElementById("itemEditPhone").value = "";
+  document.getElementById("itemEditUrl").value = "";
+  document.getElementById("itemEditNote").value = "";
+  document.getElementById("itemEditDeleteBtn").hidden = true;
+  document.getElementById("itemEditModal").hidden = false;
+  document.getElementById("itemEditName").focus();
+}
+
+function closeItemEditModal() {
+  document.getElementById("itemEditModal").hidden = true;
+  editingItemCategory = null;
+  editingItemIndex = -1;
+}
+
+function saveItemEdit() {
+  const name = document.getElementById("itemEditName").value.trim();
+  if (!name) { showToast("名前を入力してください"); return; }
+
+  const newItem = {
+    name,
+    area: document.getElementById("itemEditArea").value.trim(),
+    phone: document.getElementById("itemEditPhone").value.trim(),
+    url: document.getElementById("itemEditUrl").value.trim(),
+    note: document.getElementById("itemEditNote").value.trim(),
+  };
+
+  const items = [...getEffectiveItems(editingItemCategory)];
+
+  if (editingItemIndex >= 0) {
+    // 既存の項目の追加フィールド（lat, lng, rating, shuttleUrl, banner等）を保持
+    const old = items[editingItemIndex];
+    items[editingItemIndex] = { ...old, ...newItem };
+  } else {
+    items.push(newItem);
+  }
+
+  saveEditedCategory(editingItemCategory, items);
+
+  // hospitalData も更新
+  if (editingItemCategory !== "emergency") {
+    hospitalData[editingItemCategory] = items;
+  }
+
+  reRenderCategory(editingItemCategory);
+  closeItemEditModal();
+  showToast(editingItemIndex >= 0 ? "更新しました" : "追加しました");
+}
+
+function deleteItemEdit() {
+  const items = [...getEffectiveItems(editingItemCategory)];
+  const item = items[editingItemIndex];
+  if (!item) return;
+
+  document.getElementById("itemDeleteMessage").textContent = `「${item.name}」を削除しますか？`;
+  document.getElementById("itemDeleteModal").hidden = false;
+}
+
+function confirmDeleteItem() {
+  const items = [...getEffectiveItems(editingItemCategory)];
+  items.splice(editingItemIndex, 1);
+  saveEditedCategory(editingItemCategory, items);
+
+  if (editingItemCategory !== "emergency") {
+    hospitalData[editingItemCategory] = items;
+  }
+
+  reRenderCategory(editingItemCategory);
+  document.getElementById("itemDeleteModal").hidden = true;
+  closeItemEditModal();
+  showToast("削除しました");
+}
+
+function reRenderCategory(category) {
+  if (category === "emergency") {
+    const items = applyUserEditsForCategory("emergency", allData.emergency || []);
+    renderFirstAid(items);
+    renderEmergencyList(items);
+  } else if (category === "obstetrics") {
+    renderObstetricsList(hospitalData.obstetrics);
+  } else if (category === "pediatrics") {
+    renderList("pediatricsList", hospitalData.pediatrics, "pediatrics");
+  } else if (category === "ent") {
+    renderList("entList", hospitalData.ent, "ent");
+  } else if (category === "dermatology") {
+    renderList("dermaList", hospitalData.dermatology, "dermatology");
+  } else if (category === "nightEmergency") {
+    renderList("nightEmergencyList", hospitalData.nightEmergency, "nightEmergency");
+  }
+  renderFavoritesList();
+  updateHospitalMapMarkers();
+}
+
+function setupItemEditModal() {
+  document.getElementById("itemEditSaveBtn")?.addEventListener("click", saveItemEdit);
+  document.getElementById("itemEditDeleteBtn")?.addEventListener("click", deleteItemEdit);
+  document.getElementById("itemEditCancelBtn")?.addEventListener("click", closeItemEditModal);
+  document.getElementById("itemDeleteConfirmBtn")?.addEventListener("click", confirmDeleteItem);
+  document.getElementById("itemDeleteCancelBtn")?.addEventListener("click", () => {
+    document.getElementById("itemDeleteModal").hidden = true;
+  });
+
+  // 編集ボタンのイベント委譲
+  document.addEventListener("click", (e) => {
+    const editBtn = e.target.closest(".item-edit-btn");
+    if (editBtn) {
+      const category = editBtn.dataset.editCategory;
+      const name = editBtn.dataset.editName;
+      openItemEditModal(category, name);
+      return;
+    }
+    const addBtn = e.target.closest(".item-add-btn");
+    if (addBtn) {
+      openItemAddModal(addBtn.dataset.addCategory);
+    }
+  });
 }
 
 function setupFirstAidAccordion() {
@@ -1057,13 +1319,20 @@ function renderAll(data) {
     pediatrics: data.pediatrics || [],
     ent: data.ent || [],
     dermatology: data.dermatology || [],
+    obstetrics: data.obstetrics || [],
     nightEmergency: data.nightEmergency || [],
   };
-  renderList("pediatricsList", data.pediatrics || [], "pediatrics");
-  renderList("entList", data.ent || [], "ent");
-  renderList("dermaList", data.dermatology || [], "dermatology");
-  renderFirstAid(data.emergency || []);
-  renderList("nightEmergencyList", data.nightEmergency || [], "nightEmergency");
+  // localStorage のユーザー編集を反映
+  applyUserEdits(hospitalData);
+  const userEmergency = applyUserEditsForCategory("emergency", data.emergency || []);
+
+  renderList("pediatricsList", hospitalData.pediatrics, "pediatrics");
+  renderList("entList", hospitalData.ent, "ent");
+  renderList("dermaList", hospitalData.dermatology, "dermatology");
+  renderObstetricsList(hospitalData.obstetrics);
+  renderFirstAid(userEmergency);
+  renderEmergencyList(userEmergency);
+  renderList("nightEmergencyList", hospitalData.nightEmergency, "nightEmergency");
   renderTaxiList("taxiLaborList", data.taxiLabor || [], "taxiLabor");
   renderTaxiList("taxiGeneralList", data.taxiGeneral || [], "taxiGeneral");
   renderCareSupport("careSupportList", data.careSupport || []);
@@ -1077,6 +1346,7 @@ const CATEGORY_LABELS = {
   pediatrics: "小児科",
   ent: "耳鼻科",
   dermatology: "皮膚科",
+  obstetrics: "産婦人科",
   emergency: "緊急",
   nightEmergency: "休日/夜間",
   taxiLabor: "陣痛タクシー",
@@ -1345,6 +1615,7 @@ function setupHospitalToggle() {
     pediatrics: document.getElementById("pediatricsPane"),
     ent: document.getElementById("entPane"),
     derma: document.getElementById("dermaPane"),
+    obstetrics: document.getElementById("obstetricsPane"),
     night: document.getElementById("nightPane"),
   };
 
@@ -2408,6 +2679,135 @@ function saveCustomCalendarItems(items) {
     arrayToFirebaseObj(items, i => i.id || ("cal_" + Date.now())));
 }
 
+function getStaticOverrides() {
+  if (_staticOverridesCache !== null) return _staticOverridesCache;
+  try {
+    return JSON.parse(localStorage.getItem(STATIC_CALENDAR_OVERRIDES_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveStaticOverrides(overrides) {
+  _staticOverridesCache = overrides;
+  localStorage.setItem(STATIC_CALENDAR_OVERRIDES_KEY, JSON.stringify(overrides));
+  firebaseSet("shared/calendarOverrides", overrides);
+}
+
+function applyStaticOverrides() {
+  const overrides = getStaticOverrides();
+  Object.entries(overrides).forEach(([staticId, ov]) => {
+    const item = document.querySelector(`[data-static-id="${staticId}"]`);
+    if (!item) return;
+
+    // Update category class
+    item.className = item.className.replace(/calendar-item--\w+/, `calendar-item--${ov.category}`);
+
+    // Update tag
+    const tag = item.querySelector(".calendar-tag");
+    const tagLabel = CALENDAR_CATEGORY_LABELS[ov.category] || ov.category;
+    tag.className = `calendar-tag calendar-tag--${ov.category}`;
+    tag.textContent = tagLabel;
+
+    // Update body
+    const body = item.querySelector(".calendar-item-body");
+    body.innerHTML = `<strong>${escapeHtml(ov.title)}</strong>` +
+      (ov.desc ? `<p>${escapeHtml(ov.desc)}</p>` : "");
+
+    // Update data-search
+    const periodLabel = item.closest(".calendar-period")?.querySelector(".calendar-period-title")?.textContent || "";
+    item.dataset.search = `${tagLabel} ${ov.title} ${ov.desc || ""} ${periodLabel}`;
+  });
+}
+
+function setupStaticCalendarEditButtons() {
+  document.querySelectorAll(".calendar-period").forEach((period) => {
+    const items = period.querySelectorAll(".calendar-item:not([data-custom-id])");
+    items.forEach((item, idx) => {
+      const staticId = `static-${period.id}-${idx}`;
+      item.dataset.staticId = staticId;
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "calendar-item-edit";
+      editBtn.title = "編集";
+      editBtn.textContent = "\u270E";
+      editBtn.addEventListener("click", () => openCalendarEditModal(item));
+      item.appendChild(editBtn);
+    });
+  });
+
+  applyStaticOverrides();
+}
+
+function openCalendarEditModal(itemEl) {
+  const modal = document.getElementById("calendarModal");
+  const form = document.getElementById("calendarAddForm");
+  const periodSelect = document.getElementById("calAddPeriod");
+  const titleInput = document.getElementById("calAddTitle");
+  const descInput = document.getElementById("calAddDesc");
+  const modalLabel = document.getElementById("calendarModalLabel");
+  const submitBtn = form.querySelector(".calendar-modal-submit");
+
+  const customId = itemEl.dataset.customId;
+  const staticId = itemEl.dataset.staticId;
+  let category, title, desc, periodId;
+
+  if (customId) {
+    const customItems = getCustomCalendarItems();
+    const ci = customItems.find((i) => i.id === customId);
+    if (!ci) return;
+    category = ci.category;
+    title = ci.title;
+    desc = ci.desc || "";
+    periodId = ci.periodId;
+    _calendarEditingItem = { type: "custom", id: customId };
+  } else if (staticId) {
+    const overrides = getStaticOverrides();
+    if (overrides[staticId]) {
+      category = overrides[staticId].category;
+      title = overrides[staticId].title;
+      desc = overrides[staticId].desc || "";
+    } else {
+      category = Array.from(itemEl.classList)
+        .find((c) => c.startsWith("calendar-item--"))
+        ?.replace("calendar-item--", "") || "event";
+      title = itemEl.querySelector(".calendar-item-body strong")?.textContent || "";
+      desc = itemEl.querySelector(".calendar-item-body p")?.textContent || "";
+    }
+    periodId = itemEl.closest(".calendar-period")?.id || "";
+    _calendarEditingItem = { type: "static", id: staticId };
+  }
+
+  // Pre-fill form
+  const catRadio = form.querySelector(`input[name="cal-cat"][value="${category}"]`);
+  if (catRadio) catRadio.checked = true;
+  periodSelect.value = periodId;
+  periodSelect.disabled = (staticId != null);
+  titleInput.value = title;
+  descInput.value = desc;
+
+  modalLabel.textContent = "項目を編集";
+  submitBtn.textContent = "保存する";
+  modal.hidden = false;
+}
+
+function resetCalendarModal() {
+  const form = document.getElementById("calendarAddForm");
+  const modal = document.getElementById("calendarModal");
+  const modalLabel = document.getElementById("calendarModalLabel");
+  const submitBtn = form?.querySelector(".calendar-modal-submit");
+  const periodSelect = document.getElementById("calAddPeriod");
+  _calendarEditingItem = null;
+  if (form) form.reset();
+  if (form) {
+    const defaultCat = form.querySelector('input[name="cal-cat"][value="event"]');
+    if (defaultCat) defaultCat.checked = true;
+  }
+  if (modalLabel) modalLabel.textContent = "項目を追加";
+  if (submitBtn) submitBtn.textContent = "追加する";
+  if (periodSelect) periodSelect.disabled = false;
+  if (modal) modal.hidden = true;
+}
+
 function renderCustomCalendarItems() {
   // Remove existing custom items
   document.querySelectorAll(".calendar-item[data-custom-id]").forEach((el) => el.remove());
@@ -2432,7 +2832,12 @@ function renderCustomCalendarItems() {
         `<strong>${escapeHtml(item.title)}</strong>` +
         (item.desc ? `<p>${escapeHtml(item.desc)}</p>` : "") +
       `</div>` +
+      `<button class="calendar-item-edit" title="編集">\u270E</button>` +
       `<button class="calendar-item-delete" title="削除">&times;</button>`;
+
+    div.querySelector(".calendar-item-edit").addEventListener("click", () => {
+      openCalendarEditModal(div);
+    });
 
     div.querySelector(".calendar-item-delete").addEventListener("click", () => {
       if (confirm(`「${item.title}」を削除しますか？`)) {
@@ -2445,6 +2850,9 @@ function renderCustomCalendarItems() {
 
     container.appendChild(div);
   });
+
+  // カスタム項目の変更をホーム画面のこどもリストにも反映
+  renderChildrenList();
 }
 
 function setupCustomCalendar() {
@@ -2465,10 +2873,11 @@ function setupCustomCalendar() {
 
   // モーダルを開く共通関数（periodId指定で時期を自動選択）
   function openAddModal(preselectedPeriodId) {
+    resetCalendarModal();
+    modal.hidden = false;
     if (preselectedPeriodId) {
       periodSelect.value = preselectedPeriodId;
     }
-    modal.hidden = false;
   }
 
   addBtn.addEventListener("click", () => {
@@ -2491,11 +2900,11 @@ function setupCustomCalendar() {
   });
 
   closeBtn.addEventListener("click", () => {
-    modal.hidden = true;
+    resetCalendarModal();
   });
 
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.hidden = true;
+    if (e.target === modal) resetCalendarModal();
   });
 
   form.addEventListener("submit", (e) => {
@@ -2506,28 +2915,50 @@ function setupCustomCalendar() {
     const desc = document.getElementById("calAddDesc").value.trim();
     if (!title) return;
 
-    const periodInfo = CALENDAR_PERIOD_MAP.find((p) => p.id === periodId);
-    const items = getCustomCalendarItems();
-    items.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      category,
-      periodId,
-      periodLabel: periodInfo?.label || "",
-      title,
-      desc,
-    });
-    saveCustomCalendarItems(items);
-    renderCustomCalendarItems();
+    if (_calendarEditingItem) {
+      // Edit mode
+      if (_calendarEditingItem.type === "custom") {
+        const items = getCustomCalendarItems();
+        const ci = items.find((i) => i.id === _calendarEditingItem.id);
+        if (ci) {
+          ci.category = category;
+          ci.periodId = periodId;
+          ci.periodLabel = CALENDAR_PERIOD_MAP.find((p) => p.id === periodId)?.label || "";
+          ci.title = title;
+          ci.desc = desc;
+          saveCustomCalendarItems(items);
+          renderCustomCalendarItems();
+        }
+      } else if (_calendarEditingItem.type === "static") {
+        const overrides = getStaticOverrides();
+        overrides[_calendarEditingItem.id] = { category, title, desc };
+        saveStaticOverrides(overrides);
+        applyStaticOverrides();
+      }
+    } else {
+      // Add mode
+      const periodInfo = CALENDAR_PERIOD_MAP.find((p) => p.id === periodId);
+      const items = getCustomCalendarItems();
+      items.push({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        category,
+        periodId,
+        periodLabel: periodInfo?.label || "",
+        title,
+        desc,
+      });
+      saveCustomCalendarItems(items);
+      renderCustomCalendarItems();
+    }
     applyCalendarFilter();
-
-    // Reset form and close
-    form.reset();
-    form.querySelector('input[name="cal-cat"][value="event"]').checked = true;
-    modal.hidden = true;
+    resetCalendarModal();
   });
 
   // Initial render
   renderCustomCalendarItems();
+
+  // Add edit buttons to static (built-in) items
+  setupStaticCalendarEditButtons();
 }
 
 // ===== データ読み込み・初期化 =====
@@ -2568,6 +2999,8 @@ let _nurseryInterestsCache = null;
 let _nurseryVisitsCache = null;
 let _nurseryMemosCache = null;
 let _customCalendarCache = null;
+let _staticOverridesCache = null;
+let _calendarEditingItem = null; // { type: 'custom'|'static', id: string }
 
 function firebaseWrite(method, path, data) {
   if (!shoppingDb) return;
@@ -2714,6 +3147,13 @@ function setupFirebaseSync() {
     localStorage.setItem(CUSTOM_CALENDAR_KEY, JSON.stringify(_customCalendarCache));
     renderCustomCalendarItems();
   });
+
+  // Static Calendar Overrides リスナー
+  shoppingDb.ref("shared/calendarOverrides").on("value", (snap) => {
+    _staticOverridesCache = snap.val() || {};
+    localStorage.setItem(STATIC_CALENDAR_OVERRIDES_KEY, JSON.stringify(_staticOverridesCache));
+    applyStaticOverrides();
+  });
 }
 
 function refreshFavStars() {
@@ -2751,6 +3191,7 @@ function migrateLocalStorageToFirebase() {
     { key: CUSTOM_CALENDAR_KEY, path: "shared/customCalendar",
       convert: arr => arrayToFirebaseObj(arr, i => i.id || ("cal_" + Math.random().toString(36).slice(2))) },
     { key: SUPPLIES_KEY, path: "shared/supplies", convert: null },
+    { key: STATIC_CALENDAR_OVERRIDES_KEY, path: "shared/calendarOverrides", convert: null },
   ];
 
   const promises = [];
@@ -3265,6 +3706,7 @@ const HOSPITAL_TYPE_COLORS = {
   pediatrics: "#ef4444",
   ent: "#f59e0b",
   dermatology: "#8b5cf6",
+  obstetrics: "#ec4899",
   nightEmergency: "#3b82f6",
 };
 
@@ -3272,6 +3714,7 @@ const HOSPITAL_MODE_TO_DATA_KEY = {
   pediatrics: "pediatrics",
   ent: "ent",
   derma: "dermatology",
+  obstetrics: "obstetrics",
   night: "nightEmergency",
 };
 
@@ -3963,6 +4406,7 @@ async function init() {
   setupKondateModal();
   setupFirstAidAccordion();
   setupFirstAidNav();
+  setupItemEditModal();
   try {
     const data = await loadData();
     taxiLaborData = data.taxiLabor || [];
@@ -3970,15 +4414,25 @@ async function init() {
     setStatusMessage("");
     updateFavCountBadge();
     checkImport();
-    const savedTab = localStorage.getItem("currentTab");
-    if (savedTab && savedTab !== "home" && savedTab !== "favorites") {
-      navigateTo(savedTab);
+    // 新規セッション（ホーム画面から起動）ならホームを表示、
+    // セッション継続中（リロード等）なら前回タブを復元
+    const isNewSession = !sessionStorage.getItem("sessionActive");
+    sessionStorage.setItem("sessionActive", "1");
+    if (!isNewSession) {
+      const savedTab = localStorage.getItem("currentTab");
+      if (savedTab && savedTab !== "home" && savedTab !== "favorites") {
+        navigateTo(savedTab);
+      }
     }
   } catch (error) {
-    renderAll({ pediatrics: [], ent: [], dermatology: [], emergency: [], nightEmergency: [], taxiLabor: [], taxiGeneral: [], careSupport: [], governmentLinks: [], nurseries: [] });
+    renderAll({ pediatrics: [], ent: [], dermatology: [], obstetrics: [], emergency: [], nightEmergency: [], taxiLabor: [], taxiGeneral: [], careSupport: [], governmentLinks: [], nurseries: [] });
     setStatusMessage("データの読み込みに失敗しました。data.json を確認してください。");
     console.error(error);
   }
+
+  // PWA・月初通知
+  setupServiceWorker();
+  showMonthlyBannerIfNeeded();
 }
 
 // ===== 献立連携（kyou-nani Firebase） =====
@@ -4150,6 +4604,134 @@ function setupKondateModal() {
   });
   modal.querySelector(".kondate-modal-close").addEventListener("click", () => {
     modal.hidden = true;
+  });
+}
+
+// ===== PWA・月初通知 =====
+const MONTHLY_BANNER_KEY = "familyGuide_monthlyBannerDismissed";
+
+async function setupServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  try {
+    const reg = await navigator.serviceWorker.register("./sw.js");
+    await navigator.serviceWorker.ready;
+
+    // 子どもデータをSWに同期
+    syncChildrenToSW();
+
+    // periodicSync 登録（通知許可済みの場合）
+    if (Notification.permission === "granted") {
+      registerPeriodicSync(reg);
+    }
+
+    // 通知トグルボタンの表示
+    setupNotifyToggle(reg);
+  } catch (e) {
+    console.warn("SW registration failed:", e);
+  }
+}
+
+async function registerPeriodicSync(reg) {
+  if (!("periodicSync" in reg)) return;
+  try {
+    const status = await navigator.permissions.query({ name: "periodic-background-sync" });
+    if (status.state === "granted") {
+      await reg.periodicSync.register("monthly-calendar-check", {
+        minInterval: 12 * 60 * 60 * 1000, // 12時間
+      });
+    }
+  } catch (e) {
+    // periodicSync 非対応ブラウザ
+  }
+}
+
+function syncChildrenToSW() {
+  if (!navigator.serviceWorker.controller) return;
+  const children = getChildren();
+  navigator.serviceWorker.controller.postMessage({
+    type: "sync-children",
+    payload: JSON.stringify(children),
+  });
+}
+
+function setupNotifyToggle(reg) {
+  const btn = document.getElementById("menuNotifyToggle");
+  if (!btn || !("Notification" in window)) return;
+
+  function updateLabel() {
+    const granted = Notification.permission === "granted";
+    btn.textContent = granted ? "🔔 月初お知らせ ON" : "🔕 月初お知らせ OFF";
+  }
+
+  btn.hidden = false;
+  updateLabel();
+
+  btn.addEventListener("click", async () => {
+    if (Notification.permission === "granted") {
+      // 既にON → 通知テストを送信
+      showToast("通知は有効です（テスト通知を送信しました）");
+      reg.showNotification("Family Local Guide", {
+        body: "通知のテストです。月初に予定をお知らせします！",
+        icon: "./images/icon-192.png",
+        tag: "test",
+      });
+    } else if (Notification.permission === "denied") {
+      showToast("通知がブロックされています。ブラウザ設定から許可してください。");
+    } else {
+      const perm = await Notification.requestPermission();
+      if (perm === "granted") {
+        showToast("月初お知らせを有効にしました！");
+        registerPeriodicSync(reg);
+        syncChildrenToSW();
+      } else {
+        showToast("通知が許可されませんでした。");
+      }
+      updateLabel();
+    }
+  });
+}
+
+// 月初バナー（アプリを開いた時のフォールバック）
+function showMonthlyBannerIfNeeded() {
+  const now = new Date();
+  const day = now.getDate();
+  if (day > 5) return; // 月初5日以内のみ
+
+  const key = MONTHLY_BANNER_KEY;
+  const dismissed = localStorage.getItem(key);
+  const thisMonth = now.getFullYear() + "-" + now.getMonth();
+  if (dismissed === thisMonth) return; // 今月はすでに閉じた
+
+  const children = getChildren().filter((c) => c.status === "born" && c.birthdate);
+  if (children.length === 0) return;
+
+  const banner = document.getElementById("monthlyBanner");
+  const body = document.getElementById("monthlyBannerBody");
+  const closeBtn = document.getElementById("monthlyBannerClose");
+  if (!banner || !body) return;
+
+  // 各子どもの今月の予定を集める
+  let html = "";
+  for (const child of children) {
+    const suggestions = getCalendarSuggestionsForChild(child.birthdate);
+    const all = [...suggestions.now, ...suggestions.soon];
+    if (all.length === 0) continue;
+    const itemsHtml = all.map((item) => {
+      const style = SUGGESTION_TAG_STYLES[item.type] || SUGGESTION_TAG_STYLES.todo;
+      return `<span class="monthly-banner-tag" style="background:${style.bg};color:${style.color}">${style.label}</span> ${escapeHtml(item.title)}`;
+    }).join("<br>");
+    html += `<div class="monthly-banner-child"><strong>${child.icon || "👶"} ${escapeHtml(child.name)}</strong><div class="monthly-banner-items">${itemsHtml}</div></div>`;
+  }
+
+  if (!html) return;
+
+  body.innerHTML = html;
+  banner.hidden = false;
+
+  closeBtn?.addEventListener("click", () => {
+    banner.hidden = true;
+    localStorage.setItem(key, thisMonth);
   });
 }
 
