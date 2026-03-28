@@ -305,8 +305,43 @@ function renderChildrenList() {
 
         const preTasks = visible.filter((t) => t.phase === "pre");
         const postTasks = visible.filter((t) => t.phase === "post0");
+
+        // カスタムカレンダー項目（出生直後期間）も出生後すぐに表示
+        const customBirthItems = getCalendarItemsFromPeriod("cal-birth")
+          .filter((ci) => ci.id.startsWith("custom:"));
+        const customPostItemsHtml = customBirthItems.map((ci) => {
+          const style = SUGGESTION_TAG_STYLES[ci.type] || SUGGESTION_TAG_STYLES.todo;
+          const cTaskId = "cal:" + ci.id;
+          const checked = tasks[cTaskId] ? "checked" : "";
+          return `<label class="child-suggestion-item calendar-task-item ${checked ? "birth-task-item--done" : ""}" data-jump-period="${ci.periodId}">
+            <input type="checkbox" ${checked} data-child-id="${child.id}" data-task-id="${escapeHtml(cTaskId)}" class="birth-task-checkbox birth-task-checkbox--sm" />
+            <span class="child-suggestion-tag" style="background:${style.bg};color:${style.color}">${style.label}</span>
+            <span class="child-suggestion-title">${escapeHtml(ci.title)}</span>
+          </label>`;
+        }).join("");
+
         const preHtml = renderTaskColumn(preTasks, "📌 出産前", "child-suggestion-label--now", "child-suggestion-group--now");
-        const postHtml = renderTaskColumn(postTasks, "🔜 出生後すぐ", "child-suggestion-label--soon", "child-suggestion-group--soon");
+        // 出生後すぐ: BIRTH_TASKS + カスタムカレンダー項目を結合
+        const postBuiltinHtml = postTasks.map((t) => {
+          const checked = tasks[t.id] ? "checked" : "";
+          const deadlineHtml = t.deadline ? `<span class="birth-task-deadline">（${t.deadline}日以内）</span>` : "";
+          const navHtml = t.nav
+            ? `<button class="birth-task-nav-btn birth-task-nav-btn--sm" data-nav="${t.nav}" type="button" title="関連セクションへ">→</button>`
+            : t.url
+              ? `<a href="${t.url}" target="_blank" rel="noopener noreferrer" class="birth-task-nav-btn birth-task-nav-btn--sm" title="詳細ページ">↗</a>`
+              : "";
+          return `<label class="child-suggestion-item birth-task-item-inline ${checked ? "birth-task-item--done" : ""}">
+            <input type="checkbox" ${checked} data-child-id="${child.id}" data-task-id="${t.id}" class="birth-task-checkbox birth-task-checkbox--sm" />
+            <span class="child-suggestion-title">${t.label}${deadlineHtml}</span>${navHtml}
+          </label>`;
+        }).join("");
+        const combinedPostHtml = postBuiltinHtml + customPostItemsHtml;
+        const postHtml = combinedPostHtml
+          ? `<div class="child-suggestion-group child-suggestion-group--soon">
+              <span class="child-suggestion-label child-suggestion-label--soon">🔜 出生後すぐ</span>
+              <div class="child-suggestion-items">${combinedPostHtml}</div>
+            </div>`
+          : "";
         const todoHtml = (preHtml || postHtml)
           ? `<div class="child-suggestions child-suggestions--expected">${preHtml}${postHtml}</div>`
           : "";
@@ -1031,24 +1066,6 @@ function renderObstetricsList(items) {
 }
 
 // ===== 緊急リスト（バナー以外の全項目を表示・編集可） =====
-function renderEmergencyList(emergencyData) {
-  const container = document.getElementById("emergencyItemsList");
-  if (!container) return;
-  // バナー以外の全項目（バナー含む）をリスト表示
-  container.innerHTML = (emergencyData || []).map((item) => `
-    <li data-search="${[item.name, item.area, item.phone, item.note].join(" ").toLowerCase()}">
-      <div class="name">
-        ${createFavButton("emergency", item)}
-        ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.name}</a>` : item.name}
-        <button class="item-edit-btn" data-edit-category="emergency" data-edit-name="${escapeHtml(item.name)}" type="button" title="編集">✏️</button>
-      </div>
-      <div class="meta">地域: ${item.area || ""}</div>
-      <div class="meta">電話: ${item.phone}</div>
-      <div class="meta">${item.note}</div>
-      ${item.phone ? `<div><a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a></div>` : ""}
-    </li>
-  `).join("") + `<li class="item-add-row"><button class="item-add-btn" data-add-category="emergency" type="button">＋ 追加</button></li>`;
-}
 
 // ===== ユーザー編集データ管理 (localStorage) =====
 const USER_EDITS_KEY = "flg-userEdits";
@@ -1193,7 +1210,6 @@ function reRenderCategory(category) {
   if (category === "emergency") {
     const items = applyUserEditsForCategory("emergency", allData.emergency || []);
     renderFirstAid(items);
-    renderEmergencyList(items);
   } else if (category === "obstetrics") {
     renderObstetricsList(hospitalData.obstetrics);
   } else if (category === "pediatrics") {
@@ -1331,7 +1347,6 @@ function renderAll(data) {
   renderList("dermaList", hospitalData.dermatology, "dermatology");
   renderObstetricsList(hospitalData.obstetrics);
   renderFirstAid(userEmergency);
-  renderEmergencyList(userEmergency);
   renderList("nightEmergencyList", hospitalData.nightEmergency, "nightEmergency");
   renderTaxiList("taxiLaborList", data.taxiLabor || [], "taxiLabor");
   renderTaxiList("taxiGeneralList", data.taxiGeneral || [], "taxiGeneral");

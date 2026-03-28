@@ -947,6 +947,17 @@ li:hover {
   margin-top: 8px;
 }
 
+.obstetrics-actions > a {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.obstetrics-actions .list-call-btn {
+  margin-top: 0;
+}
+
 .shuttle-btn,
 .site-btn {
   display: inline-block;
