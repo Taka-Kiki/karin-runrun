@@ -205,7 +205,6 @@ body {
 .day-cell--other {
   background: #fafafa;
   cursor: pointer;
-  opacity: 0.45;
 }
 .day-cell--other:hover { background: #f3f0eb; }
 

@@ -2324,7 +2324,7 @@ function openMenuEditModal(id) {
   const item = id ? getMenuList().find((m) => m.id === id) : null;
 
   menuEditTitle.textContent = item ? "メニュー編集" : "メニュー追加";
-  menuEditName.value = item ? item.name : "";
+  menuEditName.value = item ? item.name : (menuListSearchQuery || "");
 
   const selectedTags = item ? [...(item.tags || [])] : [];
 
@@ -2363,6 +2363,9 @@ function saveMenuListItem() {
     addMenuItem(name, tags);
     showToast("追加しました");
   }
+
+  menulistSearch.value = "";
+  menuListSearchQuery = "";
 
   closeMenuEditModal();
   renderMenuList();
