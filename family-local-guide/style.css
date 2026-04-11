@@ -1516,6 +1516,33 @@ li:hover {
   color: #9ca3af;
 }
 
+.shopping-item-handle {
+  cursor: grab;
+  opacity: 0.3;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  touch-action: none;
+  user-select: none;
+}
+
+.shopping-item-handle:active {
+  cursor: grabbing;
+}
+
+.shopping-item:hover .shopping-item-handle {
+  opacity: 0.6;
+}
+
+.shopping-item--chosen {
+  background: #d1fae5;
+  border-radius: 8px;
+}
+
+.shopping-item--ghost {
+  opacity: 0.3;
+}
+
 .shopping-item-label {
   display: flex;
   align-items: center;

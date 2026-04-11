@@ -3360,10 +3360,14 @@ function addShoppingItem(catId, input) {
   const name = input.value.trim();
   if (!name || !shoppingDb) return;
   const itemId = "item_" + Date.now();
+  // 既存アイテム数をもとにorder値を決定（末尾に追加）
+  const ul = document.getElementById("shopping-items-" + catId);
+  const currentCount = ul ? ul.querySelectorAll(".shopping-item").length : 0;
   firebaseWrite("set", "shopping/items/" + catId + "/" + itemId, {
     name: name,
     done: false,
-    addedAt: Date.now()
+    addedAt: Date.now(),
+    order: currentCount
   });
   input.value = "";
 }
@@ -3408,7 +3412,8 @@ function showShoppingCategoryModal(itemName, categories) {
         shoppingDb.ref("shopping/items/" + catId + "/" + itemId).set({
           name: itemName,
           done: false,
-          addedAt: Date.now()
+          addedAt: Date.now(),
+          order: Date.now()
         }).then(() => {
           showToast("買い物リストに追加しました");
         }).catch(() => {
@@ -3427,21 +3432,27 @@ function showShoppingCategoryModal(itemName, categories) {
   }, { once: true });
 }
 
+const shoppingItemSortables = {};
+
 function renderShoppingItems(catId, items) {
   const ul = document.getElementById("shopping-items-" + catId);
   if (!ul) return;
 
   const sorted = Object.entries(items).sort((a, b) => {
-    // Unchecked first, then by addedAt
+    // Unchecked first, then by order (fallback to addedAt)
     if (a[1].done !== b[1].done) return a[1].done ? 1 : -1;
-    return (a[1].addedAt || 0) - (b[1].addedAt || 0);
+    const orderA = a[1].order != null ? a[1].order : (a[1].addedAt || 0);
+    const orderB = b[1].order != null ? b[1].order : (b[1].addedAt || 0);
+    return orderA - orderB;
   });
 
   ul.innerHTML = "";
   sorted.forEach(([itemId, item]) => {
     const li = document.createElement("li");
     li.className = "shopping-item" + (item.done ? " shopping-item--done" : "");
+    li.dataset.itemId = itemId;
     li.innerHTML = `
+      <span class="shopping-item-handle" title="ドラッグで並び替え">☰</span>
       <label class="shopping-item-label">
         <input type="checkbox" class="shopping-checkbox" ${item.done ? "checked" : ""} />
         <span class="shopping-item-name">${escapeHtml(item.name)}</span>
@@ -3470,6 +3481,25 @@ function renderShoppingItems(catId, items) {
 
     ul.appendChild(li);
   });
+
+  // SortableJS でアイテムのドラッグ並び替え
+  if (shoppingItemSortables[catId]) shoppingItemSortables[catId].destroy();
+  if (typeof Sortable !== "undefined") {
+    shoppingItemSortables[catId] = Sortable.create(ul, {
+      handle: ".shopping-item-handle",
+      animation: 150,
+      ghostClass: "shopping-item--ghost",
+      chosenClass: "shopping-item--chosen",
+      onEnd: () => {
+        const lis = ul.querySelectorAll(".shopping-item");
+        const updates = {};
+        lis.forEach((li, i) => {
+          updates["shopping/items/" + catId + "/" + li.dataset.itemId + "/order"] = i;
+        });
+        firebaseWrite("update", "/", updates);
+      },
+    });
+  }
 }
 
 // ===== 保育園セクション =====
