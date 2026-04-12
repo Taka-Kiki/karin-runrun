@@ -2615,6 +2615,12 @@ mark.search-highlight {
   color: #047857;
 }
 
+.children-section-header h2 .family-icon {
+  color: #10b981;
+  margin-right: 4px;
+  font-size: 1.05em;
+}
+
 .children-section-header-actions {
   display: flex;
   align-items: center;
