@@ -1,5 +1,5 @@
 // Family Local Guide - Service Worker
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = "family-guide-static-" + CACHE_VERSION;
 const RUNTIME_CACHE = "family-guide-runtime-" + CACHE_VERSION;
 const NOTIFY_CACHE = "family-guide-notify-v1"; // 通知フラグ用（既存互換）
