@@ -1669,8 +1669,10 @@ function setupHospitalToggle() {
       hospitalMapToggleBtn.classList.toggle("active", isHidden);
       hospitalMapToggleBtn.textContent = isHidden ? "🗺️ 地図を閉じる" : "🗺️ 地図で見る";
       if (isHidden) {
-        initHospitalMap();
-        setTimeout(() => { if (hospitalMap) hospitalMap.invalidateSize(); }, 200);
+        loadLeaflet().then(() => {
+          initHospitalMap();
+          setTimeout(() => { if (hospitalMap) hospitalMap.invalidateSize(); }, 200);
+        });
       }
     });
   }
@@ -3682,6 +3684,43 @@ function createMapResetControl(defaultZoom) {
   return new ResetControl();
 }
 
+// ===== Leaflet 動的ロード =====
+let _leafletLoadPromise = null;
+function loadLeaflet() {
+  if (typeof L !== "undefined") return Promise.resolve();
+  if (_leafletLoadPromise) return _leafletLoadPromise;
+
+  _leafletLoadPromise = new Promise((resolve, reject) => {
+    // CSS
+    const existingCss = document.querySelector('link[data-leaflet="1"]');
+    if (!existingCss) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      link.setAttribute("data-leaflet", "1");
+      document.head.appendChild(link);
+    }
+    // JS
+    const existingJs = document.querySelector('script[data-leaflet="1"]');
+    if (existingJs) {
+      existingJs.addEventListener("load", () => resolve());
+      existingJs.addEventListener("error", reject);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.async = true;
+    script.setAttribute("data-leaflet", "1");
+    script.onload = () => resolve();
+    script.onerror = () => {
+      _leafletLoadPromise = null;
+      reject(new Error("Failed to load Leaflet"));
+    };
+    document.head.appendChild(script);
+  });
+  return _leafletLoadPromise;
+}
+
 function initNurseryMap() {
   if (nurseryMap) return;
   const mapEl = document.getElementById("nurseryMap");
@@ -3941,9 +3980,11 @@ function setupNursery() {
       mapToggleBtn.classList.toggle("active", isHidden);
       mapToggleBtn.textContent = isHidden ? "🗺️ 地図を閉じる" : "🗺️ 地図で見る";
       if (isHidden) {
-        initNurseryMap();
-        // Fix Leaflet map rendering in hidden container
-        setTimeout(() => { if (nurseryMap) nurseryMap.invalidateSize(); }, 200);
+        loadLeaflet().then(() => {
+          initNurseryMap();
+          // Fix Leaflet map rendering in hidden container
+          setTimeout(() => { if (nurseryMap) nurseryMap.invalidateSize(); }, 200);
+        });
       }
     });
   }
