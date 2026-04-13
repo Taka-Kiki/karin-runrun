@@ -1,0 +1,32 @@
+{
+  "name": "今日なに？ - 献立カレンダー",
+  "short_name": "今日なに？",
+  "description": "毎日の献立をカレンダーで管理するアプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFB56B",
+  "theme_color": "#FFB56B",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "./images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
