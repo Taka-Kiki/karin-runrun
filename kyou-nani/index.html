@@ -158,8 +158,14 @@
 
     <!-- 献立入力モーダル -->
     <div id="menuModal" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content modal-content--sticky-actions">
         <h3 id="menuModalTitle"></h3>
+        <div class="modal-buttons modal-buttons--top">
+          <button id="menuSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="menuCopyNextBtn" class="modal-btn modal-btn--copy" type="button">翌日にコピー</button>
+          <button id="menuDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="menuCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
         <div class="menu-form">
           <div class="event-input-row">
             <label class="event-input-label">📌 予定</label>
@@ -177,19 +183,18 @@
             <div id="menuSuggestionsList" class="menu-suggestions-list"></div>
           </div>
         </div>
-        <div class="modal-buttons">
-          <button id="menuSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
-          <button id="menuCopyNextBtn" class="modal-btn modal-btn--copy" type="button">翌日にコピー</button>
-          <button id="menuDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
-          <button id="menuCancelBtn" class="modal-btn" type="button">閉じる</button>
-        </div>
       </div>
     </div>
 
     <!-- メニュー編集モーダル -->
     <div id="menuEditModal" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content modal-content--sticky-actions">
         <h3 id="menuEditTitle">メニュー追加</h3>
+        <div class="modal-buttons modal-buttons--top">
+          <button id="menuEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="menuEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="menuEditCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
         <div class="menu-form">
           <label class="menu-form-label">
             メニュー名
@@ -200,18 +205,18 @@
             <div id="menuEditTagsList" class="menu-edit-tags-list"></div>
           </div>
         </div>
-        <div class="modal-buttons">
-          <button id="menuEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
-          <button id="menuEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
-          <button id="menuEditCancelBtn" class="modal-btn" type="button">閉じる</button>
-        </div>
       </div>
     </div>
 
     <!-- 在庫編集モーダル -->
     <div id="stockEditModal" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content modal-content--sticky-actions">
         <h3 id="stockEditTitle">在庫追加</h3>
+        <div class="modal-buttons modal-buttons--top">
+          <button id="stockEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
+          <button id="stockEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
+          <button id="stockEditCancelBtn" class="modal-btn" type="button">閉じる</button>
+        </div>
         <div class="menu-form">
           <label class="menu-form-label">
             品名
@@ -274,11 +279,6 @@
               <span id="stockEditPinLabel">献立に表示する</span>
             </button>
           </div>
-        </div>
-        <div class="modal-buttons">
-          <button id="stockEditSaveBtn" class="modal-btn modal-btn--primary" type="button">保存</button>
-          <button id="stockEditDeleteBtn" class="modal-btn modal-btn--warn" type="button" hidden>削除</button>
-          <button id="stockEditCancelBtn" class="modal-btn" type="button">閉じる</button>
         </div>
       </div>
     </div>
