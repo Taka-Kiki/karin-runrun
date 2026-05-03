@@ -219,8 +219,9 @@ body {
 
 .day-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 3px;
+  gap: 2px 3px;
   margin-bottom: 2px;
 }
 
@@ -247,8 +248,6 @@ body {
 }
 
 .day-event--second {
-  align-self: flex-start;
-  margin-top: 1px;
   max-width: 100%;
 }
 
@@ -1956,7 +1955,7 @@ body {
 /* ===== Responsive ===== */
 /* Mobile cells are ~50px wide; shrink .day-event so 3 chars fit next to a 2-digit day-number. */
 @media (max-width: 600px) {
-  .day-header { gap: 2px; }
+  .day-header { gap: 1px 2px; }
   .day-event {
     font-size: 0.5rem;
     letter-spacing: -0.5px;

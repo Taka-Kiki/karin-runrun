@@ -660,7 +660,7 @@ function renderCalendar() {
   let filledCount = 0;
   let html = "";
 
-  // 2nd event sits on its own row below the header; CSS hides it on narrow mobile.
+  // 2nd event sits inline with 1st; CSS lets the row wrap when narrow and hides it on mobile.
   const renderEventInHeader = (arr) =>
     arr[0] ? `<span class="day-event">${escapeHtml(arr[0])}</span>` : "";
   const renderSecondEvent = (arr) =>
@@ -680,8 +680,7 @@ function renderCalendar() {
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
-    html += renderSecondEvent(eventArr);
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}${renderSecondEvent(eventArr)}</div>`;
     if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
@@ -700,8 +699,7 @@ function renderCalendar() {
     if (dateStr === todayStr) classes += " day-cell--today";
 
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
-    html += renderSecondEvent(eventArr);
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}${renderSecondEvent(eventArr)}</div>`;
     if (hasMenu) {
       html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     }
@@ -723,8 +721,7 @@ function renderCalendar() {
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
-    html += renderSecondEvent(eventArr);
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}${renderSecondEvent(eventArr)}</div>`;
     if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
