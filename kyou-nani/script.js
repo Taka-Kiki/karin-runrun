@@ -69,7 +69,7 @@ let editingMenuId = null; // null = add, string = edit
 let menuListFilterTag = null;
 let menuListSearchQuery = "";
 let modalFilterTag = null;
-let menuListPickMode = null; // { entryIdx, editingDate, menuEntries, eventValue }
+let menuListPickMode = null; // { entryIdx, editingDate, menuEntries, eventValue, eventValue2 }
 let memoPickMode = false; // true when picking menu for memo "作りたい"
 
 // Multi-entry modal state
@@ -244,15 +244,23 @@ function saveEvents(events) {
   kondateFirebaseSet(FIREBASE_PATHS.events, events);
 }
 
-function getEvent(dateStr) {
-  return (getEvents()[dateStr] || "").trim();
+// Normalize stored value (string from old format, or array) into a clean array.
+function getEventArray(dateStr) {
+  const v = getEvents()[dateStr];
+  if (!v) return [];
+  if (typeof v === "string") {
+    const t = v.trim();
+    return t ? [t] : [];
+  }
+  if (Array.isArray(v)) return v.map((s) => (s || "").trim()).filter(Boolean);
+  return [];
 }
 
-function setEvent(dateStr, text) {
+function setEventArray(dateStr, arr) {
   const events = getEvents();
-  const trimmed = (text || "").trim();
-  if (trimmed) {
-    events[dateStr] = trimmed;
+  const filtered = (arr || []).map((s) => (s || "").trim()).filter(Boolean);
+  if (filtered.length > 0) {
+    events[dateStr] = filtered;
   } else {
     delete events[dateStr];
   }
@@ -263,8 +271,11 @@ function getEventHistory(max = 5) {
   const events = getEvents();
   const freq = {};
   for (const v of Object.values(events)) {
-    const t = v.trim();
-    if (t) freq[t] = (freq[t] || 0) + 1;
+    const arr = typeof v === "string" ? [v] : Array.isArray(v) ? v : [];
+    for (const item of arr) {
+      const t = (item || "").trim();
+      if (t) freq[t] = (freq[t] || 0) + 1;
+    }
   }
   return Object.entries(freq)
     .sort((a, b) => b[1] - a[1])
@@ -285,7 +296,9 @@ function renderEventHistory() {
     .join("");
   container.querySelectorAll(".event-history-chip").forEach((btn) => {
     btn.addEventListener("click", () => {
-      $("menuEventInput").value = btn.textContent;
+      const targetId = window._lastFocusedEventInputId || "menuEventInput";
+      const target = $(targetId) || $("menuEventInput");
+      target.value = btn.textContent;
     });
   });
 }
@@ -644,9 +657,14 @@ function renderCalendar() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   const menus = getMenus();
-  const events = getEvents();
   let filledCount = 0;
   let html = "";
+
+  // 2nd event sits on its own row below the header; CSS hides it on narrow mobile.
+  const renderEventInHeader = (arr) =>
+    arr[0] ? `<span class="day-event">${escapeHtml(arr[0])}</span>` : "";
+  const renderSecondEvent = (arr) =>
+    arr[1] ? `<span class="day-event day-event--second">${escapeHtml(arr[1])}</span>` : "";
 
   // Leading days from previous month
   const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
@@ -657,14 +675,13 @@ function renderCalendar() {
     const dateStr = formatDateStr(prevYear, prevMonth, d);
     const dow = i;
     const menuArr = getMenuArray(dateStr);
-    const eventText = (events[dateStr] || "").trim();
+    const eventArr = getEventArray(dateStr);
     let classes = "day-cell day-cell--other";
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header"><span class="day-number">${d}</span>`;
-    if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
-    html += `</div>`;
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
+    html += renderSecondEvent(eventArr);
     if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
@@ -673,7 +690,7 @@ function renderCalendar() {
     const dateStr = formatDateStr(currentYear, currentMonth, d);
     const dow = (firstDay + d - 1) % 7;
     const menuArr = getMenuArray(dateStr);
-    const eventText = (events[dateStr] || "").trim();
+    const eventArr = getEventArray(dateStr);
     const hasMenu = menuArr.length > 0;
     if (hasMenu) filledCount++;
 
@@ -683,12 +700,8 @@ function renderCalendar() {
     if (dateStr === todayStr) classes += " day-cell--today";
 
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header">`;
-    html += `<span class="day-number">${d}</span>`;
-    if (eventText) {
-      html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
-    }
-    html += `</div>`;
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
+    html += renderSecondEvent(eventArr);
     if (hasMenu) {
       html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     }
@@ -705,14 +718,13 @@ function renderCalendar() {
     const dateStr = formatDateStr(nextYear, nextMonth, d);
     const dow = (totalCells + i) % 7;
     const menuArr = getMenuArray(dateStr);
-    const eventText = (events[dateStr] || "").trim();
+    const eventArr = getEventArray(dateStr);
     let classes = "day-cell day-cell--other";
     if (dow === 0) classes += " day-cell--sun";
     if (dow === 6) classes += " day-cell--sat";
     html += `<div class="${classes}" data-date="${dateStr}">`;
-    html += `<div class="day-header"><span class="day-number">${d}</span>`;
-    if (eventText) html += `<span class="day-event">${escapeHtml(eventText)}</span>`;
-    html += `</div>`;
+    html += `<div class="day-header"><span class="day-number">${d}</span>${renderEventInHeader(eventArr)}</div>`;
+    html += renderSecondEvent(eventArr);
     if (menuArr.length > 0) html += menuArr.map((m, i) => `<span class="day-menu" draggable="true" data-date="${dateStr}" data-menu-idx="${i}">${escapeHtml(m)}</span>`).join("");
     html += "</div>";
   }
@@ -781,23 +793,32 @@ function openMenuModal(dateStr) {
   const dow = ["日", "月", "火", "水", "木", "金", "土"][new Date(y, m - 1, d).getDay()];
   menuModalTitle.textContent = `${m}月${d}日（${dow}）の夕飯`;
 
-  // Load event
+  // Load events (up to 2)
+  const eventArr = getEventArray(dateStr);
   const eventInput = $("menuEventInput");
-  eventInput.value = getEvent(dateStr);
-  // Event history: show on focus, hide on blur
+  const eventInput2 = $("menuEventInput2");
+  eventInput.value = eventArr[0] || "";
+  eventInput2.value = eventArr[1] || "";
+  // Event history: show on focus of either input, hide on blur. Track which input was focused last.
   const eventHistoryEl = $("eventHistory");
   eventHistoryEl.hidden = true;
-  const onFocus = () => renderEventHistory();
-  const onBlur = () => { setTimeout(() => { eventHistoryEl.hidden = true; }, 200); };
-  eventInput.removeEventListener("focus", eventInput._onFocus);
-  eventInput.removeEventListener("blur", eventInput._onBlur);
-  eventInput._onFocus = onFocus;
-  eventInput._onBlur = onBlur;
-  eventInput.addEventListener("focus", onFocus);
-  eventInput.addEventListener("blur", onBlur);
+  [eventInput, eventInput2].forEach((el) => {
+    const onFocus = () => {
+      window._lastFocusedEventInputId = el.id;
+      renderEventHistory();
+    };
+    const onBlur = () => { setTimeout(() => { eventHistoryEl.hidden = true; }, 200); };
+    el.removeEventListener("focus", el._onFocus);
+    el.removeEventListener("blur", el._onBlur);
+    el._onFocus = onFocus;
+    el._onBlur = onBlur;
+    el.addEventListener("focus", onFocus);
+    el.addEventListener("blur", onBlur);
+  });
+  window._lastFocusedEventInputId = "menuEventInput";
 
   const current = getMenuArray(dateStr);
-  menuDeleteBtn.hidden = current.length === 0 && !getEvent(dateStr);
+  menuDeleteBtn.hidden = current.length === 0 && eventArr.length === 0;
 
   // Init entries
   if (current.length > 0) {
@@ -875,6 +896,7 @@ function renderMenuEntries() {
         editingDate: editingDate,
         menuEntries: menuEntries.map(e => ({...e})),
         eventValue: $("menuEventInput").value,
+        eventValue2: $("menuEventInput2").value,
       };
       closeMenuModal();
       switchTab("menulist");
@@ -1203,10 +1225,11 @@ function reopenMenuModalWithState(state) {
   const dow = ["日", "月", "火", "水", "木", "金", "土"][new Date(y, m - 1, d).getDay()];
   menuModalTitle.textContent = `${m}月${d}日（${dow}）の夕飯`;
 
-  $("menuEventInput").value = state.eventValue;
+  $("menuEventInput").value = state.eventValue || "";
+  $("menuEventInput2").value = state.eventValue2 || "";
 
   const current = getMenuArray(editingDate);
-  menuDeleteBtn.hidden = current.length === 0 && !getEvent(editingDate);
+  menuDeleteBtn.hidden = current.length === 0 && getEventArray(editingDate).length === 0;
 
   renderMenuEntries();
   renderModalSuggestions();
@@ -1227,9 +1250,11 @@ function saveMenu() {
   const values = menuEntries.map((e) => e.value.trim()).filter(Boolean);
   setMenuArray(editingDate, values);
 
-  // Save event
-  const eventInput = $("menuEventInput");
-  setEvent(editingDate, eventInput.value);
+  // Save events (up to 2)
+  setEventArray(editingDate, [
+    $("menuEventInput").value,
+    $("menuEventInput2").value,
+  ]);
 
   // Increment usageCount or auto-add to menu list
   if (values.length > 0) {
@@ -1306,7 +1331,7 @@ function copySingleToNextDay(menuName) {
 function deleteMenu() {
   if (!editingDate) return;
   setMenuArray(editingDate, []);
-  setEvent(editingDate, "");
+  setEventArray(editingDate, []);
   closeMenuModal();
   renderCalendar();
   showToast("削除しました");
