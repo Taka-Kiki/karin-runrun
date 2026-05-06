@@ -1545,6 +1545,7 @@ function initDragAndDrop() {
         return;
       }
       e.preventDefault();
+      e.stopPropagation();
       const target = touchState.lastOver;
       const type = touchState.lastOverType;
       if (target && type === "menu") {
