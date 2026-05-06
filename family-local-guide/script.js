@@ -1,3 +1,8 @@
+// アプリ起動時はブラウザのスクロール位置復元を無効化し、必ずページ先頭から開始する
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
+
 const DATA_FILE_PATH = "./data.json";
 const FAV_STORAGE_KEY = "familyGuide_favorites";
 const CHILDREN_STORAGE_KEY = "familyGuide_children";
@@ -4470,6 +4475,10 @@ function setupSupplies() {
 }
 
 async function init() {
+  // モバイルでアプリ再表示時に前回のスクロール位置が復元されるのを防ぐため、
+  // 起動直後にトップへ戻す
+  window.scrollTo(0, 0);
+
   setupNavigation();
   setupSwipeNavigation();
   setupSearch();
