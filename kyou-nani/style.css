@@ -2114,16 +2114,20 @@ body {
     font-size: 8pt;
   }
 
+  /* 予定ラベル: ベタ塗り(緑)→淡い緑+濃い緑文字でインク節約 */
   .day-event {
     font-size: 6pt;
-    background: #5a8a3c !important;
-    color: white !important;
+    background: #e8f5e0 !important;
+    color: #3d6b28 !important;
   }
 
+  /* 献立メニュー: ベタ塗り(オレンジ)→背景なしの文字だけでインク節約 */
   .day-menu {
     font-size: 7pt;
     white-space: normal;
-    color: #333;
+    color: #333 !important;
+    background: none !important;
+    padding: 0;
     cursor: default;
     line-height: 1.2;
   }
