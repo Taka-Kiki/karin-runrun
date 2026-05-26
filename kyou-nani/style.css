@@ -505,9 +505,21 @@ body {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
+  border: none;
   border-radius: 10px;
+  font-family: inherit;
   font-size: 0.72rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.cal-expiry-chip:hover {
+  filter: brightness(0.96);
+}
+
+.cal-expiry-chip:active {
+  transform: scale(0.96);
 }
 
 .cal-expiry-chip small {
@@ -1624,6 +1636,23 @@ body {
   padding: 2px 0;
 }
 
+.stock-alert-item {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px 6px;
+  transition: background 0.15s;
+}
+
+.stock-alert-item:active {
+  background: var(--primary-light);
+}
+
+@media (hover: hover) {
+  .stock-alert-item:hover {
+    background: var(--accent-light);
+  }
+}
+
 .stock-items {
   display: flex;
   flex-direction: column;
@@ -1665,6 +1694,21 @@ body {
 .stock-item--week {
   border-color: #c9b458;
   background: #fffef5;
+}
+
+/* 期限アラートから飛んできた項目をやわらかく強調 */
+.stock-item--flash {
+  animation: stockItemFlash 1.8s ease-out;
+}
+
+@keyframes stockItemFlash {
+  0% {
+    box-shadow: 0 0 0 3px var(--primary);
+    background: var(--primary-light);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 118, 58, 0);
+  }
 }
 
 .stock-item-row {

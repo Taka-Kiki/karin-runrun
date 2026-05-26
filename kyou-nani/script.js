@@ -576,7 +576,7 @@ function renderCalendarExpiryAlerts() {
     html += `<div class="cal-expiry-label">${title}</div>`;
     html += `<div class="cal-expiry-chips">`;
     items.forEach((item) => {
-      html += `<span class="cal-expiry-chip cal-expiry-chip--${cls}">${escapeHtml(item.name)} <small>${formatExpiry(item.expiry)}</small></span>`;
+      html += `<button type="button" class="cal-expiry-chip cal-expiry-chip--${cls}" data-id="${item.id}">${escapeHtml(item.name)} <small>${formatExpiry(item.expiry)}</small></button>`;
     });
     html += `</div></div>`;
     return html;
@@ -587,7 +587,11 @@ function renderCalendarExpiryAlerts() {
   if (soon.length > 0) html += renderGroup(`期限間近（${soon.length}）`, soon, "soon");
   if (week.length > 0) html += renderGroup(`1週間以内（${week.length}）`, week, "week");
 
-  el.querySelector(".cal-expiry-content").innerHTML = html;
+  const content = el.querySelector(".cal-expiry-content");
+  content.innerHTML = html;
+  content.querySelectorAll(".cal-expiry-chip").forEach((chip) => {
+    chip.addEventListener("click", () => focusStockItem(chip.dataset.id));
+  });
   el.hidden = false;
 }
 
@@ -1603,6 +1607,31 @@ function switchStockCategory(cat) {
   renderStock();
 }
 
+// 期限アラートの項目から在庫タブの該当アイテムへ移動して強調表示する
+function focusStockItem(id) {
+  const item = getStock().find((s) => s.id === id);
+  if (!item) return;
+  // 検索中だと隠れてしまうのでクリア
+  if (stockSearch) stockSearch.value = "";
+  stockSearchQuery = "";
+  // 該当カテゴリに切り替え（カテゴリボタンの状態も更新）
+  stockCategory = item.category;
+  localStorage.setItem("kondate_stock_cat", item.category);
+  document.querySelectorAll(".stock-cat-btn").forEach((btn) => {
+    btn.classList.toggle("stock-cat-btn--active", btn.dataset.cat === item.category);
+  });
+  // 在庫タブへ移動（内部でrenderStockが走り一覧が再描画される）
+  switchTab("stock");
+  // 描画完了後にスクロール＆ハイライト
+  requestAnimationFrame(() => {
+    const el = stockItems.querySelector(`.stock-item[data-id="${id}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("stock-item--flash");
+    setTimeout(() => el.classList.remove("stock-item--flash"), 1800);
+  });
+}
+
 function renderStockAlerts() {
   const list = getStock().filter((item) => (item.qty != null ? item.qty : 1) > 0);
   const expired = [];
@@ -1628,35 +1657,35 @@ function renderStockAlerts() {
 
   countEl.textContent = `(${totalAlerts}件)`;
 
+  const renderRow = (item) =>
+    `<li class="stock-alert-item" data-id="${item.id}">${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
+
   let html = "";
   if (expired.length > 0) {
     html += `<div class="stock-alert-title stock-alert-title--expired">期限切れ (${expired.length}件)</div>`;
     html += '<ul class="stock-alert-list">';
-    expired.forEach((item) => {
-      html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
-    });
+    html += expired.map(renderRow).join("");
     html += "</ul>";
   }
   if (soon.length > 0) {
     if (expired.length > 0) html += '<div style="margin-top:6px"></div>';
     html += `<div class="stock-alert-title stock-alert-title--soon">期限間近 (${soon.length}件)</div>`;
     html += '<ul class="stock-alert-list">';
-    soon.forEach((item) => {
-      html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
-    });
+    html += soon.map(renderRow).join("");
     html += "</ul>";
   }
   if (week.length > 0) {
     if (expired.length > 0 || soon.length > 0) html += '<div style="margin-top:6px"></div>';
     html += `<div class="stock-alert-title stock-alert-title--week">1週間以内 (${week.length}件)</div>`;
     html += '<ul class="stock-alert-list">';
-    week.forEach((item) => {
-      html += `<li>${escapeHtml(item.name)}（${formatExpiry(item.expiry)}・${STOCK_CATEGORIES[item.category]}）</li>`;
-    });
+    html += week.map(renderRow).join("");
     html += "</ul>";
   }
 
   bodyEl.innerHTML = html;
+  bodyEl.querySelectorAll(".stock-alert-item").forEach((li) => {
+    li.addEventListener("click", () => focusStockItem(li.dataset.id));
+  });
   stockAlerts.hidden = false;
 }
 
