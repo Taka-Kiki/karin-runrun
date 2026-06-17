@@ -3064,6 +3064,7 @@ function initFirebase() {
 const WANTTO_GROUPS = ["thisweek", "nextweek", "someday", "dream"];
 let _wanttoCache = null;
 let _wanttoFirstSync = true;
+let _wanttoEditingId = null;
 
 function getWanttoItems() {
   if (_wanttoCache !== null) return _wanttoCache;
@@ -3081,6 +3082,7 @@ function saveWanttoItems(items) {
 
 function renderWantto() {
   const items = getWanttoItems();
+  const today = currentDateKey();
   WANTTO_GROUPS.forEach((g) => {
     const ul = document.getElementById("wanttoList-" + g);
     if (!ul) return;
@@ -3091,14 +3093,44 @@ function renderWantto() {
       ul.innerHTML = `<li class="wantto-empty">まだありません</li>`;
       return;
     }
-    ul.innerHTML = groupItems.map((it) => `
+    ul.innerHTML = groupItems.map((it) => {
+      // 編集モード
+      if (_wanttoEditingId === it.id) {
+        return `
+      <li class="wantto-item wantto-item--editing" data-id="${it.id}">
+        <form class="wantto-edit-form">
+          <input type="text" class="wantto-edit-text" value="${escapeHtml(it.text)}" placeholder="やりたいこと" />
+          <div class="wantto-edit-row">
+            <label class="wantto-edit-duelabel">期限(任意)
+              <input type="date" class="wantto-edit-due" value="${it.due || ""}" />
+            </label>
+            <div class="wantto-edit-actions">
+              <button type="submit" class="wantto-edit-save">保存</button>
+              <button type="button" class="wantto-edit-cancel">取消</button>
+            </div>
+          </div>
+        </form>
+      </li>`;
+      }
+      // 通常表示（期限バッジつき）
+      let dueHtml = "";
+      if (it.due) {
+        const parts = it.due.split("-");
+        const label = `${Number(parts[1])}/${Number(parts[2])}`;
+        const over = !it.done && it.due < today;
+        dueHtml = `<span class="wantto-due${over ? " wantto-due--over" : ""}">${over ? "⚠ " + label : "〜" + label}</span>`;
+      }
+      return `
       <li class="wantto-item${it.done ? " wantto-item--done" : ""}" data-id="${it.id}">
         <label class="wantto-check">
           <input type="checkbox" ${it.done ? "checked" : ""} />
           <span class="wantto-text">${escapeHtml(it.text)}</span>
         </label>
+        ${dueHtml}
+        <button class="wantto-edit" type="button" title="編集" aria-label="編集">✎</button>
         <button class="wantto-del" type="button" title="削除" aria-label="削除">✕</button>
-      </li>`).join("");
+      </li>`;
+    }).join("");
   });
 }
 
@@ -3112,6 +3144,16 @@ function addWanttoItem(group, text) {
   renderWantto();
 }
 
+function updateWanttoItem(id, text, due) {
+  const items = getWanttoItems().map((it) => {
+    if (it.id !== id) return it;
+    const updated = { ...it, text };
+    if (due) updated.due = due; else delete updated.due;
+    return updated;
+  });
+  saveWanttoItems(items);
+}
+
 function toggleWanttoDone(id) {
   const items = getWanttoItems().map((it) =>
     it.id === id ? { ...it, done: !it.done } : it);
@@ -3123,6 +3165,13 @@ function deleteWanttoItem(id) {
   const items = getWanttoItems().filter((it) => it.id !== id);
   saveWanttoItems(items);
   renderWantto();
+}
+
+// 今日の日付キー（期限の超過判定に使用）
+function currentDateKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 // 週のはじまり（月曜）の日付をキーにする。月曜をまたぐと値が変わる。
@@ -3155,16 +3204,27 @@ function setupWantto() {
   const container = document.querySelector(".wantto-groups");
   if (!container) return;
 
-  container.querySelectorAll(".wantto-add").forEach((form) => {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+  // 追加フォーム・編集フォームの送信（委譲）
+  container.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = e.target;
+    if (form.classList.contains("wantto-add")) {
       const input = form.querySelector(".wantto-add-input");
       const text = input.value.trim();
       if (!text) return;
       addWanttoItem(form.dataset.group, text);
       input.value = "";
       input.focus();
-    });
+    } else if (form.classList.contains("wantto-edit-form")) {
+      const li = form.closest(".wantto-item");
+      if (!li) return;
+      const text = form.querySelector(".wantto-edit-text").value.trim();
+      const due = form.querySelector(".wantto-edit-due").value || null;
+      if (!text) return;
+      updateWanttoItem(li.dataset.id, text, due);
+      _wanttoEditingId = null;
+      renderWantto();
+    }
   });
 
   container.addEventListener("change", (e) => {
@@ -3175,12 +3235,30 @@ function setupWantto() {
   });
 
   container.addEventListener("click", (e) => {
+    // 編集開始
+    const editBtn = e.target.closest(".wantto-edit");
+    if (editBtn) {
+      const li = editBtn.closest(".wantto-item");
+      _wanttoEditingId = li ? li.dataset.id : null;
+      renderWantto();
+      const input = container.querySelector(".wantto-item--editing .wantto-edit-text");
+      if (input) input.focus();
+      return;
+    }
+    // 編集取消
+    if (e.target.closest(".wantto-edit-cancel")) {
+      _wanttoEditingId = null;
+      renderWantto();
+      return;
+    }
+    // 削除
     const del = e.target.closest(".wantto-del");
-    if (!del) return;
-    const li = del.closest(".wantto-item");
-    if (!li) return;
-    if (!confirm("削除しますか？")) return;
-    deleteWanttoItem(li.dataset.id);
+    if (del) {
+      const li = del.closest(".wantto-item");
+      if (!li) return;
+      if (!confirm("削除しますか？")) return;
+      deleteWanttoItem(li.dataset.id);
+    }
   });
 
   renderWantto();

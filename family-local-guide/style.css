@@ -4326,6 +4326,27 @@ mark.search-highlight {
   color: #b5b5b5;
 }
 
+.wantto-due {
+  font-size: 0.72rem;
+  color: #888;
+  background: #f0f0f0;
+  border-radius: 10px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.wantto-due--over {
+  color: #c0392b;
+  background: #fdecea;
+}
+
+.wantto-item--done .wantto-due {
+  color: #bbb;
+  background: #f4f4f4;
+}
+
+.wantto-edit,
 .wantto-del {
   background: none;
   border: none;
@@ -4338,7 +4359,84 @@ mark.search-highlight {
   transition: color 0.15s;
 }
 
+.wantto-edit:hover { color: #7bb8e0; }
 .wantto-del:hover { color: #e88; }
+
+/* 編集モード */
+.wantto-item--editing {
+  flex-direction: column;
+  align-items: stretch;
+  background: #f7fbfe;
+}
+
+.wantto-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.wantto-edit-text {
+  padding: 8px 10px;
+  border: 1px solid #cfe2f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.wantto-edit-text:focus,
+.wantto-edit-due:focus {
+  outline: none;
+  border-color: #7bb8e0;
+}
+
+.wantto-edit-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wantto-edit-duelabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #888;
+}
+
+.wantto-edit-due {
+  border: 1px solid #cfe2f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.wantto-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.wantto-edit-save,
+.wantto-edit-cancel {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.wantto-edit-save {
+  background: #7bb8e0;
+  color: #fff;
+}
+
+.wantto-edit-save:active { background: #5fa3d0; }
+
+.wantto-edit-cancel {
+  background: #eee;
+  color: #777;
+}
 
 .wantto-empty {
   list-style: none;
