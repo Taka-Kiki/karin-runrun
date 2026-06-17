@@ -3088,7 +3088,16 @@ function renderWantto() {
     if (!ul) return;
     const groupItems = items
       .filter((it) => it.group === g)
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+      .sort((a, b) => {
+        // 期限ありを先に、期限が近い順。期限なしは従来どおり追加順
+        if (a.due && b.due) {
+          if (a.due !== b.due) return a.due < b.due ? -1 : 1;
+          return (a.order || 0) - (b.order || 0);
+        }
+        if (a.due) return -1;
+        if (b.due) return 1;
+        return (a.order || 0) - (b.order || 0);
+      });
     if (groupItems.length === 0) {
       ul.innerHTML = `<li class="wantto-empty">まだありません</li>`;
       return;
@@ -3134,12 +3143,14 @@ function renderWantto() {
   });
 }
 
-function addWanttoItem(group, text) {
+function addWanttoItem(group, text, due) {
   const items = getWanttoItems().slice();
-  items.push({
+  const item = {
     id: "want_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
     group, text, done: false, order: Date.now(),
-  });
+  };
+  if (due) item.due = due;
+  items.push(item);
   saveWanttoItems(items);
   renderWantto();
 }
@@ -3210,10 +3221,12 @@ function setupWantto() {
     const form = e.target;
     if (form.classList.contains("wantto-add")) {
       const input = form.querySelector(".wantto-add-input");
+      const dueInput = form.querySelector(".wantto-add-due");
       const text = input.value.trim();
       if (!text) return;
-      addWanttoItem(form.dataset.group, text);
+      addWanttoItem(form.dataset.group, text, dueInput ? (dueInput.value || null) : null);
       input.value = "";
+      if (dueInput) dueInput.value = "";
       input.focus();
     } else if (form.classList.contains("wantto-edit-form")) {
       const li = form.closest(".wantto-item");

@@ -4448,18 +4448,29 @@ mark.search-highlight {
 .wantto-add {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .wantto-add-input {
-  flex: 1;
+  flex: 1 1 55%;
   padding: 8px 10px;
   border: 1px solid #e3e3e3;
   border-radius: 8px;
   font-size: 0.9rem;
-  min-width: 0;
+  min-width: 140px;
 }
 
-.wantto-add-input:focus {
+.wantto-add-due {
+  flex: 0 0 auto;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.wantto-add-input:focus,
+.wantto-add-due:focus {
   outline: none;
   border-color: #7bb8e0;
 }
