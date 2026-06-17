@@ -8,6 +8,8 @@ const FAV_STORAGE_KEY = "familyGuide_favorites";
 const CHILDREN_STORAGE_KEY = "familyGuide_children";
 const CUSTOM_CALENDAR_KEY = "familyGuide_customCalendar";
 const STATIC_CALENDAR_OVERRIDES_KEY = "familyGuide_calendarOverrides";
+const WANTTO_KEY = "familyGuide_wantto";
+const WANTTO_ROLLOVER_KEY = "familyGuide_wanttoRollover";
 
 // カレンダー期間と月齢の対応表
 const CALENDAR_PERIOD_MAP = [
@@ -1449,7 +1451,7 @@ function setupFavoriteClicks() {
 }
 
 // ===== タブ・ナビゲーション =====
-const TAB_IDS = ["emergency", "taxi", "hospital", "nursery", "caresupport", "shopping", "supplies", "kondate", "calendar", "govlinks"];
+const TAB_IDS = ["emergency", "taxi", "hospital", "nursery", "caresupport", "shopping", "supplies", "kondate", "wantto", "calendar", "govlinks"];
 
 function closeAllMaps() {
   const nurseryMapContainer = document.getElementById("nurseryMapContainer");
@@ -3058,6 +3060,135 @@ function initFirebase() {
   return firebase.database();
 }
 
+// ===== やりたいこと (WANTTO) =====
+const WANTTO_GROUPS = ["thisweek", "nextweek", "someday", "dream"];
+let _wanttoCache = null;
+let _wanttoFirstSync = true;
+
+function getWanttoItems() {
+  if (_wanttoCache !== null) return _wanttoCache;
+  try {
+    _wanttoCache = JSON.parse(localStorage.getItem(WANTTO_KEY)) || [];
+  } catch { _wanttoCache = []; }
+  return _wanttoCache;
+}
+
+function saveWanttoItems(items) {
+  _wanttoCache = items;
+  localStorage.setItem(WANTTO_KEY, JSON.stringify(items));
+  firebaseSet("shared/wantto", arrayToFirebaseObj(items, i => i.id));
+}
+
+function renderWantto() {
+  const items = getWanttoItems();
+  WANTTO_GROUPS.forEach((g) => {
+    const ul = document.getElementById("wanttoList-" + g);
+    if (!ul) return;
+    const groupItems = items
+      .filter((it) => it.group === g)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (groupItems.length === 0) {
+      ul.innerHTML = `<li class="wantto-empty">まだありません</li>`;
+      return;
+    }
+    ul.innerHTML = groupItems.map((it) => `
+      <li class="wantto-item${it.done ? " wantto-item--done" : ""}" data-id="${it.id}">
+        <label class="wantto-check">
+          <input type="checkbox" ${it.done ? "checked" : ""} />
+          <span class="wantto-text">${escapeHtml(it.text)}</span>
+        </label>
+        <button class="wantto-del" type="button" title="削除" aria-label="削除">✕</button>
+      </li>`).join("");
+  });
+}
+
+function addWanttoItem(group, text) {
+  const items = getWanttoItems().slice();
+  items.push({
+    id: "want_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+    group, text, done: false, order: Date.now(),
+  });
+  saveWanttoItems(items);
+  renderWantto();
+}
+
+function toggleWanttoDone(id) {
+  const items = getWanttoItems().map((it) =>
+    it.id === id ? { ...it, done: !it.done } : it);
+  saveWanttoItems(items);
+  renderWantto();
+}
+
+function deleteWanttoItem(id) {
+  const items = getWanttoItems().filter((it) => it.id !== id);
+  saveWanttoItems(items);
+  renderWantto();
+}
+
+// 週のはじまり（月曜）の日付をキーにする。月曜をまたぐと値が変わる。
+function currentWeekKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const day = (d.getDay() + 6) % 7; // 月=0 ... 日=6
+  d.setDate(d.getDate() - day);     // 今週の月曜へ
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function setWanttoLastRollover(week) {
+  localStorage.setItem(WANTTO_ROLLOVER_KEY, week);
+  firebaseSet("shared/wanttoMeta/lastRollover", week);
+}
+
+// 週はじめの自動繰り上げ：来週→今週、今週のチェック済みは削除（未完了は繰越）
+function maybeRolloverWantto(lastRollover) {
+  const cur = currentWeekKey();
+  if (!lastRollover) { setWanttoLastRollover(cur); return; }
+  if (lastRollover === cur) return;
+  let items = getWanttoItems().filter((it) => !(it.group === "thisweek" && it.done));
+  items = items.map((it) => it.group === "nextweek" ? { ...it, group: "thisweek" } : it);
+  saveWanttoItems(items);
+  setWanttoLastRollover(cur);
+  renderWantto();
+}
+
+function setupWantto() {
+  const container = document.querySelector(".wantto-groups");
+  if (!container) return;
+
+  container.querySelectorAll(".wantto-add").forEach((form) => {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = form.querySelector(".wantto-add-input");
+      const text = input.value.trim();
+      if (!text) return;
+      addWanttoItem(form.dataset.group, text);
+      input.value = "";
+      input.focus();
+    });
+  });
+
+  container.addEventListener("change", (e) => {
+    const cb = e.target.closest("input[type=checkbox]");
+    if (!cb) return;
+    const li = cb.closest(".wantto-item");
+    if (li) toggleWanttoDone(li.dataset.id);
+  });
+
+  container.addEventListener("click", (e) => {
+    const del = e.target.closest(".wantto-del");
+    if (!del) return;
+    const li = del.closest(".wantto-item");
+    if (!li) return;
+    if (!confirm("削除しますか？")) return;
+    deleteWanttoItem(li.dataset.id);
+  });
+
+  renderWantto();
+
+  // オフライン時はローカルの記録で繰り上げ判定（Firebase接続時はリスナー側で実施）
+  if (!shoppingDb) maybeRolloverWantto(localStorage.getItem(WANTTO_ROLLOVER_KEY) || "");
+}
+
 function setupShoppingList() {
   shoppingDb = initFirebase();
   if (!shoppingDb) {
@@ -3175,6 +3306,21 @@ function setupFirebaseSync() {
     _staticOverridesCache = snap.val() || {};
     localStorage.setItem(STATIC_CALENDAR_OVERRIDES_KEY, JSON.stringify(_staticOverridesCache));
     applyStaticOverrides();
+  });
+
+  // WANTTO（やりたいこと）リスナー
+  shoppingDb.ref("shared/wantto").on("value", (snap) => {
+    const obj = snap.val() || {};
+    _wanttoCache = Array.isArray(obj) ? obj : Object.values(obj);
+    localStorage.setItem(WANTTO_KEY, JSON.stringify(_wanttoCache));
+    renderWantto();
+    // 初回同期後にサーバの記録を見て週の自動繰り上げを判定
+    if (_wanttoFirstSync) {
+      _wanttoFirstSync = false;
+      shoppingDb.ref("shared/wanttoMeta/lastRollover").once("value").then((s) => {
+        maybeRolloverWantto(s.val() || "");
+      });
+    }
   });
 }
 
@@ -4496,6 +4642,7 @@ async function init() {
   setupShoppingList();
   setupSupplies();
   setupFirebaseSync();
+  setupWantto();
   setupNursery();
   setupKondateView();
   setupKondateModal();

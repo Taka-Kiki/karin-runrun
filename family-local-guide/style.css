@@ -4246,3 +4246,136 @@ mark.search-highlight {
   padding: 20px;
   color: #999;
 }
+
+/* ===== やりたいこと (WANTTO) ===== */
+.wantto-intro {
+  font-size: 0.85rem;
+  color: #888;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+
+.wantto-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wantto-group {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #ddd;
+}
+
+.wantto-group--thisweek { border-left-color: #7bb8e0; }
+.wantto-group--nextweek { border-left-color: #a8cda0; }
+.wantto-group--someday  { border-left-color: #c8b0dd; }
+.wantto-group--dream    { border-left-color: #f0c674; }
+
+.wantto-group-title {
+  font-size: 1rem;
+  margin: 0 0 10px;
+  color: #555;
+}
+
+.wantto-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wantto-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: 8px;
+}
+
+.wantto-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.wantto-check input {
+  width: 20px;
+  height: 20px;
+  accent-color: #7bb8e0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.wantto-text {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: #444;
+  word-break: break-word;
+}
+
+.wantto-item--done .wantto-text {
+  text-decoration: line-through;
+  color: #b5b5b5;
+}
+
+.wantto-del {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.wantto-del:hover { color: #e88; }
+
+.wantto-empty {
+  list-style: none;
+  color: #bbb;
+  font-size: 0.85rem;
+  padding: 4px;
+}
+
+.wantto-add {
+  display: flex;
+  gap: 8px;
+}
+
+.wantto-add-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  min-width: 0;
+}
+
+.wantto-add-input:focus {
+  outline: none;
+  border-color: #7bb8e0;
+}
+
+.wantto-add-btn {
+  background: #7bb8e0;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.wantto-add-btn:active { background: #5fa3d0; }

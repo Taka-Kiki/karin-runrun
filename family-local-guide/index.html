@@ -71,6 +71,7 @@
           <button class="header-nav-item" data-nav="shopping" type="button">🛒 買い物</button>
           <button class="header-nav-item" data-nav="supplies" type="button">🧴 在庫</button>
           <button class="header-nav-item" data-nav="kondate" type="button">🍽️ 献立</button>
+          <button class="header-nav-item" data-nav="wantto" type="button">⭐ やりたい</button>
           <button class="header-nav-item" data-nav="calendar" type="button">📅 予定</button>
           <button class="header-nav-item" data-nav="govlinks" type="button">🌐 情報サイト</button>
         </div>
@@ -131,6 +132,10 @@
         <button class="home-card home-card--orange" data-tab="kondate">
           <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
           <span class="home-card-label">献立</span>
+        </button>
+        <button class="home-card home-card--yellow" data-tab="wantto">
+          <img src="./images/char-puppy.webp" alt="" class="home-card-icon" loading="lazy" />
+          <span class="home-card-label">やりたい</span>
         </button>
         <button class="home-card home-card--rose" data-tab="calendar">
           <img src="./images/char-bunny.webp" alt="" class="home-card-icon" loading="lazy" />
@@ -318,6 +323,49 @@
           <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
         </div>
         <ul id="govlinksList"></ul>
+      </section>
+
+      <!-- やりたいこと (WANTTO) -->
+      <section class="panel" id="wantto" hidden>
+        <div class="panel-header">
+          <h2>やりたいこと（WANTTO）</h2>
+          <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
+        </div>
+        <p class="wantto-intro">家族のやりたいこと・行きたい場所をためる場所です。✅でチェック。<br />「今週」「来週」は毎週月曜に自動で繰り上がります（来週→今週／今週のチェック済みは消えます）。</p>
+        <div class="wantto-groups">
+          <section class="wantto-group wantto-group--thisweek">
+            <h3 class="wantto-group-title">🗓️ 今週</h3>
+            <ul class="wantto-list" id="wanttoList-thisweek"></ul>
+            <form class="wantto-add" data-group="thisweek">
+              <input type="text" class="wantto-add-input" placeholder="今週やりたいこと..." />
+              <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
+            </form>
+          </section>
+          <section class="wantto-group wantto-group--nextweek">
+            <h3 class="wantto-group-title">🗓️ 来週</h3>
+            <ul class="wantto-list" id="wanttoList-nextweek"></ul>
+            <form class="wantto-add" data-group="nextweek">
+              <input type="text" class="wantto-add-input" placeholder="来週やりたいこと..." />
+              <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
+            </form>
+          </section>
+          <section class="wantto-group wantto-group--someday">
+            <h3 class="wantto-group-title">💭 いつか</h3>
+            <ul class="wantto-list" id="wanttoList-someday"></ul>
+            <form class="wantto-add" data-group="someday">
+              <input type="text" class="wantto-add-input" placeholder="いつかやりたいこと..." />
+              <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
+            </form>
+          </section>
+          <section class="wantto-group wantto-group--dream">
+            <h3 class="wantto-group-title">🌈 夢・やりたい</h3>
+            <ul class="wantto-list" id="wanttoList-dream"></ul>
+            <form class="wantto-add" data-group="dream">
+              <input type="text" class="wantto-add-input" placeholder="旅行がしたい など..." />
+              <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
+            </form>
+          </section>
+        </div>
       </section>
 
       <section class="panel" id="calendar" hidden>
