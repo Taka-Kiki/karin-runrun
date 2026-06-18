@@ -3062,9 +3062,11 @@ function initFirebase() {
 
 // ===== やりたいこと (WANTTO) =====
 const WANTTO_GROUPS = ["thisweek", "nextweek", "someday", "dream"];
+const WANTTO_ARCHIVE_KEY = "familyGuide_wanttoArchiveOpen";
 let _wanttoCache = null;
 let _wanttoFirstSync = true;
 let _wanttoEditingId = null;
+const _wanttoSortables = {};
 
 function getWanttoItems() {
   if (_wanttoCache !== null) return _wanttoCache;
@@ -3080,32 +3082,11 @@ function saveWanttoItems(items) {
   firebaseSet("shared/wantto", arrayToFirebaseObj(items, i => i.id));
 }
 
-function renderWantto() {
-  const items = getWanttoItems();
-  const today = currentDateKey();
-  WANTTO_GROUPS.forEach((g) => {
-    const ul = document.getElementById("wanttoList-" + g);
-    if (!ul) return;
-    const groupItems = items
-      .filter((it) => it.group === g)
-      .sort((a, b) => {
-        // 期限ありを先に、期限が近い順。期限なしは従来どおり追加順
-        if (a.due && b.due) {
-          if (a.due !== b.due) return a.due < b.due ? -1 : 1;
-          return (a.order || 0) - (b.order || 0);
-        }
-        if (a.due) return -1;
-        if (b.due) return 1;
-        return (a.order || 0) - (b.order || 0);
-      });
-    if (groupItems.length === 0) {
-      ul.innerHTML = `<li class="wantto-empty">まだありません</li>`;
-      return;
-    }
-    ul.innerHTML = groupItems.map((it) => {
-      // 編集モード
-      if (_wanttoEditingId === it.id) {
-        return `
+// 1項目のHTML（draggable=trueならドラッグハンドル付き）
+function wanttoItemHtml(it, today, draggable) {
+  // 編集モード
+  if (_wanttoEditingId === it.id) {
+    return `
       <li class="wantto-item wantto-item--editing" data-id="${it.id}">
         <form class="wantto-edit-form">
           <input type="text" class="wantto-edit-text" value="${escapeHtml(it.text)}" placeholder="やりたいこと" />
@@ -3120,17 +3101,20 @@ function renderWantto() {
           </div>
         </form>
       </li>`;
-      }
-      // 通常表示（期限バッジつき）
-      let dueHtml = "";
-      if (it.due) {
-        const parts = it.due.split("-");
-        const label = `${Number(parts[1])}/${Number(parts[2])}`;
-        const over = !it.done && it.due < today;
-        dueHtml = `<span class="wantto-due${over ? " wantto-due--over" : ""}">${over ? "⚠ " + label : "〜" + label}</span>`;
-      }
-      return `
+  }
+  // 通常表示（期限バッジつき）
+  let dueHtml = "";
+  if (it.due) {
+    const parts = it.due.split("-");
+    const label = `${Number(parts[1])}/${Number(parts[2])}`;
+    const over = !it.done && it.due < today;
+    dueHtml = `<span class="wantto-due${over ? " wantto-due--over" : ""}">${over ? "⚠ " + label : "〜" + label}</span>`;
+  }
+  const handleHtml = draggable
+    ? `<span class="wantto-handle" title="ドラッグで移動" aria-hidden="true">⋮⋮</span>` : "";
+  return `
       <li class="wantto-item${it.done ? " wantto-item--done" : ""}" data-id="${it.id}">
+        ${handleHtml}
         <label class="wantto-check">
           <input type="checkbox" ${it.done ? "checked" : ""} />
           <span class="wantto-text">${escapeHtml(it.text)}</span>
@@ -3139,7 +3123,87 @@ function renderWantto() {
         <button class="wantto-edit" type="button" title="編集" aria-label="編集">✎</button>
         <button class="wantto-del" type="button" title="削除" aria-label="削除">✕</button>
       </li>`;
-    }).join("");
+}
+
+// アクティブ枠の並び順：未完了→完了の順、各内で期限が近い順（期限なしは追加順）
+function wanttoActiveSort(a, b) {
+  if (!!a.done !== !!b.done) return a.done ? 1 : -1; // 完了は枠の下へ
+  if (a.due && b.due) return a.due !== b.due ? (a.due < b.due ? -1 : 1) : (a.order || 0) - (b.order || 0);
+  if (a.due) return -1;
+  if (b.due) return 1;
+  return (a.order || 0) - (b.order || 0);
+}
+
+function renderWantto() {
+  const items = getWanttoItems();
+  const today = currentDateKey();
+
+  // アクティブ枠（今週/来週/いつか/夢）
+  WANTTO_GROUPS.forEach((g) => {
+    const ul = document.getElementById("wanttoList-" + g);
+    if (!ul) return;
+    const groupItems = items.filter((it) => it.group === g).sort(wanttoActiveSort);
+    ul.innerHTML = groupItems.length
+      ? groupItems.map((it) => wanttoItemHtml(it, today, true)).join("")
+      : `<li class="wantto-empty">まだありません</li>`;
+  });
+
+  // 完了リスト（アーカイブ）：完了が新しい順、ドラッグ不可
+  const doneUl = document.getElementById("wanttoList-done");
+  if (doneUl) {
+    const doneItems = items
+      .filter((it) => it.group === "done")
+      .sort((a, b) => (b.doneAt || b.order || 0) - (a.doneAt || a.order || 0));
+    doneUl.innerHTML = doneItems.length
+      ? doneItems.map((it) => wanttoItemHtml(it, today, false)).join("")
+      : `<li class="wantto-empty">まだありません</li>`;
+    const cnt = document.getElementById("wanttoDoneCount");
+    if (cnt) cnt.textContent = doneItems.length;
+  }
+
+  // 達成バンド：これまでに完了した総数
+  const total = document.getElementById("wanttoDoneTotal");
+  if (total) total.textContent = items.filter((it) => it.done).length;
+
+  initWanttoSortables();
+}
+
+// SortableJS で枠をまたいだドラッグ移動・並べ替え
+function initWanttoSortables() {
+  if (typeof Sortable === "undefined") return;
+  WANTTO_GROUPS.forEach((g) => {
+    const ul = document.getElementById("wanttoList-" + g);
+    if (!ul) return;
+    if (_wanttoSortables[g]) _wanttoSortables[g].destroy();
+    _wanttoSortables[g] = Sortable.create(ul, {
+      group: "wantto",
+      handle: ".wantto-handle",
+      draggable: ".wantto-item",
+      animation: 150,
+      ghostClass: "wantto-item--ghost",
+      chosenClass: "wantto-item--chosen",
+      onEnd: (evt) => {
+        const id = evt.item.dataset.id;
+        const toGroup = evt.to.dataset.group;
+        if (!id || !toGroup) return;
+        // 移動先・移動元のDOM順から order を振り直す
+        const order = {};
+        [evt.to, evt.from].forEach((listEl) => {
+          Array.from(listEl.querySelectorAll(".wantto-item")).forEach((li, idx) => {
+            order[li.dataset.id] = idx;
+          });
+        });
+        const items = getWanttoItems().map((it) => {
+          const n = { ...it };
+          if (it.id === id) n.group = toGroup;
+          if (order[it.id] !== undefined) n.order = order[it.id];
+          return n;
+        });
+        saveWanttoItems(items);
+        // このSortableインスタンスのonEnd内で再描画(=destroy)すると不整合になるため次tickで
+        setTimeout(renderWantto, 0);
+      },
+    });
   });
 }
 
@@ -3166,8 +3230,20 @@ function updateWanttoItem(id, text, due) {
 }
 
 function toggleWanttoDone(id) {
-  const items = getWanttoItems().map((it) =>
-    it.id === id ? { ...it, done: !it.done } : it);
+  const items = getWanttoItems().map((it) => {
+    if (it.id !== id) return it;
+    if (it.group === "done") {
+      // 完了リストでチェックを外す＝元の枠へ復活
+      const revived = { ...it, done: false, group: it.prevGroup || "thisweek" };
+      delete revived.prevGroup;
+      delete revived.doneAt;
+      return revived;
+    }
+    // 通常枠：完了/未完了をトグル（枠は維持。月曜にまとめて完了リストへ移動）
+    const updated = { ...it, done: !it.done };
+    if (updated.done) updated.doneAt = Date.now(); else delete updated.doneAt;
+    return updated;
+  });
   saveWanttoItems(items);
   renderWantto();
 }
@@ -3176,6 +3252,24 @@ function deleteWanttoItem(id) {
   const items = getWanttoItems().filter((it) => it.id !== id);
   saveWanttoItems(items);
   renderWantto();
+}
+
+function clearDoneWantto() {
+  const items = getWanttoItems().filter((it) => it.group !== "done");
+  saveWanttoItems(items);
+  renderWantto();
+}
+
+function toggleWanttoArchive(forceOpen) {
+  const toggle = document.querySelector(".wantto-archive-toggle");
+  const body = document.querySelector(".wantto-archive-body");
+  const caret = document.querySelector(".wantto-archive-caret");
+  if (!toggle || !body) return;
+  const open = forceOpen !== undefined ? forceOpen : body.hidden;
+  body.hidden = !open;
+  toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  if (caret) caret.textContent = open ? "▾" : "▸";
+  localStorage.setItem(WANTTO_ARCHIVE_KEY, open ? "1" : "0");
 }
 
 // 今日の日付キー（期限の超過判定に使用）
@@ -3199,12 +3293,15 @@ function setWanttoLastRollover(week) {
   firebaseSet("shared/wanttoMeta/lastRollover", week);
 }
 
-// 週はじめの自動繰り上げ：来週→今週、今週のチェック済みは削除（未完了は繰越）
+// 週はじめの自動更新：①完了済みを完了リストへまとめて移動 ②来週(未完了)→今週へ繰り上げ
 function maybeRolloverWantto(lastRollover) {
   const cur = currentWeekKey();
   if (!lastRollover) { setWanttoLastRollover(cur); return; }
   if (lastRollover === cur) return;
-  let items = getWanttoItems().filter((it) => !(it.group === "thisweek" && it.done));
+  // ① 完了済みを完了リストへ退避（元の枠を記憶して復活に備える）
+  let items = getWanttoItems().map((it) =>
+    (it.done && it.group !== "done") ? { ...it, prevGroup: it.group, group: "done" } : it);
+  // ② 残った来週(未完了)を今週へ繰り上げ
   items = items.map((it) => it.group === "nextweek" ? { ...it, group: "thisweek" } : it);
   saveWanttoItems(items);
   setWanttoLastRollover(cur);
@@ -3248,6 +3345,17 @@ function setupWantto() {
   });
 
   container.addEventListener("click", (e) => {
+    // 完了リストの開閉
+    if (e.target.closest(".wantto-archive-toggle")) {
+      toggleWanttoArchive();
+      return;
+    }
+    // 完了リストを全消去
+    if (e.target.closest(".wantto-archive-clear")) {
+      if (!confirm("完了リストをすべて消しますか？")) return;
+      clearDoneWantto();
+      return;
+    }
     // 編集開始
     const editBtn = e.target.closest(".wantto-edit");
     if (editBtn) {
@@ -3274,7 +3382,23 @@ function setupWantto() {
     }
   });
 
+  // 先頭ピル：各枠へジャンプ（完了は開いてから移動）
+  const pills = document.querySelector(".wantto-pills");
+  if (pills) {
+    pills.addEventListener("click", (e) => {
+      const pill = e.target.closest(".wantto-pill");
+      if (!pill) return;
+      const target = pill.dataset.target;
+      if (target === "done") toggleWanttoArchive(true);
+      const frame = document.getElementById("wanttoFrame-" + target);
+      if (frame) frame.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   renderWantto();
+
+  // 完了リストの開閉状態を復元（デフォルト閉じる）
+  toggleWanttoArchive(localStorage.getItem(WANTTO_ARCHIVE_KEY) === "1");
 
   // オフライン時はローカルの記録で繰り上げ判定（Firebase接続時はリスナー側で実施）
   if (!shoppingDb) maybeRolloverWantto(localStorage.getItem(WANTTO_ROLLOVER_KEY) || "");

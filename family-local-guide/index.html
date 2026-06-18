@@ -331,43 +331,66 @@
           <h2>やりたいこと（WISH LIST）</h2>
           <img src="./images/char-puppy.webp" alt="" class="panel-char" loading="lazy" />
         </div>
-        <p class="wantto-intro">家族のやりたいこと・行きたい場所をためる場所です。✅でチェック。<br />「今週」「来週」は毎週月曜に自動で繰り上がります（来週→今週／今週のチェック済みは消えます）。</p>
+        <p class="wantto-intro">家族のやりたいこと・行きたい場所をためる場所です。ハンドル(⋮⋮)をつかむと枠の移動・並べ替えができます。<br />毎週月曜に自動更新：来週→今週へ繰り上がり、チェック済みは下の「完了リスト」へまとめて移動します。</p>
+        <div class="wantto-pills">
+          <button class="wantto-pill" type="button" data-target="thisweek">今週</button>
+          <button class="wantto-pill" type="button" data-target="nextweek">来週</button>
+          <button class="wantto-pill" type="button" data-target="someday">いつか</button>
+          <button class="wantto-pill" type="button" data-target="dream">夢</button>
+          <button class="wantto-pill wantto-pill--done" type="button" data-target="done">完了</button>
+        </div>
         <div class="wantto-groups">
-          <section class="wantto-group wantto-group--thisweek">
+          <section class="wantto-group wantto-group--thisweek" id="wanttoFrame-thisweek">
             <h3 class="wantto-group-title">🗓️ 今週</h3>
-            <ul class="wantto-list" id="wanttoList-thisweek"></ul>
+            <ul class="wantto-list" id="wanttoList-thisweek" data-group="thisweek"></ul>
             <form class="wantto-add" data-group="thisweek">
               <input type="text" class="wantto-add-input" placeholder="今週やりたいこと..." />
               <input type="date" class="wantto-add-due" aria-label="期限(任意)" title="期限(任意)" />
               <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
             </form>
           </section>
-          <section class="wantto-group wantto-group--nextweek">
+          <section class="wantto-group wantto-group--nextweek" id="wanttoFrame-nextweek">
             <h3 class="wantto-group-title">🗓️ 来週</h3>
-            <ul class="wantto-list" id="wanttoList-nextweek"></ul>
+            <ul class="wantto-list" id="wanttoList-nextweek" data-group="nextweek"></ul>
             <form class="wantto-add" data-group="nextweek">
               <input type="text" class="wantto-add-input" placeholder="来週やりたいこと..." />
               <input type="date" class="wantto-add-due" aria-label="期限(任意)" title="期限(任意)" />
               <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
             </form>
           </section>
-          <section class="wantto-group wantto-group--someday">
+          <section class="wantto-group wantto-group--someday" id="wanttoFrame-someday">
             <h3 class="wantto-group-title">💭 いつか</h3>
-            <ul class="wantto-list" id="wanttoList-someday"></ul>
+            <ul class="wantto-list" id="wanttoList-someday" data-group="someday"></ul>
             <form class="wantto-add" data-group="someday">
               <input type="text" class="wantto-add-input" placeholder="いつかやりたいこと..." />
               <input type="date" class="wantto-add-due" aria-label="期限(任意)" title="期限(任意)" />
               <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
             </form>
           </section>
-          <section class="wantto-group wantto-group--dream">
+          <section class="wantto-group wantto-group--dream" id="wanttoFrame-dream">
             <h3 class="wantto-group-title">🌈 夢・やりたい</h3>
-            <ul class="wantto-list" id="wanttoList-dream"></ul>
+            <ul class="wantto-list" id="wanttoList-dream" data-group="dream"></ul>
             <form class="wantto-add" data-group="dream">
               <input type="text" class="wantto-add-input" placeholder="旅行がしたい など..." />
               <input type="date" class="wantto-add-due" aria-label="期限(任意)" title="期限(任意)" />
               <button type="submit" class="wantto-add-btn" aria-label="追加">＋</button>
             </form>
+          </section>
+          <!-- 小休止：達成バンド -->
+          <div class="wantto-achievement">
+            <img src="./images/char-puppy.webp" alt="" class="wantto-achievement-char" loading="lazy" />
+            <span class="wantto-achievement-text">これまで <strong id="wanttoDoneTotal">0</strong> 件 達成！</span>
+          </div>
+          <!-- 完了リスト（トグルで開閉） -->
+          <section class="wantto-archive" id="wanttoFrame-done">
+            <button class="wantto-archive-toggle" type="button" aria-expanded="false">
+              <span class="wantto-archive-title">✅ 完了リスト <span class="wantto-archive-count" id="wanttoDoneCount">0</span></span>
+              <span class="wantto-archive-caret">▸</span>
+            </button>
+            <div class="wantto-archive-body" hidden>
+              <ul class="wantto-list" id="wanttoList-done"></ul>
+              <button class="wantto-archive-clear" type="button">完了をすべて消す</button>
+            </div>
           </section>
         </div>
       </section>
