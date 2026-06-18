@@ -4248,13 +4248,6 @@ mark.search-highlight {
 }
 
 /* ===== やりたいこと (WANTTO) ===== */
-.wantto-intro {
-  font-size: 0.85rem;
-  color: #888;
-  line-height: 1.6;
-  margin: 0 0 16px;
-}
-
 .wantto-groups {
   display: flex;
   flex-direction: column;
