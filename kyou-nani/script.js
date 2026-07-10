@@ -2787,6 +2787,7 @@ function init() {
   renderCalendarExpiryAlerts();
   setupSwipe();
   setupKeyboard();
+  setupServiceWorker();
 
   // Calendar memo
   calendarMemoToggle.addEventListener("click", toggleCalendarMemo);
@@ -3019,6 +3020,16 @@ function setupStockSwipe() {
       switchStockCategory(catOrder[idx - 1]);
     }
   }, { passive: true });
+}
+
+// ===== Service Worker（オフライン起動） =====
+async function setupServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    await navigator.serviceWorker.register("./sw.js");
+  } catch (e) {
+    console.warn("SW registration failed:", e);
+  }
 }
 
 // ===== Scroll to Top Button =====
