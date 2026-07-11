@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="./style.css?v=9" />
+    <link rel="stylesheet" href="./style.css?v=10" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" media="print" onload="this.media='all'" />
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" /></noscript>
@@ -194,6 +194,42 @@
         </div>
         <!-- 緊急電話バナー -->
         <div id="emergencyBanners" class="emergency-banners"></div>
+
+        <!-- 災害用伝言（171 / web171）オフラインでも読める手順カード -->
+        <div class="disaster-card">
+          <div class="disaster-card-head">
+            <span class="disaster-card-icon" aria-hidden="true">📞</span>
+            <div>
+              <h3 class="disaster-card-title">災害用伝言ダイヤル 171</h3>
+              <p class="disaster-card-sub">電話がつながりにくい時に、声の伝言を残す・聞く</p>
+            </div>
+          </div>
+
+          <a href="tel:171" class="disaster-call">
+            <span class="disaster-call-num">171</span>
+            <span class="disaster-call-label">タップして発信</span>
+          </a>
+
+          <ol class="disaster-steps">
+            <li><b>171</b> に電話をかける</li>
+            <li>ガイダンスに従う（録音は <b>1</b> ／ 再生は <b>2</b>）</li>
+            <li>自宅の電話番号を<b>市外局番から</b>入力する</li>
+          </ol>
+          <p class="disaster-note">
+            💡 家族であらかじめ「どの番号で伝言を残すか」を決めておくと確実です。毎月1日・15日、防災週間などに<b>体験利用</b>ができます。
+          </p>
+
+          <div class="disaster-divider"></div>
+
+          <div class="disaster-web171">
+            <div class="disaster-web171-info">
+              <div class="disaster-web171-title">🌐 web171（文字で伝言板）</div>
+              <div class="disaster-web171-note">スマホ・PCから文字で安否を残せます。<b>ネットがつながる時のみ</b>利用できます。</div>
+            </div>
+            <a href="https://web171.jp/" class="disaster-web171-btn" target="_blank" rel="noopener">web171を開く</a>
+          </div>
+        </div>
+
         <!-- カテゴリジャンプナビ -->
         <h3 class="emergency-section-title" style="margin-top:20px;">応急手当ガイド</h3>
         <div id="firstAidNav" class="firstaid-nav"></div>
