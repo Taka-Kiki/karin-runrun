@@ -3,6 +3,7 @@ const MENU_LIST_KEY = "kondate_menu_list";
 const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
 const EVENTS_KEY = "kondate_events";
+const SIDES_KEY = "kondate_sides";
 const PRESET_TAGS = ["いつもの", "お気に入り"];
 const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const TAG_ORDER_KEY = "kondate_tag_order";
@@ -33,6 +34,7 @@ const FIREBASE_PATHS = {
   customTags: "customTags",
   events: "events",
   tagOrder: "tagOrder",
+  sides: "sides",
 };
 
 // Family-local-guide Firebase (買い物リスト連携用)
@@ -56,6 +58,8 @@ let _memoCache = null;
 let _customTagsCache = null;
 let _tagOrderCache = null;
 let _eventsCache = null;
+let _sidesCache = null;
+let sidesEditMode = false;
 let _localMenusSnapshot = {};
 
 // ===== State =====
@@ -436,6 +440,74 @@ function deleteStockItem(id) {
   saveStock(list);
 }
 
+// ===== Storage: 副菜早見表 (Sides Guide) =====
+// data shape: { ingredients: [{emoji, name, options:[..]}], soup: [..], asis: [..] }
+// soup は「油揚げ・お豆腐＋α」の α（具の野菜）のリスト。ベースは固定表記。
+const SIDES_SOUP_BASE = "油揚げ・お豆腐＋α";
+
+const SIDES_PRESET = {
+  ingredients: [
+    { emoji: "🥬", name: "小松菜", options: ["おひたし", "ナムル", "卵炒め"] },
+    { emoji: "🥬", name: "ほうれん草", options: ["おひたし", "胡麻和え", "バターソテー"] },
+    { emoji: "🥬", name: "キャベツ", options: ["塩昆布和え", "コールスロー", "蒸し炒め"] },
+    { emoji: "🥦", name: "ブロッコリー", options: ["温野菜", "おかか和え", "ソテー"] },
+    { emoji: "🥗", name: "レタス", options: ["サラダ", "スープ", "しゃぶしゃぶ"] },
+    { emoji: "🥕", name: "にんじん", options: ["しりしり", "グラッセ", "ラペ"] },
+    { emoji: "🥔", name: "じゃがいも", options: ["ポテトサラダ", "粉ふき芋", "バター醤油"] },
+    { emoji: "🧅", name: "玉ねぎ", options: ["丸ごとスープ", "オニオンサラダ", "炒め物"] },
+    { emoji: "🍆", name: "なす", options: ["焼きなす", "煮びたし", "味噌炒め"] },
+    { emoji: "🥒", name: "きゅうり", options: ["塩もみ", "たたき", "酢の物"] },
+    { emoji: "🍅", name: "トマト", options: ["そのまま", "マリネ", "カプレーゼ"] },
+    { emoji: "🫑", name: "ピーマン", options: ["無限ピーマン", "きんぴら", "焼きびたし"] },
+    { emoji: "🍄", name: "しめじ", options: ["バター炒め", "ホイル焼き", "和え物"] },
+    { emoji: "🥬", name: "大根", options: ["大根サラダ", "煮物", "なます"] },
+  ],
+  soup: ["小松菜", "しめじ", "玉ねぎ", "大根", "なめこ", "わかめ", "キャベツ", "じゃがいも", "長ねぎ"],
+  asis: ["冷奴", "納豆", "トマト", "めかぶ", "キムチ", "もずく", "漬物", "しらす", "枝豆", "きんぴら（作り置き）"],
+};
+
+function normalizeSides(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    ingredients: Array.isArray(data.ingredients)
+      ? data.ingredients.map((r) => ({
+          emoji: (r && r.emoji) || "",
+          name: (r && r.name) || "",
+          options: Array.isArray(r && r.options) ? r.options.filter((s) => (s || "").trim()) : [],
+        }))
+      : [],
+    soup: Array.isArray(data.soup) ? data.soup.filter((s) => (s || "").trim()) : [],
+    asis: Array.isArray(data.asis) ? data.asis.filter((s) => (s || "").trim()) : [],
+  };
+}
+
+function getSides() {
+  if (_sidesCache !== null) return _sidesCache;
+  try {
+    const raw = JSON.parse(localStorage.getItem(SIDES_KEY));
+    if (raw) return normalizeSides(raw);
+  } catch {}
+  return normalizeSides(null);
+}
+
+function saveSides(data) {
+  const norm = normalizeSides(data);
+  _sidesCache = norm;
+  localStorage.setItem(SIDES_KEY, JSON.stringify(norm));
+  kondateFirebaseSet(FIREBASE_PATHS.sides, norm);
+}
+
+function sidesIsEmpty(data) {
+  return data.ingredients.length === 0 && data.soup.length === 0 && data.asis.length === 0;
+}
+
+// 初回のみプリセット投入（サーバに一度も保存が無いときだけ／二重投入防止フラグ付き）
+function seedSidesPreset() {
+  if (localStorage.getItem("kondate_sidesSeeded")) return;
+  localStorage.setItem("kondate_sidesSeeded", "1");
+  saveSides(SIDES_PRESET);
+}
+
 // ===== Calendar Memo =====
 function parseMemoData(raw) {
   if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
@@ -595,6 +667,186 @@ function renderCalendarExpiryAlerts() {
   el.hidden = false;
 }
 
+// ===== 副菜早見表 (Sides Guide) =====
+const SIDES_OPT_LABELS = ["A", "B", "C", "D", "E", "F"];
+
+// 読み取り専用のきれいな表示（献立タブ・モーダル参照・印刷で共用）
+function sidesReadonlyHtml(data) {
+  const d = data || getSides();
+  let html = "";
+
+  // 食材 → 副菜
+  html += `<div class="sides-block">`;
+  if (d.ingredients.length === 0) {
+    html += `<p class="sides-empty">食材ごとの副菜がまだありません。「編集」で追加できます。</p>`;
+  } else {
+    html += `<table class="sides-table"><tbody>`;
+    d.ingredients.forEach((row) => {
+      const opts = row.options
+        .map((o, i) => `<span class="sides-opt"><span class="sides-opt-label">${SIDES_OPT_LABELS[i] || "・"}</span>${escapeHtml(o)}</span>`)
+        .join("");
+      html += `<tr>
+        <th class="sides-ing">${row.emoji ? `<span class="sides-emoji">${escapeHtml(row.emoji)}</span>` : ""}${escapeHtml(row.name)}</th>
+        <td class="sides-opts">${opts}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  html += `</div>`;
+
+  // 味噌汁の具（＋α）
+  html += `<div class="sides-block sides-block--soup">
+    <div class="sides-sub-title">🍲 味噌汁（${escapeHtml(SIDES_SOUP_BASE)}）</div>
+    <div class="sides-flow">${d.soup.map((s) => `<span class="sides-flow-item">${escapeHtml(s)}</span>`).join("") || `<span class="sides-empty">—</span>`}</div>
+  </div>`;
+
+  // 出すだけ
+  html += `<div class="sides-block sides-block--asis">
+    <div class="sides-sub-title">🥢 出すだけ</div>
+    <div class="sides-flow">${d.asis.map((s) => `<span class="sides-flow-item">${escapeHtml(s)}</span>`).join("") || `<span class="sides-empty">—</span>`}</div>
+  </div>`;
+
+  return html;
+}
+
+// 編集フォーム
+function sidesEditHtml(data) {
+  const d = data || getSides();
+  let html = "";
+
+  html += `<div class="sides-edit-block">`;
+  html += `<div class="sides-sub-title">🥗 食材 → 副菜（カンマ・読点区切り）</div>`;
+  html += `<div class="sides-rows" id="sidesRows">`;
+  d.ingredients.forEach((row, idx) => {
+    html += sidesRowHtml(row, idx);
+  });
+  html += `</div>`;
+  html += `<button type="button" class="sides-add-row-btn" id="sidesAddRowBtn">＋ 食材を追加</button>`;
+  html += `</div>`;
+
+  html += `<div class="sides-edit-block">
+    <div class="sides-sub-title">🍲 味噌汁の具（${escapeHtml(SIDES_SOUP_BASE)}）</div>
+    <textarea class="sides-edit-textarea" id="sidesSoupInput" rows="2" placeholder="小松菜、しめじ、玉ねぎ…（読点で区切る）">${escapeHtml(d.soup.join("、"))}</textarea>
+  </div>`;
+
+  html += `<div class="sides-edit-block">
+    <div class="sides-sub-title">🥢 出すだけ</div>
+    <textarea class="sides-edit-textarea" id="sidesAsisInput" rows="2" placeholder="冷奴、納豆、トマト…（読点で区切る）">${escapeHtml(d.asis.join("、"))}</textarea>
+  </div>`;
+
+  return html;
+}
+
+function sidesRowHtml(row, idx) {
+  return `<div class="sides-edit-row" data-idx="${idx}">
+    <input type="text" class="sides-in sides-in--emoji" data-field="emoji" value="${escapeHtml(row.emoji || "")}" placeholder="🥬" maxlength="4" />
+    <input type="text" class="sides-in sides-in--name" data-field="name" value="${escapeHtml(row.name || "")}" placeholder="食材名" maxlength="20" />
+    <input type="text" class="sides-in sides-in--opts" data-field="options" value="${escapeHtml((row.options || []).join("、"))}" placeholder="おひたし、ナムル…" maxlength="120" />
+    <button type="button" class="sides-row-remove" data-idx="${idx}" title="削除">×</button>
+  </div>`;
+}
+
+function splitList(str) {
+  return (str || "")
+    .split(/[、,\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// 編集フォームのDOMから現在値を読み取る
+function collectSidesFromDOM() {
+  const rows = [];
+  document.querySelectorAll("#sidesRows .sides-edit-row").forEach((rowEl) => {
+    const emoji = rowEl.querySelector('[data-field="emoji"]').value.trim();
+    const name = rowEl.querySelector('[data-field="name"]').value.trim();
+    const options = splitList(rowEl.querySelector('[data-field="options"]').value);
+    if (name || options.length > 0 || emoji) rows.push({ emoji, name, options });
+  });
+  const soupEl = $("sidesSoupInput");
+  const asisEl = $("sidesAsisInput");
+  return {
+    ingredients: rows,
+    soup: soupEl ? splitList(soupEl.value) : getSides().soup,
+    asis: asisEl ? splitList(asisEl.value) : getSides().asis,
+  };
+}
+
+let sidesSaveTimer;
+function saveSidesFromDOMDebounced() {
+  clearTimeout(sidesSaveTimer);
+  sidesSaveTimer = setTimeout(() => {
+    saveSides(collectSidesFromDOM());
+  }, 500);
+}
+
+function renderSidesGuide() {
+  const body = $("sidesGuideBody");
+  if (!body) return;
+  const toggle = $("sidesEditToggle");
+  const data = getSides();
+
+  if (sidesEditMode) {
+    if (toggle) toggle.textContent = "完了";
+    body.classList.add("sides-guide-body--edit");
+    body.innerHTML = sidesEditHtml(data);
+    wireSidesEditor(body);
+  } else {
+    if (toggle) toggle.textContent = "編集";
+    body.classList.remove("sides-guide-body--edit");
+    body.innerHTML = sidesReadonlyHtml(data);
+  }
+}
+
+function wireSidesEditor(body) {
+  // テキスト編集はDOMから読み取ってデバウンス保存（再描画しないのでフォーカス維持）
+  body.querySelectorAll(".sides-in, .sides-edit-textarea").forEach((el) => {
+    el.addEventListener("input", saveSidesFromDOMDebounced);
+  });
+  // 行削除
+  body.querySelectorAll(".sides-row-remove").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const data = collectSidesFromDOM();
+      const idx = parseInt(btn.dataset.idx, 10);
+      data.ingredients.splice(idx, 1);
+      saveSides(data);
+      renderSidesGuide();
+    });
+  });
+  // 行追加
+  const addBtn = $("sidesAddRowBtn");
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      const data = collectSidesFromDOM();
+      data.ingredients.push({ emoji: "", name: "", options: [] });
+      saveSides(data);
+      renderSidesGuide();
+      // 追加した行の食材名にフォーカス
+      const rows = document.querySelectorAll("#sidesRows .sides-edit-row");
+      const last = rows[rows.length - 1];
+      if (last) last.querySelector('[data-field="name"]').focus();
+    });
+  }
+}
+
+function toggleSidesEdit() {
+  if (sidesEditMode) {
+    // 編集終了時に確定保存
+    clearTimeout(sidesSaveTimer);
+    saveSides(collectSidesFromDOM());
+    sidesEditMode = false;
+  } else {
+    sidesEditMode = true;
+  }
+  renderSidesGuide();
+}
+
+// 献立モーダル内の参照ブロック（読み取り専用）
+function renderSidesRef() {
+  const body = $("sidesRefBody");
+  if (!body) return;
+  body.innerHTML = sidesReadonlyHtml(getSides());
+}
+
 // ===== Suggestions =====
 function getFrequentMenus(limit) {
   const menus = getMenus();
@@ -637,6 +889,7 @@ function switchTab(tabName) {
     renderCalendar();
     renderPinnedStock();
     renderCalendarExpiryAlerts();
+    renderSidesGuide();
     autoResizeAllMemoInputs();
   } else if (tabName === "menulist") {
     renderMenuList();
@@ -750,7 +1003,7 @@ let _modalHistoryPushed = false;
 let _closingFromPopstate = false;
 
 function getOpenModal() {
-  const ids = ["menuModal", "menuEditModal", "stockEditModal", "tagEditModal", "shoppingAddModal"];
+  const ids = ["menuModal", "menuEditModal", "stockEditModal", "tagEditModal", "shoppingAddModal", "printModal"];
   for (const id of ids) {
     const el = $(id);
     if (el && el.classList.contains("is-open")) return el;
@@ -783,6 +1036,7 @@ window.addEventListener("popstate", () => {
     else if (id === "stockEditModal") closeStockEditModal();
     else if (id === "tagEditModal") closeTagEditModal();
     else if (id === "shoppingAddModal") modal.classList.remove("is-open");
+    else if (id === "printModal") modal.classList.remove("is-open");
   }
   _closingFromPopstate = false;
 });
@@ -831,6 +1085,14 @@ function openMenuModal(dateStr) {
 
   renderModalExpirySuggest();
   renderModalSuggestions();
+
+  // 副菜早見表の参照ブロックを閉じた状態に戻す
+  const sidesRefBody = $("sidesRefBody");
+  if (sidesRefBody) {
+    sidesRefBody.hidden = true;
+    const arrow = $("sidesRefToggle")?.querySelector(".toggle-arrow");
+    if (arrow) arrow.classList.remove("toggle-arrow--open");
+  }
 
   menuModal.classList.add("is-open");
   modalPushState();
@@ -2706,6 +2968,17 @@ function setupKondateSync() {
     localStorage.setItem(TAG_ORDER_KEY, JSON.stringify(_tagOrderCache));
     if (activeTab === "menulist") renderMenuList();
   });
+
+  // Sides (副菜早見表) listener
+  kondateDb.ref(FIREBASE_PATHS.sides).on("value", (snap) => {
+    const raw = snap.val();
+    _sidesCache = normalizeSides(raw);
+    localStorage.setItem(SIDES_KEY, JSON.stringify(_sidesCache));
+    // サーバに一度も無ければプリセット投入
+    if (raw == null) seedSidesPreset();
+    // 編集中は上書きしない（フォーカス・入力途中を守る）
+    if (activeTab === "calendar" && !sidesEditMode) renderSidesGuide();
+  });
 }
 
 function migrateKondateToFirebase() {
@@ -2785,9 +3058,25 @@ function init() {
   loadCalendarMemo();
   renderPinnedStock();
   renderCalendarExpiryAlerts();
+  renderSidesGuide();
   setupSwipe();
   setupKeyboard();
   setupServiceWorker();
+
+  // 副菜早見表
+  const sidesEditToggle = $("sidesEditToggle");
+  if (sidesEditToggle) sidesEditToggle.addEventListener("click", toggleSidesEdit);
+  const sidesRefToggle = $("sidesRefToggle");
+  if (sidesRefToggle) {
+    sidesRefToggle.addEventListener("click", () => {
+      const refBody = $("sidesRefBody");
+      const arrow = sidesRefToggle.querySelector(".toggle-arrow");
+      const willOpen = refBody.hidden;
+      if (willOpen) renderSidesRef();
+      refBody.hidden = !willOpen;
+      if (arrow) arrow.classList.toggle("toggle-arrow--open", willOpen);
+    });
+  }
 
   // Calendar memo
   calendarMemoToggle.addEventListener("click", toggleCalendarMemo);
@@ -2800,15 +3089,11 @@ function init() {
   prevMonthBtn.addEventListener("click", () => goMonth(-1));
   nextMonthBtn.addEventListener("click", () => goMonth(1));
   todayBtn.addEventListener("click", goToday);
-  $("printBtn").addEventListener("click", () => {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, "0");
-    const d = String(now.getDate()).padStart(2, "0");
-    const h = String(now.getHours()).padStart(2, "0");
-    const mi = String(now.getMinutes()).padStart(2, "0");
-    $("printFooter").textContent = `印刷日: ${y}/${m}/${d} ${h}:${mi}`;
-    window.print();
+  $("printBtn").addEventListener("click", openPrintModal);
+  $("printRunBtn").addEventListener("click", runPrint);
+  $("printCancelBtn").addEventListener("click", closePrintModal);
+  $("printModal").addEventListener("click", (e) => {
+    if (e.target === $("printModal")) closePrintModal();
   });
   // Calendar modal
   menuSaveBtn.addEventListener("click", saveMenu);
@@ -2955,6 +3240,69 @@ function init() {
 
   // Firebase sync
   setupKondateSync();
+}
+
+// ===== 印刷オプション =====
+const PRINT_OPTS_KEY = "kondate_print_opts";
+const PRINT_OPT_DEFAULTS = { calendar: true, memo: false, pinned: false, expiry: false, sides: true };
+
+function getPrintOpts() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PRINT_OPTS_KEY));
+    if (raw && typeof raw === "object") return { ...PRINT_OPT_DEFAULTS, ...raw };
+  } catch {}
+  return { ...PRINT_OPT_DEFAULTS };
+}
+
+function openPrintModal() {
+  const opts = getPrintOpts();
+  document.querySelectorAll('#printModal input[data-print]').forEach((cb) => {
+    cb.checked = !!opts[cb.dataset.print];
+  });
+  $("printModal").classList.add("is-open");
+  modalPushState();
+}
+
+function closePrintModal() {
+  $("printModal").classList.remove("is-open");
+  modalCloseWithBack();
+}
+
+function applyPrintOptClasses(opts) {
+  const body = document.body;
+  // opts が false のものは印刷から除外（body クラスで @media print が消す）
+  body.classList.toggle("print-no-calendar", !opts.calendar);
+  body.classList.toggle("print-no-memo", !opts.memo);
+  body.classList.toggle("print-no-pinned", !opts.pinned);
+  body.classList.toggle("print-no-expiry", !opts.expiry);
+  body.classList.toggle("print-no-sides", !opts.sides);
+}
+
+function runPrint() {
+  const opts = {};
+  document.querySelectorAll('#printModal input[data-print]').forEach((cb) => {
+    opts[cb.dataset.print] = cb.checked;
+  });
+  localStorage.setItem(PRINT_OPTS_KEY, JSON.stringify(opts));
+  applyPrintOptClasses(opts);
+
+  // 印刷時は最新の副菜早見表（読み取り表示）を描画しておく
+  if (opts.sides) {
+    sidesEditMode = false;
+    renderSidesGuide();
+  }
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  const h = String(now.getHours()).padStart(2, "0");
+  const mi = String(now.getMinutes()).padStart(2, "0");
+  $("printFooter").textContent = `印刷日: ${y}/${m}/${d} ${h}:${mi}`;
+
+  closePrintModal();
+  // モーダルが閉じてから印刷ダイアログを開く
+  setTimeout(() => window.print(), 150);
 }
 
 function migrateCalendarToMenuList() {

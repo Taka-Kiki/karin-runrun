@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./images/icon-180.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="theme-color" content="#FFB56B" />
-    <link rel="stylesheet" href="./style.css?v=6" />
+    <link rel="stylesheet" href="./style.css?v=7" />
   </head>
   <body>
     <header class="site-header">
@@ -78,6 +78,15 @@
       <div class="cal-expiry-alerts" id="calendarExpiryAlerts" hidden>
         <div class="cal-expiry-header">⏰ 在庫の期限</div>
         <div class="cal-expiry-content"></div>
+      </div>
+
+      <!-- 副菜早見表 -->
+      <div class="sides-guide" id="sidesGuide">
+        <div class="sides-guide-head">
+          <h3 class="sides-guide-title">🥗 副菜早見表</h3>
+          <button class="sides-edit-toggle" id="sidesEditToggle" type="button">編集</button>
+        </div>
+        <div class="sides-guide-body" id="sidesGuideBody"></div>
       </div>
 
       <!-- 印刷用フッター -->
@@ -181,6 +190,13 @@
           <div class="menu-suggestions" id="menuSuggestions" hidden>
             <p class="menu-suggestions-label">登録メニュー:</p>
             <div id="menuSuggestionsList" class="menu-suggestions-list"></div>
+          </div>
+          <!-- 副菜早見表（参照のみ・日付には紐づけない） -->
+          <div class="sides-ref" id="sidesRef">
+            <button class="sides-ref-toggle" id="sidesRefToggle" type="button">
+              🥗 副菜どうする？ <span class="toggle-arrow">▼</span>
+            </button>
+            <div class="sides-ref-body" id="sidesRefBody" hidden></div>
           </div>
         </div>
       </div>
@@ -292,6 +308,25 @@
         <div id="shoppingAddCategories" class="shopping-add-categories"></div>
         <div class="modal-buttons" style="margin-top: 16px;">
           <button id="shoppingAddCancelBtn" class="modal-btn" type="button">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 印刷オプションモーダル -->
+    <div id="printModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>🖨️ 印刷する内容</h3>
+        <p class="print-opts-hint">チェックした項目だけ印刷します</p>
+        <div class="print-opts">
+          <label class="print-opt"><input type="checkbox" data-print="calendar" /> <span>📅 献立カレンダー</span></label>
+          <label class="print-opt"><input type="checkbox" data-print="sides" /> <span>🥗 副菜早見表</span></label>
+          <label class="print-opt"><input type="checkbox" data-print="memo" /> <span>📝 献立メモ</span></label>
+          <label class="print-opt"><input type="checkbox" data-print="pinned" /> <span>🥬 今ある食材</span></label>
+          <label class="print-opt"><input type="checkbox" data-print="expiry" /> <span>⏰ 在庫の期限</span></label>
+        </div>
+        <div class="modal-buttons" style="margin-top: 16px;">
+          <button id="printRunBtn" class="modal-btn modal-btn--primary" type="button">🖨️ 印刷する</button>
+          <button id="printCancelBtn" class="modal-btn" type="button">閉じる</button>
         </div>
       </div>
     </div>

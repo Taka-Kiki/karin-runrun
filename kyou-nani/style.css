@@ -459,6 +459,237 @@ body {
   margin: 4px 0 8px;
 }
 
+/* ===== 副菜早見表 (Sides Guide) ===== */
+.sides-guide {
+  margin-top: 12px;
+  background: var(--white);
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+.sides-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+}
+
+.sides-guide-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sides-edit-toggle {
+  border: 1.5px solid var(--border);
+  background: var(--accent-light);
+  color: var(--text-light);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+.sides-edit-toggle:hover { background: var(--primary-light); }
+
+.sides-guide-body { padding: 2px 14px 12px; }
+
+/* --- 読み取り表示 --- */
+.sides-block { margin-bottom: 10px; }
+.sides-block:last-child { margin-bottom: 0; }
+
+.sides-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sides-table tr { border-bottom: 1px dashed var(--border); }
+.sides-table tr:last-child { border-bottom: none; }
+
+.sides-ing {
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  padding: 5px 10px 5px 0;
+  width: 1%;
+}
+.sides-emoji { margin-right: 3px; }
+
+.sides-opts {
+  padding: 5px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.sides-opt {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+.sides-opt-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sides-sub-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 8px 0 4px;
+}
+
+.sides-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sides-flow-item {
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: var(--accent-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.sides-block--soup .sides-flow-item { background: #fdf0e6; border-color: #f0d0b8; }
+.sides-block--asis .sides-flow-item { background: #eef5e6; border-color: #cfe4b8; }
+
+.sides-empty {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  opacity: 0.7;
+  margin: 2px 0;
+}
+
+/* --- 編集フォーム --- */
+.sides-edit-block { margin-bottom: 12px; }
+.sides-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.sides-edit-row {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr 26px;
+  grid-template-areas: "emoji name remove" "opts opts opts";
+  gap: 4px;
+  align-items: center;
+}
+.sides-in--emoji { grid-area: emoji; text-align: center; }
+.sides-in--name { grid-area: name; }
+.sides-in--opts { grid-area: opts; }
+.sides-row-remove {
+  grid-area: remove;
+  border: none;
+  background: none;
+  color: var(--primary-dark);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0;
+}
+.sides-row-remove:hover { opacity: 1; }
+
+.sides-in {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 5px 8px;
+  color: var(--text);
+  background: var(--white);
+  min-width: 0;
+}
+.sides-in:focus { outline: none; border-color: var(--primary); }
+
+.sides-edit-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding: 6px 8px;
+  color: var(--text);
+  background: var(--white);
+  resize: vertical;
+}
+.sides-edit-textarea:focus { outline: none; border-color: var(--primary); }
+
+.sides-add-row-btn {
+  margin-top: 8px;
+  width: 100%;
+  border: 1.5px dashed var(--border);
+  background: none;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--primary);
+  padding: 6px 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.sides-add-row-btn:hover { background: var(--primary-light); }
+
+/* --- モーダル内の参照ブロック --- */
+.sides-ref {
+  margin-top: 12px;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+.sides-ref-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 4px 0;
+}
+.sides-ref-body { padding: 6px 2px 2px; }
+
+/* --- 印刷オプション --- */
+.print-opts-hint {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin: 0 0 10px;
+}
+.print-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.print-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.print-opt:hover { background: var(--accent-light); }
+.print-opt input { width: 18px; height: 18px; accent-color: var(--primary); }
+
 /* ===== Calendar Expiry Alerts ===== */
 .cal-expiry-alerts {
   background: var(--white);
@@ -2290,6 +2521,58 @@ body {
   .cal-expiry-chip small {
     font-size: 5.5pt;
   }
+
+  /* === 副菜早見表（印刷用・2ページ目） === */
+  .sides-guide {
+    display: block !important;
+    border: none;
+    border-radius: 0;
+    margin-top: 0;
+    overflow: visible;
+  }
+  /* 献立カレンダーを印刷するときだけ改ページして2ページ目に送る */
+  body:not(.print-no-calendar) .sides-guide {
+    break-before: page;
+    page-break-before: always;
+  }
+  .sides-guide-head {
+    padding: 0 0 1.5mm;
+    border-bottom: 2px solid #666;
+    margin-bottom: 2mm;
+  }
+  .sides-guide-title { font-size: 13pt; color: #333; }
+  .sides-edit-toggle { display: none !important; }
+  .sides-guide-body { padding: 0; }
+
+  .sides-block { break-inside: avoid; margin-bottom: 2.5mm; }
+  .sides-table tr { border-bottom: 1px solid #ccc; }
+  .sides-ing { font-size: 9pt; color: #333; padding: 1mm 3mm 1mm 0; }
+  .sides-opts { padding: 1mm 0; gap: 1mm 3mm; }
+  .sides-opt { font-size: 9pt; color: #333; }
+  .sides-opt-label {
+    font-size: 6.5pt;
+    color: #333 !important;
+    border-color: #888;
+    width: 11px;
+    height: 11px;
+  }
+  .sides-sub-title { font-size: 9.5pt; color: #333; margin: 2mm 0 1mm; }
+  .sides-flow { gap: 1mm 1.5mm; }
+  .sides-flow-item {
+    font-size: 8.5pt;
+    color: #333;
+    background: none !important;
+    border: 1px solid #999;
+    padding: 0.3mm 2mm;
+  }
+
+  /* === 印刷オプションによる項目除外 === */
+  .print-no-calendar .month-nav,
+  .print-no-calendar .calendar { display: none !important; }
+  .print-no-memo .calendar-memo { display: none !important; }
+  .print-no-pinned .pinned-stock { display: none !important; }
+  .print-no-expiry .cal-expiry-alerts { display: none !important; }
+  .print-no-sides .sides-guide { display: none !important; }
 
   /* === 印刷日フッター === */
   .print-footer {
