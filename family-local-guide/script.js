@@ -2987,7 +2987,9 @@ function setupCustomCalendar() {
 
 // ===== データ読み込み・初期化 =====
 async function loadData() {
-  const response = await fetch(DATA_FILE_PATH, { cache: "no-store" });
+  // 鮮度は Service Worker の Network-First（タイムアウト付き）が担保する。
+  // ここで no-store を指定すると低速回線でキャッシュに落ちられず起動が固まる
+  const response = await fetch(DATA_FILE_PATH);
   if (!response.ok) {
     throw new Error(`data.json の読み込みに失敗しました (${response.status})`);
   }
@@ -4864,6 +4866,10 @@ async function init() {
   setupFirstAidAccordion();
   setupFirstAidNav();
   setupItemEditModal();
+
+  // データ待ちより先に登録する。初回訪問でもプリキャッシュが早く始まる
+  setupServiceWorker();
+
   try {
     const data = await loadData();
     taxiLaborData = data.taxiLabor || [];
@@ -4887,8 +4893,6 @@ async function init() {
     console.error(error);
   }
 
-  // PWA・月初通知
-  setupServiceWorker();
   showMonthlyBannerIfNeeded();
 }
 

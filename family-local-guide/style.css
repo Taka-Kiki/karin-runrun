@@ -2751,7 +2751,9 @@ mark.search-highlight {
 .children-section-header h2 .family-icon {
   color: #10b981;
   margin-right: 4px;
-  font-size: 1.05em;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.18em;
 }
 
 .children-section-header-actions {

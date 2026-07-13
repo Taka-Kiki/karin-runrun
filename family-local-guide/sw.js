@@ -1,15 +1,18 @@
 // Family Local Guide - Service Worker
-const CACHE_VERSION = "v12";
+const CACHE_VERSION = "v13";
 const STATIC_CACHE = "family-guide-static-" + CACHE_VERSION;
 const RUNTIME_CACHE = "family-guide-runtime-" + CACHE_VERSION;
 const NOTIFY_CACHE = "family-guide-notify-v1"; // 通知フラグ用（既存互換）
 const MONTH_NOTIFY_PREFIX = "notified-";
 
+// ネットワークを待つ上限。これを超えたらキャッシュで即座に描画する
+const NETWORK_TIMEOUT_MS = 2000;
+
 // プリキャッシュ対象（オフライン起動に必要なコアアセット）
 const PRECACHE_URLS = [
   "./",
   "./index.html",
-  "./style.css?v=10",
+  "./style.css?v=11",
   "./script.js",
   "./manifest.json",
   "./data.json",
@@ -18,6 +21,11 @@ const PRECACHE_URLS = [
   "./images/char-bunny.webp",
   "./images/char-puppy.webp",
   "./images/char-star.webp",
+  // 起動時に script.js の実行をブロックするCDN依存。キャッシュから返すことで
+  // 2回目以降の起動はネットワークを一切待たない
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js",
+  "https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js",
+  "https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js",
 ];
 
 // ===== Install: プリキャッシュ =====
@@ -76,13 +84,13 @@ self.addEventListener("fetch", (event) => {
   const isDataJson = isSameOrigin && url.pathname.endsWith("/data.json");
   const isHTML = req.mode === "navigate" || (req.headers.get("accept") || "").includes("text/html");
 
-  // data.json: Network-First（最新優先、失敗時キャッシュ）
+  // data.json: Network-First（最新優先、遅ければキャッシュ）
   if (isDataJson) {
     event.respondWith(networkFirst(req));
     return;
   }
 
-  // HTMLナビゲーション: Network-First（新しいindex.htmlを優先）
+  // HTMLナビゲーション: Network-First（新しいindex.htmlを優先、遅ければキャッシュ）
   if (isHTML) {
     event.respondWith(networkFirst(req));
     return;
@@ -92,19 +100,31 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(cacheFirst(req));
 });
 
+// STATIC → RUNTIME の順に探す。CDN資産はRUNTIMEに入るため両方見ないと
+// キャッシュヒットせず毎回ネットワークから取り直しになる
+async function matchAnyCache(request) {
+  const opts = { ignoreVary: true };
+  const staticCache = await caches.open(STATIC_CACHE);
+  const hit = await staticCache.match(request, opts);
+  if (hit) return { res: hit, cache: staticCache };
+  const runtime = await caches.open(RUNTIME_CACHE);
+  const runtimeHit = await runtime.match(request, opts);
+  if (runtimeHit) return { res: runtimeHit, cache: runtime };
+  return null;
+}
+
 async function cacheFirst(request) {
-  const cache = await caches.open(STATIC_CACHE);
-  const cached = await cache.match(request, { ignoreSearch: false });
-  if (cached) {
+  const found = await matchAnyCache(request);
+  if (found) {
     // バックグラウンドで更新（Stale-While-Revalidate）
     fetch(request)
       .then((res) => {
         if (res && res.ok && (res.type === "basic" || res.type === "cors")) {
-          cache.put(request, res.clone()).catch(() => {});
+          found.cache.put(request, res.clone()).catch(() => {});
         }
       })
       .catch(() => {});
-    return cached;
+    return found.res;
   }
   // キャッシュなし → ネットワーク取得しつつ保存
   try {
@@ -115,22 +135,35 @@ async function cacheFirst(request) {
     }
     return res;
   } catch (e) {
-    // 最後のフォールバック
-    const runtime = await caches.open(RUNTIME_CACHE);
-    const runtimeCached = await runtime.match(request);
-    if (runtimeCached) return runtimeCached;
     throw e;
   }
 }
 
+// ネットワーク優先だが NETWORK_TIMEOUT_MS を過ぎたらキャッシュで描画する。
+// 電波が弱いとき（切断ではなく低速）に起動が固まるのを防ぐのが目的で、
+// タイムアウト後もネットワーク応答が届けばキャッシュだけは更新しておく。
 async function networkFirst(request) {
   const cache = await caches.open(STATIC_CACHE);
-  try {
-    const res = await fetch(request);
+
+  const network = fetch(request).then((res) => {
     if (res && res.ok) {
       cache.put(request, res.clone()).catch(() => {});
     }
     return res;
+  });
+
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(null), NETWORK_TIMEOUT_MS);
+  });
+
+  try {
+    const res = await Promise.race([network, timeout]);
+    if (res) return res;
+    // 時間切れ → キャッシュがあれば即返す。無ければネットワークを待ち続ける
+    const cached = await cache.match(request, { ignoreSearch: false });
+    if (cached) return cached;
+    return await network;
   } catch (e) {
     const cached = await cache.match(request, { ignoreSearch: false });
     if (cached) return cached;
@@ -138,6 +171,9 @@ async function networkFirst(request) {
     const fallback = await cache.match("./index.html");
     if (fallback) return fallback;
     throw e;
+  } finally {
+    clearTimeout(timer);
+    network.catch(() => {}); // 未処理rejectionの抑止
   }
 }
 
