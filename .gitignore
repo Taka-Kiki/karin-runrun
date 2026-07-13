@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .claude/settings.local.json
 **/.claude/settings.local.json
+family-local-guide/nursery/
