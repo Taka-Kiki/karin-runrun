@@ -1629,6 +1629,8 @@ li:hover {
   list-style: none;
   margin: 0;
   padding: 0;
+  /* 空の店舗にもドラッグで落とせるよう最小の高さを確保 */
+  min-height: 12px;
 }
 
 .shopping-item {
