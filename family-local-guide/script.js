@@ -1530,10 +1530,21 @@ function updateHeaderNav(activeNav) {
   document.querySelectorAll(".header-nav-item").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.nav === activeNav);
   });
-  // Scroll active nav item into view
+  // アクティブなタブをナビのバー内で中央に寄せる。
+  // scrollIntoView はページ全体（ビューポート）を横にずらす副作用があり、
+  // iOS Safari では画面右端が切れる原因になるため、ナビのバーだけを横スクロールさせる。
   const activeBtn = document.querySelector(".header-nav-item.active");
   if (activeBtn) {
-    activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    const row = activeBtn.closest(".header-nav-row");
+    if (row) {
+      const btnRect = activeBtn.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const target =
+        row.scrollLeft +
+        (btnRect.left - rowRect.left) -
+        (rowRect.width - btnRect.width) / 2;
+      row.scrollTo({ left: target, behavior: "smooth" });
+    }
   }
 }
 
@@ -3852,20 +3863,51 @@ function renderShoppingItems(catId, items) {
     ul.appendChild(li);
   });
 
-  // SortableJS でアイテムのドラッグ並び替え
+  // SortableJS でアイテムのドラッグ並び替え（group共有で店舗をまたいだ移動も可）
   if (shoppingItemSortables[catId]) shoppingItemSortables[catId].destroy();
   if (typeof Sortable !== "undefined") {
     shoppingItemSortables[catId] = Sortable.create(ul, {
+      group: "shopping-items",
       handle: ".shopping-item-handle",
       animation: 150,
       ghostClass: "shopping-item--ghost",
       chosenClass: "shopping-item--chosen",
-      onEnd: () => {
-        const lis = ul.querySelectorAll(".shopping-item");
+      // onEnd はドラッグ開始元(source)のインスタンスで発火する。catId=移動元、items=移動元スナップショット。
+      onEnd: (evt) => {
+        const itemId = evt.item.dataset.itemId;
+        const fromCat = catId;
+        const toCat = evt.to.id.replace("shopping-items-", "");
         const updates = {};
-        lis.forEach((li, i) => {
-          updates["shopping/items/" + catId + "/" + li.dataset.itemId + "/order"] = i;
+
+        // 店舗をまたいだ移動：移動元から削除し、同じIDで移動先へ追加
+        let moved = null;
+        if (fromCat !== toCat) {
+          moved = { ...(items[itemId] || {
+            name: evt.item.querySelector(".shopping-item-name")?.textContent || "",
+            done: false,
+            addedAt: Date.now(),
+          }) };
+          updates["shopping/items/" + fromCat + "/" + itemId] = null;
+        }
+
+        // 移動先リストの並び順を振り直す（移動アイテムは丸ごと書き込み、他は order のみ）
+        evt.to.querySelectorAll(".shopping-item").forEach((li, i) => {
+          const id = li.dataset.itemId;
+          if (moved && id === itemId) {
+            moved.order = i;
+            updates["shopping/items/" + toCat + "/" + itemId] = moved;
+          } else {
+            updates["shopping/items/" + toCat + "/" + id + "/order"] = i;
+          }
         });
+
+        // 移動元リストが別なら、そちらも order を振り直す
+        if (fromCat !== toCat) {
+          evt.from.querySelectorAll(".shopping-item").forEach((li, i) => {
+            updates["shopping/items/" + fromCat + "/" + li.dataset.itemId + "/order"] = i;
+          });
+        }
+
         firebaseWrite("update", "/", updates);
       },
     });
