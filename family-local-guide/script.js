@@ -3119,7 +3119,14 @@ function wanttoItemHtml(it, today, draggable) {
   let dueHtml = "";
   if (it.due) {
     const parts = it.due.split("-");
-    const label = `${Number(parts[1])}/${Number(parts[2])}`;
+    const todayParts = today.split("-");
+    // 年度は4月始まり。今年度より先の年度なら「年」も表示する
+    const fiscalYear = (y, m) => (m >= 4 ? y : y - 1);
+    const dueFY = fiscalYear(Number(parts[0]), Number(parts[1]));
+    const curFY = fiscalYear(Number(todayParts[0]), Number(todayParts[1]));
+    const label = dueFY > curFY
+      ? `${Number(parts[0])}/${Number(parts[1])}/${Number(parts[2])}`
+      : `${Number(parts[1])}/${Number(parts[2])}`;
     const over = !it.done && it.due < today;
     dueHtml = `<span class="wantto-due${over ? " wantto-due--over" : ""}">${over ? "⚠ " + label : "〜" + label}</span>`;
   }
