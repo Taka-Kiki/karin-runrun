@@ -365,6 +365,8 @@ a.home-card { text-decoration: none; color: inherit; position: relative; }
   padding: 16px;
   box-shadow: 0 4px 16px var(--shadow);
   border: 2px solid transparent;
+  /* グリッド項目が中身に押し広げられて画面外にはみ出す（右端見切れ）のを防ぐ */
+  min-width: 0;
 }
 
 /* Panel color themes */
@@ -1583,8 +1585,11 @@ li:hover {
 
 .shopping-category-title {
   margin: 0;
+  min-width: 0;
   font-size: 1rem;
   color: #065f46;
+  /* 長いカテゴリ名でパネルが横に広がるのを防ぐ */
+  overflow-wrap: anywhere;
 }
 
 .shopping-cat-actions {
@@ -4252,6 +4257,8 @@ mark.search-highlight {
   font-weight: 700;
   font-size: 0.95rem;
   min-width: 80px;
+  /* 改行できない長い品名（英数字やURL等）でパネルが横に広がるのを防ぐ */
+  overflow-wrap: anywhere;
 }
 
 .supply-inline-qty {
@@ -4304,6 +4311,8 @@ mark.search-highlight {
   color: var(--text-light);
   margin-top: 4px;
   padding-left: 4px;
+  /* 長いメモ（URL等）でパネルが横に広がるのを防ぐ */
+  overflow-wrap: anywhere;
 }
 
 .supplies-empty {
