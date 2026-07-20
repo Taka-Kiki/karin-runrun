@@ -2,6 +2,10 @@
 
 子供向けのビジュアルタイマーアプリ。HTML/CSS/JavaScriptのフロントエンドのみで構成。
 
+## 作業方針
+- 実装完了時は `/code-review`（low〜medium）で差分を確認してから報告する
+- UI（見た目・操作・タブ切替・レイアウト等）に関わる変更のときは `/run` または `/verify` で動作確認してから報告する
+
 ## 画像生成ツール
 
 Gemini APIを使った画像生成スクリプトが `tools/generate_image.py` にある。
