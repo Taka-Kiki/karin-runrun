@@ -861,7 +861,7 @@ function renderList(targetId, items, category) {
         <div class="meta">地域: ${item.area}</div>
         <div class="meta">電話: ${item.phone}</div>
         <div class="meta">${item.note}</div>
-        ${item.reserveNote ? `<div class="reserve-note">🕐 WEB予約: ${item.reserveNote}</div>` : ""}
+        ${item.reserveNote ? `<div class="reserve-note">🕐 WEB受付時間 ${item.reserveNote}</div>` : ""}
         ${item.phone || item.reserveUrl ? `<div class="list-actions">
           ${item.phone ? `<a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a>` : ""}
           ${item.reserveUrl ? `<a href="${item.reserveUrl}" target="_blank" rel="noopener noreferrer" class="list-reserve-btn">🗓️ WEB予約する</a>` : ""}
@@ -4898,11 +4898,24 @@ function setupSupplies() {
   renderSupplies();
 }
 
+// アプリを離れてからこの時間内に戻ってきたら、前回開いていたタブを復元する。
+// 買い物リストを入力しながら他アプリと行き来するケースを想定
+const TAB_RESTORE_GRACE_MS = 60 * 60 * 1000;
+
+function setupLastActiveTracking() {
+  const mark = () => localStorage.setItem("lastActiveAt", String(Date.now()));
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) mark();
+  });
+  window.addEventListener("pagehide", mark);
+}
+
 async function init() {
   // モバイルでアプリ再表示時に前回のスクロール位置が復元されるのを防ぐため、
   // 起動直後にトップへ戻す
   window.scrollTo(0, 0);
 
+  setupLastActiveTracking();
   setupNavigation();
   setupSwipeNavigation();
   setupSearch();
@@ -4939,10 +4952,15 @@ async function init() {
     updateFavCountBadge();
     checkImport();
     // 新規セッション（ホーム画面から起動）ならホームを表示、
-    // セッション継続中（リロード等）なら前回タブを復元
+    // セッション継続中（リロード等）なら前回タブを復元。
+    // ただしiOSはバックグラウンド中にページごと破棄されて新規セッション扱いになるため、
+    // 離脱から1時間以内なら「戻ってきた」とみなして前回タブを復元する
     const isNewSession = !sessionStorage.getItem("sessionActive");
     sessionStorage.setItem("sessionActive", "1");
-    if (!isNewSession) {
+    const lastActiveAt = Number(localStorage.getItem("lastActiveAt")) || 0;
+    const elapsed = Date.now() - lastActiveAt;
+    const isRecentReturn = lastActiveAt > 0 && elapsed >= 0 && elapsed < TAB_RESTORE_GRACE_MS;
+    if (!isNewSession || isRecentReturn) {
       const savedTab = localStorage.getItem("currentTab");
       if (savedTab && savedTab !== "home" && savedTab !== "favorites") {
         navigateTo(savedTab);
