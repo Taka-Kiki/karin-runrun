@@ -851,7 +851,7 @@ function renderList(targetId, items, category) {
   target.innerHTML = sorted
     .map(
       (item) => `
-      <li data-search="${[item.name, item.area, item.phone, item.note].join(" ").toLowerCase()}">
+      <li data-search="${[item.name, item.area, item.phone, item.note, item.reserveNote || ""].join(" ").toLowerCase()}">
         <div class="name">
           ${createFavButton(category, item)}
           ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.name}</a>` : item.name}
@@ -861,7 +861,11 @@ function renderList(targetId, items, category) {
         <div class="meta">地域: ${item.area}</div>
         <div class="meta">電話: ${item.phone}</div>
         <div class="meta">${item.note}</div>
-        ${item.phone ? `<div><a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a></div>` : ""}
+        ${item.reserveNote ? `<div class="reserve-note">🕐 WEB予約: ${item.reserveNote}</div>` : ""}
+        ${item.phone || item.reserveUrl ? `<div class="list-actions">
+          ${item.phone ? `<a href="tel:${item.phone}" class="list-call-btn">📞 電話をかける</a>` : ""}
+          ${item.reserveUrl ? `<a href="${item.reserveUrl}" target="_blank" rel="noopener noreferrer" class="list-reserve-btn">🗓️ WEB予約する</a>` : ""}
+        </div>` : ""}
       </li>
     `
     )

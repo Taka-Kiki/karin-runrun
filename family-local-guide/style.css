@@ -847,6 +847,51 @@ li:hover {
   box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
 }
 
+/* WEB予約ボタン（電話ボタンの隣に並べる） */
+.list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.list-actions .list-call-btn {
+  margin-top: 0;
+}
+
+.list-reserve-btn {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1.5px solid #c4b5fd;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  background: #fff;
+  color: #7c3aed;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.list-reserve-btn:hover {
+  background: #f5f3ff;
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.15);
+}
+
+.reserve-note {
+  display: inline-block;
+  max-width: 100%;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 /* ===== 応急手当: 緊急バナー ===== */
 .emergency-banners {
   display: flex;
