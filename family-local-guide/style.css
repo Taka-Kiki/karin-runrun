@@ -889,6 +889,17 @@ li:hover {
   min-width: 0;
 }
 
+.emergency-banner-lead {
+  display: inline-block;
+  margin-bottom: 5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
 .emergency-banner-title {
   font-size: 1rem;
   font-weight: 800;
@@ -918,6 +929,17 @@ li:hover {
 
 .emergency-banner--8000 .emergency-banner-call {
   background: #3b82f6;
+  color: #fff;
+}
+
+.emergency-banner--poison {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border: 2px solid #22c55e;
+  color: #166534;
+}
+
+.emergency-banner--poison .emergency-banner-call {
+  background: #22c55e;
   color: #fff;
 }
 

@@ -973,14 +973,22 @@ function renderFirstAid(emergencyData) {
     );
     bannerContainer.innerHTML = bannerItems.map((item) => {
       let cls;
-      if (item.banner && item.phone !== "#7119" && item.phone !== "#8000") {
-        cls = "emergency-banner--hospital";
+      if (item.phone === "#7119") {
+        cls = "emergency-banner--7119";
+      } else if (item.phone === "#8000") {
+        cls = "emergency-banner--8000";
+      } else if (/^[a-z0-9-]+$/.test(item.bannerStyle || "")) {
+        cls = `emergency-banner--${item.bannerStyle}`;
       } else {
-        cls = item.phone === "#7119" ? "emergency-banner--7119" : "emergency-banner--8000";
+        cls = "emergency-banner--hospital";
       }
+      const leadHtml = item.lead
+        ? `<div class="emergency-banner-lead">${escapeHtml(item.lead)}</div>`
+        : "";
       return `
         <a href="tel:${item.phone}" class="emergency-banner ${cls}">
           <div class="emergency-banner-info">
+            ${leadHtml}
             <div class="emergency-banner-title">📞 ${item.name}</div>
             <div class="emergency-banner-note">${item.note}</div>
           </div>
