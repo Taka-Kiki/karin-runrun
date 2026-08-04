@@ -2327,6 +2327,9 @@ body {
     font-size: 10pt;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    /* 内容が多い月（全日献立＋副菜早見表フル）でも確実に1ページに収めるための
+       一律縮小。数値は印刷レイアウトの実測（最悪ケース）で決定。 */
+    zoom: var(--print-zoom, 0.92);
   }
 
   .site-header {
@@ -2342,7 +2345,7 @@ body {
     display: block !important;
     width: 100%;
     height: auto;
-    max-height: 80px;
+    max-height: 42px;
     object-fit: contain;
   }
 
@@ -2386,12 +2389,12 @@ body {
   .weekday--sat { color: #5a8a3c; }
 
   .calendar-grid {
-    grid-auto-rows: minmax(14mm, auto);
+    grid-auto-rows: minmax(11mm, auto);
   }
 
   .day-cell {
     min-height: 0;
-    padding: 1.5mm;
+    padding: 1mm;
     border-color: #999;
     cursor: default;
   }
@@ -2409,39 +2412,40 @@ body {
   }
 
   .day-number {
-    font-size: 8pt;
+    font-size: 7.5pt;
   }
 
   /* 予定ラベル: ベタ塗り(緑)→緑の縁のみ+こげ茶文字でインク節約 */
   .day-event {
-    font-size: 6pt;
+    font-size: 5.5pt;
     background: none !important;
     color: #3a281c !important;
     border: 1px solid #5a8a3c;
     border-radius: 8px;
-    padding: 0.5px 4px;
+    padding: 0 3px;
+    line-height: 1.15;
   }
 
   /* 献立メニュー: ベタ塗り(オレンジ)→オレンジの縁のみ+こげ茶文字でインク節約
      （縁の色で移動対象だと分かるようにしつつ塗りつぶしは廃止） */
   .day-menu {
-    font-size: 7pt;
+    font-size: 6pt;
     white-space: normal;
     color: #3a281c !important;
     background: none !important;
     border: 1px solid #e8763a;
     border-radius: 8px;
-    padding: 1px 4px;
+    padding: 0.5px 3px;
     cursor: default;
-    line-height: 1.2;
+    line-height: 1.1;
   }
 
   /* === 今ある食材（印刷用） === */
   .pinned-stock {
     display: block !important;
     flex-shrink: 0;
-    margin-top: 2mm;
-    padding: 1.5mm 2mm;
+    margin-top: 1.2mm;
+    padding: 1mm 2mm;
     border: 1px solid #999;
     border-radius: 0;
     background: white;
@@ -2466,7 +2470,7 @@ body {
   /* === 献立メモ（印刷用） === */
   .calendar-memo {
     flex-shrink: 0;
-    margin-top: 2mm;
+    margin-top: 1.2mm;
     border: 1px solid #999;
     border-radius: 0;
     background: white;
@@ -2515,8 +2519,8 @@ body {
   .cal-expiry-alerts {
     display: block !important;
     flex-shrink: 0;
-    margin-top: 2mm;
-    padding: 1.5mm 2mm;
+    margin-top: 1.2mm;
+    padding: 1mm 2mm;
     border: 1px solid #999;
     border-radius: 0;
     background: white;
@@ -2545,48 +2549,43 @@ body {
     font-size: 5.5pt;
   }
 
-  /* === 副菜早見表（印刷用・2ページ目） === */
+  /* === 副菜早見表（印刷用・同一ページ内に収める） === */
   .sides-guide {
     display: block !important;
     border: none;
     border-radius: 0;
-    margin-top: 0;
+    margin-top: 1.2mm;
     overflow: visible;
   }
-  /* 献立カレンダーを印刷するときだけ改ページして2ページ目に送る */
-  body:not(.print-no-calendar) .sides-guide {
-    break-before: page;
-    page-break-before: always;
-  }
   .sides-guide-head {
-    padding: 0 0 1.5mm;
-    border-bottom: 2px solid #666;
-    margin-bottom: 2mm;
+    padding: 0 0 1mm;
+    border-bottom: 1.5px solid #666;
+    margin-bottom: 1.5mm;
   }
-  .sides-guide-title { font-size: 13pt; color: #333; }
+  .sides-guide-title { font-size: 10pt; color: #333; }
   .sides-edit-toggle { display: none !important; }
   .sides-guide-body { padding: 0; }
 
-  .sides-block { break-inside: avoid; margin-bottom: 2.5mm; }
+  .sides-block { break-inside: avoid; margin-bottom: 0.6mm; }
   .sides-table tr { border-bottom: 1px solid #ccc; }
-  .sides-ing { font-size: 9pt; color: #333; padding: 1mm 3mm 1mm 0; }
-  .sides-opts { padding: 1mm 0; gap: 1mm 3mm; }
-  .sides-opt { font-size: 9pt; color: #333; }
+  .sides-ing { font-size: 7pt; color: #333; padding: 0.15mm 3mm 0.15mm 0; }
+  .sides-opts { padding: 0.15mm 0; gap: 0.4mm 3mm; }
+  .sides-opt { font-size: 7pt; color: #333; }
   .sides-opt-label {
-    font-size: 6.5pt;
+    font-size: 5.5pt;
     color: #333 !important;
     border-color: #888;
-    width: 11px;
-    height: 11px;
+    width: 9px;
+    height: 9px;
   }
-  .sides-sub-title { font-size: 9.5pt; color: #333; margin: 2mm 0 1mm; }
-  .sides-flow { gap: 1mm 1.5mm; }
+  .sides-sub-title { font-size: 8pt; color: #333; margin: 0.8mm 0 0.4mm; }
+  .sides-flow { gap: 0.4mm 1.5mm; }
   .sides-flow-item {
-    font-size: 8.5pt;
+    font-size: 7pt;
     color: #333;
     background: none !important;
     border: 1px solid #999;
-    padding: 0.3mm 2mm;
+    padding: 0.1mm 1.5mm;
   }
 
   /* === 印刷オプションによる項目除外 === */
@@ -2605,7 +2604,7 @@ body {
     text-align: right;
     font-size: 7pt;
     color: #999;
-    margin-top: 2mm;
-    padding-top: 1mm;
+    margin-top: 1.2mm;
+    padding-top: 0.5mm;
   }
 }
