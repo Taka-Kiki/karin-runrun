@@ -166,6 +166,10 @@ body {
 }
 
 .weekday {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   text-align: center;
   font-size: 0.8rem;
   font-weight: 700;
@@ -173,6 +177,17 @@ body {
 }
 .weekday--sun { color: var(--sun); }
 .weekday--sat { color: var(--sat); }
+
+/* 曜日の下に「平日の型」を小さく表示（日付との間）。スマホでも折り返さないサイズ */
+.weekday-type {
+  margin-top: 1px;
+  font-size: 0.58rem;
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--text-light);
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+}
 
 .calendar-grid {
   display: grid;
