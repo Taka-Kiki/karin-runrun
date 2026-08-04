@@ -147,12 +147,11 @@ const memoTsukuritai = $("memoTsukuritai");
 const memoMen = $("memoMen");
 const memoSakana = $("memoSakana");
 const memoReitou = $("memoReitou");
-const memoTsukeawase = $("memoTsukeawase");
 const memoSugudeki = $("memoSugudeki");
 const memoPickBtn = $("memoPickBtn");
-const MEMO_FIELDS = ["tsukuritai", "men", "sakana", "reitou", "tsukeawase", "sugudeki"];
-const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, men: () => memoMen, sakana: () => memoSakana, reitou: () => memoReitou, tsukeawase: () => memoTsukeawase, sugudeki: () => memoSugudeki };
-const MEMO_ELS = [memoTsukuritai, memoMen, memoSakana, memoReitou, memoTsukeawase, memoSugudeki];
+const MEMO_FIELDS = ["tsukuritai", "men", "sakana", "reitou", "sugudeki"];
+const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, men: () => memoMen, sakana: () => memoSakana, reitou: () => memoReitou, sugudeki: () => memoSugudeki };
+const MEMO_ELS = [memoTsukuritai, memoMen, memoSakana, memoReitou, memoSugudeki];
 const pinnedStockChips = $("pinnedStockChips");
 const pinnedStockEmpty = $("pinnedStockEmpty");
 
@@ -513,7 +512,7 @@ function seedSidesPreset() {
 
 // ===== Calendar Memo =====
 function parseMemoData(raw) {
-  const obj = { tsukuritai: "", men: "", sakana: "", reitou: "", tsukeawase: "", sugudeki: "" };
+  const obj = { tsukuritai: "", men: "", sakana: "", reitou: "", sugudeki: "" };
   if (raw && typeof raw === "object" && !Array.isArray(raw)) return { ...obj, ...raw };
   return obj;
 }
@@ -531,7 +530,6 @@ function loadCalendarMemo() {
   memoMen.value = data.men || "";
   memoSakana.value = data.sakana || "";
   memoReitou.value = data.reitou || "";
-  memoTsukeawase.value = data.tsukeawase || "";
   memoSugudeki.value = data.sugudeki || "";
   updateMemoPrintVisibility();
   autoResizeAllMemoInputs();
@@ -543,7 +541,6 @@ function collectMemoData() {
     men: memoMen.value,
     sakana: memoSakana.value,
     reitou: memoReitou.value,
-    tsukeawase: memoTsukeawase.value,
     sugudeki: memoSugudeki.value,
   };
 }

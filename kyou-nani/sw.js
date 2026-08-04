@@ -1,5 +1,5 @@
 // 今日なに？ - Service Worker
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const STATIC_CACHE = "kyou-nani-static-" + CACHE_VERSION;
 const RUNTIME_CACHE = "kyou-nani-runtime-" + CACHE_VERSION;
 
@@ -8,8 +8,8 @@ const RUNTIME_CACHE = "kyou-nani-runtime-" + CACHE_VERSION;
 const PRECACHE_URLS = [
   "./",
   "./index.html",
-  "./style.css?v=9",
-  "./script.js?v=8",
+  "./style.css?v=10",
+  "./script.js?v=9",
   "./manifest.webmanifest",
   "./favicon.ico",
   "./images/header.png",
