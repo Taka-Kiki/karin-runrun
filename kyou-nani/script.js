@@ -144,14 +144,17 @@ const calendarMemoBody = $("calendarMemoBody");
 const calendarMemoToggle = $("calendarMemoToggle");
 const memoToggleArrow = $("memoToggleArrow");
 const memoTsukuritai = $("memoTsukuritai");
+const memoMen = $("memoMen");
+const memoSakana = $("memoSakana");
 const memoReitou = $("memoReitou");
 const memoTsukeawase = $("memoTsukeawase");
-const memoFree = $("memoFree");
+const memoSugudeki = $("memoSugudeki");
 const memoPickBtn = $("memoPickBtn");
-const MEMO_FIELDS = ["tsukuritai", "reitou", "tsukeawase", "free"];
-const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, reitou: () => memoReitou, tsukeawase: () => memoTsukeawase, free: () => memoFree };
-const pinnedStockEl = $("pinnedStock");
+const MEMO_FIELDS = ["tsukuritai", "men", "sakana", "reitou", "tsukeawase", "sugudeki"];
+const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, men: () => memoMen, sakana: () => memoSakana, reitou: () => memoReitou, tsukeawase: () => memoTsukeawase, sugudeki: () => memoSugudeki };
+const MEMO_ELS = [memoTsukuritai, memoMen, memoSakana, memoReitou, memoTsukeawase, memoSugudeki];
 const pinnedStockChips = $("pinnedStockChips");
+const pinnedStockEmpty = $("pinnedStockEmpty");
 
 // Toast
 const toastEl = $("toast");
@@ -510,10 +513,8 @@ function seedSidesPreset() {
 
 // ===== Calendar Memo =====
 function parseMemoData(raw) {
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw;
-  // Migration: old string format → free field
-  const obj = { tsukuritai: "", reitou: "", tsukeawase: "", free: "" };
-  if (typeof raw === "string" && raw.trim()) obj.free = raw;
+  const obj = { tsukuritai: "", men: "", sakana: "", reitou: "", tsukeawase: "", sugudeki: "" };
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) return { ...obj, ...raw };
   return obj;
 }
 
@@ -527,9 +528,11 @@ function loadCalendarMemo() {
   }
   const data = parseMemoData(raw);
   memoTsukuritai.value = data.tsukuritai || "";
+  memoMen.value = data.men || "";
+  memoSakana.value = data.sakana || "";
   memoReitou.value = data.reitou || "";
   memoTsukeawase.value = data.tsukeawase || "";
-  memoFree.value = data.free || "";
+  memoSugudeki.value = data.sugudeki || "";
   updateMemoPrintVisibility();
   autoResizeAllMemoInputs();
 }
@@ -537,9 +540,11 @@ function loadCalendarMemo() {
 function collectMemoData() {
   return {
     tsukuritai: memoTsukuritai.value,
+    men: memoMen.value,
+    sakana: memoSakana.value,
     reitou: memoReitou.value,
     tsukeawase: memoTsukeawase.value,
-    free: memoFree.value,
+    sugudeki: memoSugudeki.value,
   };
 }
 
@@ -564,7 +569,6 @@ function updateMemoPrintVisibility() {
     const input = sec.querySelector(".memo-input");
     sec.classList.toggle("memo-section--empty", !input || !input.value.trim());
   });
-  memoFree.classList.toggle("memo-section--empty", !memoFree.value.trim());
 }
 
 function autoResizeMemoInput(el) {
@@ -573,7 +577,7 @@ function autoResizeMemoInput(el) {
 }
 
 function autoResizeAllMemoInputs() {
-  [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].forEach(autoResizeMemoInput);
+  MEMO_ELS.forEach(autoResizeMemoInput);
 }
 
 // ===== Stock Pin =====
@@ -600,12 +604,15 @@ function unpinStock(id) {
 
 function renderPinnedStock() {
   const pinned = getStock().filter((s) => s.pinned && (s.qty != null ? s.qty : 1) > 0);
-  if (pinned.length === 0) {
-    pinnedStockEl.hidden = true;
+  const isEmpty = pinned.length === 0;
+  // 枠は常に残す。中身が無いときは案内文を表示。
+  pinnedStockEmpty.hidden = !isEmpty;
+  pinnedStockChips.hidden = isEmpty;
+  if (isEmpty) {
+    pinnedStockChips.innerHTML = "";
     return;
   }
 
-  pinnedStockEl.hidden = false;
   pinnedStockChips.innerHTML = pinned
     .map((s) => {
       const qty = s.qty != null ? s.qty : 1;
@@ -2940,7 +2947,7 @@ function setupKondateSync() {
     localStorage.setItem(MEMO_KEY, JSON.stringify(_memoCache));
     // Only update if user is not currently editing any memo field
     const active = document.activeElement;
-    const isEditingMemo = [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].includes(active);
+    const isEditingMemo = MEMO_ELS.includes(active);
     if (!isEditingMemo) {
       loadCalendarMemo();
     }
@@ -3080,7 +3087,7 @@ function init() {
 
   // Calendar memo
   calendarMemoToggle.addEventListener("click", toggleCalendarMemo);
-  [memoTsukuritai, memoReitou, memoTsukeawase, memoFree].forEach(el => {
+  MEMO_ELS.forEach(el => {
     el.addEventListener("input", () => { saveCalendarMemo(); autoResizeMemoInput(el); });
   });
   memoPickBtn.addEventListener("click", startMemoPickMode);

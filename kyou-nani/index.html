@@ -45,9 +45,10 @@
       <!-- 統計 -->
 
       <!-- 在庫ピックアップ -->
-      <div class="pinned-stock" id="pinnedStock" hidden>
+      <div class="pinned-stock" id="pinnedStock">
         <h3 class="pinned-stock-title">🥬 今ある食材</h3>
         <div class="pinned-stock-chips" id="pinnedStockChips"></div>
+        <p class="pinned-stock-empty" id="pinnedStockEmpty" hidden>在庫タブで📌ピンした食材がここに出ます</p>
       </div>
 
       <!-- 献立メモ -->
@@ -62,6 +63,14 @@
             <button type="button" class="memo-pick-btn" id="memoPickBtn">＋ メニューから追加</button>
           </div>
           <div class="memo-section">
+            <label class="memo-label memo-label--men">麺</label>
+            <textarea class="memo-input" id="memoMen" rows="1"></textarea>
+          </div>
+          <div class="memo-section">
+            <label class="memo-label memo-label--sakana">魚</label>
+            <textarea class="memo-input" id="memoSakana" rows="1"></textarea>
+          </div>
+          <div class="memo-section">
             <label class="memo-label memo-label--reitou">冷凍</label>
             <textarea class="memo-input" id="memoReitou" rows="1"></textarea>
           </div>
@@ -69,8 +78,10 @@
             <label class="memo-label memo-label--tsukeawase">付け合わせ</label>
             <textarea class="memo-input" id="memoTsukeawase" rows="1"></textarea>
           </div>
-          <hr class="memo-divider">
-          <textarea class="memo-input memo-input--free" id="memoFree" rows="1"></textarea>
+          <div class="memo-section">
+            <label class="memo-label memo-label--sugudeki">すぐできメニュー</label>
+            <textarea class="memo-input" id="memoSugudeki" rows="1"></textarea>
+          </div>
         </div>
       </div>
 

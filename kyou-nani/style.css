@@ -334,6 +334,12 @@ body {
   gap: 6px;
 }
 
+.pinned-stock-empty {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
 .pinned-chip {
   display: inline-flex;
   align-items: center;
@@ -432,8 +438,11 @@ body {
   margin-top: 4px;
 }
 .memo-label--tsukuritai { background: #fff3e0; color: #e65100; }
+.memo-label--men { background: #fff8e1; color: #b26a00; }
+.memo-label--sakana { background: #e0f7fa; color: #00838f; }
 .memo-label--reitou { background: #e3f2fd; color: #1565c0; }
 .memo-label--tsukeawase { background: #e8f5e9; color: #2e7d32; }
+.memo-label--sugudeki { background: #f3e5f5; color: #7b1fa2; }
 
 .memo-input {
   flex: 1 1 0;
@@ -2586,6 +2595,8 @@ body {
   .print-no-calendar .calendar { display: none !important; }
   .print-no-memo .calendar-memo { display: none !important; }
   .print-no-pinned .pinned-stock { display: none !important; }
+  /* 空の「今ある食材」枠は印刷しない */
+  .pinned-stock:has(.pinned-stock-empty:not([hidden])) { display: none !important; }
   .print-no-expiry .cal-expiry-alerts { display: none !important; }
   .print-no-sides .sides-guide { display: none !important; }
 
