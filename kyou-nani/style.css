@@ -2489,14 +2489,15 @@ body {
     gap: 0 4px;
     margin-bottom: 0.5mm;
   }
-  /* 空セクションもラベル付きで印刷。副菜早見表と同じ 8.5pt に統一 */
+  /* 空セクションもラベル付きで印刷。副菜早見表と同じ 8.5pt に統一。
+     ラベルのタブ色（背景・文字色）は画面と同じものを印刷にも残す。 */
   .memo-label {
     font-size: 8.5pt;
-    padding: 0;
-    background: none !important;
-    color: #333 !important;
+    font-weight: 700;
+    padding: 0.3mm 1.5mm;
+    border-radius: 3px;
+    margin-top: 0;
   }
-  .memo-label::after { content: "："; }
   .memo-input {
     font-size: 8.5pt;
     line-height: 1.3;
