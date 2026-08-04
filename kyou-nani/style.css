@@ -2327,9 +2327,9 @@ body {
     font-size: 10pt;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    /* 内容が多い月（全日献立＋副菜早見表フル）でも確実に1ページに収めるための
-       一律縮小。数値は印刷レイアウトの実測（最悪ケース）で決定。 */
-    zoom: var(--print-zoom, 0.92);
+    /* 通常は等倍（読みやすさ優先）。内容が多くて1ページに収まらない月だけ
+       runPrint() が実測して --print-zoom を 1 未満に設定し自動縮小する。 */
+    zoom: var(--print-zoom, 1);
   }
 
   .site-header {
@@ -2345,7 +2345,7 @@ body {
     display: block !important;
     width: 100%;
     height: auto;
-    max-height: 42px;
+    max-height: 56px;
     object-fit: contain;
   }
 
@@ -2389,12 +2389,12 @@ body {
   .weekday--sat { color: #5a8a3c; }
 
   .calendar-grid {
-    grid-auto-rows: minmax(11mm, auto);
+    grid-auto-rows: minmax(12mm, auto);
   }
 
   .day-cell {
     min-height: 0;
-    padding: 1mm;
+    padding: 1.2mm;
     border-color: #999;
     cursor: default;
   }
@@ -2412,32 +2412,32 @@ body {
   }
 
   .day-number {
-    font-size: 7.5pt;
+    font-size: 8pt;
   }
 
   /* 予定ラベル: ベタ塗り(緑)→緑の縁のみ+こげ茶文字でインク節約 */
   .day-event {
-    font-size: 5.5pt;
+    font-size: 6pt;
     background: none !important;
     color: #3a281c !important;
     border: 1px solid #5a8a3c;
     border-radius: 8px;
-    padding: 0 3px;
-    line-height: 1.15;
+    padding: 0.3px 4px;
+    line-height: 1.2;
   }
 
   /* 献立メニュー: ベタ塗り(オレンジ)→オレンジの縁のみ+こげ茶文字でインク節約
      （縁の色で移動対象だと分かるようにしつつ塗りつぶしは廃止） */
   .day-menu {
-    font-size: 6pt;
+    font-size: 7pt;
     white-space: normal;
     color: #3a281c !important;
     background: none !important;
     border: 1px solid #e8763a;
     border-radius: 8px;
-    padding: 0.5px 3px;
+    padding: 1px 4px;
     cursor: default;
-    line-height: 1.1;
+    line-height: 1.2;
   }
 
   /* === 今ある食材（印刷用） === */
@@ -2562,30 +2562,30 @@ body {
     border-bottom: 1.5px solid #666;
     margin-bottom: 1.5mm;
   }
-  .sides-guide-title { font-size: 10pt; color: #333; }
+  .sides-guide-title { font-size: 12pt; color: #333; }
   .sides-edit-toggle { display: none !important; }
   .sides-guide-body { padding: 0; }
 
-  .sides-block { break-inside: avoid; margin-bottom: 0.6mm; }
+  .sides-block { break-inside: avoid; margin-bottom: 1.5mm; }
   .sides-table tr { border-bottom: 1px solid #ccc; }
-  .sides-ing { font-size: 7pt; color: #333; padding: 0.15mm 3mm 0.15mm 0; }
-  .sides-opts { padding: 0.15mm 0; gap: 0.4mm 3mm; }
-  .sides-opt { font-size: 7pt; color: #333; }
+  .sides-ing { font-size: 8.5pt; color: #333; padding: 0.5mm 3mm 0.5mm 0; }
+  .sides-opts { padding: 0.5mm 0; gap: 0.6mm 3mm; }
+  .sides-opt { font-size: 8.5pt; color: #333; }
   .sides-opt-label {
-    font-size: 5.5pt;
+    font-size: 6.5pt;
     color: #333 !important;
     border-color: #888;
-    width: 9px;
-    height: 9px;
+    width: 11px;
+    height: 11px;
   }
-  .sides-sub-title { font-size: 8pt; color: #333; margin: 0.8mm 0 0.4mm; }
-  .sides-flow { gap: 0.4mm 1.5mm; }
+  .sides-sub-title { font-size: 9.5pt; color: #333; margin: 1.5mm 0 0.8mm; }
+  .sides-flow { gap: 0.8mm 1.5mm; }
   .sides-flow-item {
-    font-size: 7pt;
+    font-size: 8.5pt;
     color: #333;
     background: none !important;
     border: 1px solid #999;
-    padding: 0.1mm 1.5mm;
+    padding: 0.3mm 2mm;
   }
 
   /* === 印刷オプションによる項目除外 === */

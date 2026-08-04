@@ -3282,7 +3282,99 @@ function applyPrintOptClasses(opts) {
   body.classList.toggle("print-no-sides", !opts.sides);
 }
 
-function runPrint() {
+// style.css 内の @media print { ... } の中身だけを取り出す（波括弧の対応で切り出し）
+function extractPrintCss(css) {
+  const idx = css.indexOf("@media print");
+  if (idx === -1) return null;
+  const open = css.indexOf("{", idx);
+  if (open === -1) return null;
+  let depth = 1;
+  let i = open + 1;
+  for (; i < css.length && depth > 0; i++) {
+    if (css[i] === "{") depth++;
+    else if (css[i] === "}") depth--;
+  }
+  return css.slice(open + 1, i - 1);
+}
+
+// iframe 内の画像読み込み完了を待つ（タイムアウト付き）
+function waitIframeReady(iframe, timeoutMs) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    const doc = iframe.contentDocument;
+    const imgs = Array.from((doc && doc.images) || []);
+    const waits = imgs.map((img) =>
+      img.complete ? Promise.resolve() : new Promise((r) => { img.onload = img.onerror = r; })
+    );
+    // Webフォント適用後に測る（フォント差で高さがずれるのを防ぐ）
+    if (doc && doc.fonts && doc.fonts.ready) waits.push(doc.fonts.ready.catch(() => {}));
+    Promise.all(waits).then(() => {
+      clearTimeout(timer);
+      requestAnimationFrame(() => requestAnimationFrame(finish));
+    });
+  });
+}
+
+// 印刷内容が1ページに収まるよう、はみ出す月だけ --print-zoom を下げる。
+// 通常（内容が少ない月）は等倍のまま＝読みやすさ優先。測定に失敗したら等倍。
+async function fitPrintToOnePage() {
+  const root = document.documentElement;
+  root.style.setProperty("--print-zoom", "1");
+  try {
+    const PX_PER_MM = 96 / 25.4;
+    // @page size: A4 portrait; margin: 8mm 6mm → 印刷可能領域
+    const pageH = (297 - 16) * PX_PER_MM; // ≈ 1062px
+    const pageW = (210 - 12) * PX_PER_MM; // ≈ 748px
+
+    const link = document.querySelector('link[rel="stylesheet"]');
+    if (!link) return;
+    const cssText = await fetch(link.href).then((r) => r.text());
+    const printCss = extractPrintCss(cssText);
+    if (!printCss) return;
+
+    // 印刷対象（ヘッダー＋カレンダータブ）だけを複製して、印刷CSSを等倍で適用し実寸を測る
+    const header = document.querySelector(".site-header");
+    const tab = document.getElementById("tabCalendar");
+    const printableHtml = (header ? header.outerHTML : "") + (tab ? tab.outerHTML : "");
+
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText =
+      `position:fixed;left:-10000px;top:0;width:${pageW}px;height:${Math.ceil(pageH)}px;border:0;visibility:hidden;`;
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument;
+    // 実際の印刷レイアウト＝「基本CSS＋レスポンシブ＋@media print の上書き」。
+    // iframe は screen メディアなので、フルCSS（基本・レスポンシブが効く）に加えて
+    // @media print の中身を通常ルールとして後ろに足し、印刷時の上書きを再現する。
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><base href="${location.href}">` +
+        `<style>${cssText}\n${printCss}\nhtml,body{zoom:1 !important}body{margin:0;width:${pageW}px}</style>` +
+        `</head><body class="${document.body.className}">${printableHtml}</body></html>`
+    );
+    doc.close();
+
+    await waitIframeReady(iframe, 600);
+    const contentH = doc.body ? doc.body.scrollHeight : 0;
+    document.body.removeChild(iframe);
+
+    if (contentH > pageH) {
+      // 実印刷とiframe測定の誤差を吸収する3%の安全マージン付きで縮小率を決定（下限 0.6）
+      const zoom = Math.max(0.6, Math.floor((pageH / contentH) * 0.97 * 1000) / 1000);
+      root.style.setProperty("--print-zoom", String(zoom));
+    }
+  } catch (e) {
+    root.style.setProperty("--print-zoom", "1"); // 失敗時は等倍（読みやすさ優先）
+  }
+}
+
+async function runPrint() {
   const opts = {};
   document.querySelectorAll('#printModal input[data-print]').forEach((cb) => {
     opts[cb.dataset.print] = cb.checked;
@@ -3305,7 +3397,8 @@ function runPrint() {
   $("printFooter").textContent = `印刷日: ${y}/${m}/${d} ${h}:${mi}`;
 
   closePrintModal();
-  // モーダルが閉じてから印刷ダイアログを開く
+  // 内容量に応じて縮小率を決めてから印刷ダイアログを開く
+  await fitPrintToOnePage();
   setTimeout(() => window.print(), 150);
 }
 
