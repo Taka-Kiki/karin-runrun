@@ -2382,11 +2382,15 @@ body {
     flex-shrink: 0;
   }
   .weekday {
-    font-size: 9pt;
+    font-size: 14pt;
     color: #333;
   }
   .weekday--sun { color: #c84b31; }
   .weekday--sat { color: #5a8a3c; }
+  /* 曜日直下の調理方法（温め・レンジ・麺）は従来の曜日サイズ（9pt）を維持 */
+  .weekday-type {
+    font-size: 9pt;
+  }
 
   .calendar-grid {
     grid-auto-rows: minmax(12mm, auto);
