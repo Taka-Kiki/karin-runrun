@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./images/icon-180.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="theme-color" content="#FFB56B" />
-    <link rel="stylesheet" href="./style.css?v=14" />
+    <link rel="stylesheet" href="./style.css?v=15" />
   </head>
   <body>
     <header class="site-header">
@@ -31,13 +31,13 @@
       <!-- カレンダー -->
       <div class="calendar">
         <div class="calendar-weekdays">
-          <span class="weekday weekday--sun">日<span class="weekday-type">自由</span></span>
-          <span class="weekday">月<span class="weekday-type">温め</span></span>
-          <span class="weekday">火<span class="weekday-type">レンジ</span></span>
-          <span class="weekday">水<span class="weekday-type">麺</span></span>
-          <span class="weekday">木<span class="weekday-type">魚</span></span>
-          <span class="weekday">金<span class="weekday-type">冷凍</span></span>
-          <span class="weekday weekday--sat">土<span class="weekday-type">自由</span></span>
+          <span class="weekday weekday--sun">日<input type="text" class="weekday-type" data-weekday="0" maxlength="5" placeholder="＋" aria-label="日曜日の調理タイプ" /></span>
+          <span class="weekday">月<input type="text" class="weekday-type" data-weekday="1" maxlength="5" placeholder="＋" aria-label="月曜日の調理タイプ" /></span>
+          <span class="weekday">火<input type="text" class="weekday-type" data-weekday="2" maxlength="5" placeholder="＋" aria-label="火曜日の調理タイプ" /></span>
+          <span class="weekday">水<input type="text" class="weekday-type" data-weekday="3" maxlength="5" placeholder="＋" aria-label="水曜日の調理タイプ" /></span>
+          <span class="weekday">木<input type="text" class="weekday-type" data-weekday="4" maxlength="5" placeholder="＋" aria-label="木曜日の調理タイプ" /></span>
+          <span class="weekday">金<input type="text" class="weekday-type" data-weekday="5" maxlength="5" placeholder="＋" aria-label="金曜日の調理タイプ" /></span>
+          <span class="weekday weekday--sat">土<input type="text" class="weekday-type" data-weekday="6" maxlength="5" placeholder="＋" aria-label="土曜日の調理タイプ" /></span>
         </div>
         <div id="calendarGrid" class="calendar-grid"></div>
       </div>
@@ -365,6 +365,6 @@
 
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-    <script defer src="./script.js?v=10"></script>
+    <script defer src="./script.js?v=11"></script>
   </body>
 </html>

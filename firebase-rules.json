@@ -4,6 +4,11 @@
     "menuList": { ".read": true, ".write": true },
     "stock": { ".read": true, ".write": true },
     "memo": { ".read": true, ".write": true },
+    "customTags": { ".read": true, ".write": true },
+    "events": { ".read": true, ".write": true },
+    "tagOrder": { ".read": true, ".write": true },
+    "sides": { ".read": true, ".write": true },
+    "weekdayTypes": { ".read": true, ".write": true },
     "$other": { ".read": false, ".write": false }
   }
 }

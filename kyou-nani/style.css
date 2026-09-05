@@ -187,6 +187,32 @@ body {
   color: var(--text-light);
   white-space: nowrap;
   letter-spacing: -0.02em;
+  /* inputを見た目だけ従来のラベルと同じに見せる */
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1px 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: inherit;
+  text-align: center;
+  text-overflow: ellipsis;
+}
+.weekday-type::placeholder {
+  color: var(--text-light);
+  opacity: 0.45;
+}
+.weekday-type:hover {
+  background: rgba(255, 181, 107, 0.16);
+}
+.weekday-type:focus {
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px var(--primary, #ffb56b);
 }
 
 .calendar-grid {
@@ -2390,6 +2416,14 @@ body {
   /* 曜日直下の調理方法（温め・レンジ・麺）は従来の曜日サイズ（9pt）を維持 */
   .weekday-type {
     font-size: 9pt;
+    color: #555;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0;
+  }
+  /* 空欄のプレースホルダ（＋）は印刷しない */
+  .weekday-type::placeholder {
+    color: transparent;
   }
 
   .calendar-grid {

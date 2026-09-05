@@ -4,6 +4,7 @@ const STOCK_KEY = "kondate_stock";
 const MEMO_KEY = "kondate_calendar_memo";
 const EVENTS_KEY = "kondate_events";
 const SIDES_KEY = "kondate_sides";
+const WEEKDAY_TYPES_KEY = "kondate_weekday_types";
 const PRESET_TAGS = ["いつもの", "お気に入り"];
 const CUSTOM_TAGS_KEY = "kondate_custom_tags";
 const TAG_ORDER_KEY = "kondate_tag_order";
@@ -35,6 +36,7 @@ const FIREBASE_PATHS = {
   events: "events",
   tagOrder: "tagOrder",
   sides: "sides",
+  weekdayTypes: "weekdayTypes",
 };
 
 // Family-local-guide Firebase (買い物リスト連携用)
@@ -59,6 +61,7 @@ let _customTagsCache = null;
 let _tagOrderCache = null;
 let _eventsCache = null;
 let _sidesCache = null;
+let _weekdayTypesCache = null;
 let sidesEditMode = false;
 let _localMenusSnapshot = {};
 
@@ -508,6 +511,61 @@ function seedSidesPreset() {
   if (localStorage.getItem("kondate_sidesSeeded")) return;
   localStorage.setItem("kondate_sidesSeeded", "1");
   saveSides(SIDES_PRESET);
+}
+
+// ===== 曜日ごとの調理タイプ（カレンダー見出し） =====
+const WEEKDAY_TYPES_DEFAULT = ["自由", "温め", "レンジ", "麺", "魚", "冷凍", "自由"];
+const WEEKDAY_TYPE_MAXLEN = 5; // index.html の maxlength と合わせる
+
+function normalizeWeekdayTypes(raw) {
+  const src = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : null;
+  return WEEKDAY_TYPES_DEFAULT.map((_, i) => {
+    const v = src && src[i];
+    return typeof v === "string" ? v.slice(0, WEEKDAY_TYPE_MAXLEN) : "";
+  });
+}
+
+function getWeekdayTypes() {
+  if (_weekdayTypesCache !== null) return _weekdayTypesCache;
+  try {
+    const raw = JSON.parse(localStorage.getItem(WEEKDAY_TYPES_KEY));
+    if (raw) return normalizeWeekdayTypes(raw);
+  } catch {}
+  return WEEKDAY_TYPES_DEFAULT.slice();
+}
+
+// 画面上の入力欄から現在値を集める（入力途中の値もそのまま拾う）
+function collectWeekdayTypes() {
+  const types = WEEKDAY_TYPES_DEFAULT.map(() => "");
+  document.querySelectorAll(".weekday-type").forEach((el) => {
+    const i = Number(el.dataset.weekday);
+    if (i >= 0 && i < types.length) types[i] = el.value.trim().slice(0, WEEKDAY_TYPE_MAXLEN);
+  });
+  return types;
+}
+
+function renderWeekdayTypes() {
+  const types = getWeekdayTypes();
+  document.querySelectorAll(".weekday-type").forEach((el) => {
+    if (el === document.activeElement) return; // 入力中の欄は上書きしない
+    const i = Number(el.dataset.weekday);
+    el.value = types[i] || "";
+  });
+}
+
+let weekdayTypesSaveTimer = null;
+function storeWeekdayTypes(types) {
+  _weekdayTypesCache = types;
+  localStorage.setItem(WEEKDAY_TYPES_KEY, JSON.stringify(types));
+  kondateFirebaseSet(FIREBASE_PATHS.weekdayTypes, types);
+}
+
+function saveWeekdayTypes() {
+  clearTimeout(weekdayTypesSaveTimer);
+  weekdayTypesSaveTimer = setTimeout(() => {
+    weekdayTypesSaveTimer = null;
+    storeWeekdayTypes(collectWeekdayTypes());
+  }, 500);
 }
 
 // ===== Calendar Memo =====
@@ -2761,6 +2819,12 @@ function setupSwipe() {
 }
 
 // ===== Keyboard =====
+function isTextEntryTarget(el) {
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
 function setupKeyboard() {
   document.addEventListener("keydown", (e) => {
     // Stock edit modal
@@ -2784,8 +2848,8 @@ function setupKeyboard() {
       return;
     }
 
-    // Calendar tab only
-    if (activeTab === "calendar") {
+    // Calendar tab only（入力欄にフォーカス中は矢印キーをカーソル移動に使わせる）
+    if (activeTab === "calendar" && !isTextEntryTarget(e.target)) {
       if (e.key === "ArrowLeft") goMonth(-1);
       if (e.key === "ArrowRight") goMonth(1);
     }
@@ -2973,6 +3037,22 @@ function setupKondateSync() {
     if (activeTab === "menulist") renderMenuList();
   });
 
+  // 曜日ごとの調理タイプ listener
+  kondateDb.ref(FIREBASE_PATHS.weekdayTypes).on("value", (snap) => {
+    const raw = snap.val();
+    if (raw == null) {
+      // サーバに一度も無ければ現在の内容を初期投入（保存待ちの入力があればそれを優先）
+      const pending = weekdayTypesSaveTimer !== null;
+      if (pending) { clearTimeout(weekdayTypesSaveTimer); weekdayTypesSaveTimer = null; }
+      storeWeekdayTypes(pending ? collectWeekdayTypes() : getWeekdayTypes());
+    } else {
+      _weekdayTypesCache = normalizeWeekdayTypes(raw);
+      localStorage.setItem(WEEKDAY_TYPES_KEY, JSON.stringify(_weekdayTypesCache));
+    }
+    // renderWeekdayTypes() は入力中の欄だけ避けて残りを更新する
+    renderWeekdayTypes();
+  });
+
   // Sides (副菜早見表) listener
   kondateDb.ref(FIREBASE_PATHS.sides).on("value", (snap) => {
     const raw = snap.val();
@@ -2997,6 +3077,7 @@ function migrateKondateToFirebase() {
     { key: CUSTOM_TAGS_KEY, path: FIREBASE_PATHS.customTags },
     { key: EVENTS_KEY, path: FIREBASE_PATHS.events },
     { key: TAG_ORDER_KEY, path: FIREBASE_PATHS.tagOrder },
+    { key: WEEKDAY_TYPES_KEY, path: FIREBASE_PATHS.weekdayTypes },
   ];
 
   const promises = [];
@@ -3063,6 +3144,7 @@ function init() {
   renderPinnedStock();
   renderCalendarExpiryAlerts();
   renderSidesGuide();
+  renderWeekdayTypes();
   setupSwipe();
   setupKeyboard();
   setupServiceWorker();
@@ -3088,6 +3170,13 @@ function init() {
     el.addEventListener("input", () => { saveCalendarMemo(); autoResizeMemoInput(el); });
   });
   memoPickBtn.addEventListener("click", startMemoPickMode);
+
+  // 曜日ごとの調理タイプ
+  document.querySelectorAll(".weekday-type").forEach((el) => {
+    el.addEventListener("input", saveWeekdayTypes);
+    el.addEventListener("blur", () => { el.value = el.value.trim(); saveWeekdayTypes(); });
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) el.blur(); });
+  });
 
   // Calendar navigation
   prevMonthBtn.addEventListener("click", () => goMonth(-1));
