@@ -467,6 +467,7 @@ body {
 .memo-label--men { background: #fff8e1; color: #b26a00; }
 .memo-label--sakana { background: #e0f7fa; color: #00838f; }
 .memo-label--reitou { background: #e3f2fd; color: #1565c0; }
+.memo-label--shitaji { background: #fce4ec; color: #c2185b; }
 .memo-label--sugudeki { background: #f3e5f5; color: #7b1fa2; }
 
 .memo-input {

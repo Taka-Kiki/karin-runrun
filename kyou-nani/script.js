@@ -150,11 +150,12 @@ const memoTsukuritai = $("memoTsukuritai");
 const memoMen = $("memoMen");
 const memoSakana = $("memoSakana");
 const memoReitou = $("memoReitou");
+const memoShitaji = $("memoShitaji");
 const memoSugudeki = $("memoSugudeki");
 const memoPickBtn = $("memoPickBtn");
-const MEMO_FIELDS = ["tsukuritai", "men", "sakana", "reitou", "sugudeki"];
-const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, men: () => memoMen, sakana: () => memoSakana, reitou: () => memoReitou, sugudeki: () => memoSugudeki };
-const MEMO_ELS = [memoTsukuritai, memoMen, memoSakana, memoReitou, memoSugudeki];
+const MEMO_FIELDS = ["tsukuritai", "men", "sakana", "reitou", "shitaji", "sugudeki"];
+const MEMO_INPUTS = { tsukuritai: () => memoTsukuritai, men: () => memoMen, sakana: () => memoSakana, reitou: () => memoReitou, shitaji: () => memoShitaji, sugudeki: () => memoSugudeki };
+const MEMO_ELS = [memoTsukuritai, memoMen, memoSakana, memoReitou, memoShitaji, memoSugudeki];
 const pinnedStockChips = $("pinnedStockChips");
 const pinnedStockEmpty = $("pinnedStockEmpty");
 
@@ -570,7 +571,7 @@ function saveWeekdayTypes() {
 
 // ===== Calendar Memo =====
 function parseMemoData(raw) {
-  const obj = { tsukuritai: "", men: "", sakana: "", reitou: "", sugudeki: "" };
+  const obj = { tsukuritai: "", men: "", sakana: "", reitou: "", shitaji: "", sugudeki: "" };
   if (raw && typeof raw === "object" && !Array.isArray(raw)) return { ...obj, ...raw };
   return obj;
 }
@@ -588,6 +589,7 @@ function loadCalendarMemo() {
   memoMen.value = data.men || "";
   memoSakana.value = data.sakana || "";
   memoReitou.value = data.reitou || "";
+  memoShitaji.value = data.shitaji || "";
   memoSugudeki.value = data.sugudeki || "";
   updateMemoPrintVisibility();
   autoResizeAllMemoInputs();
@@ -599,6 +601,7 @@ function collectMemoData() {
     men: memoMen.value,
     sakana: memoSakana.value,
     reitou: memoReitou.value,
+    shitaji: memoShitaji.value,
     sugudeki: memoSugudeki.value,
   };
 }
